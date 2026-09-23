@@ -27,18 +27,12 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@workspace/ui/components/input-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { useMemo, useState } from "react";
 
 import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
+import { FilterSelect } from "@/components/filters/filter-select";
 import { PageHeader } from "@/components/page-header";
 
 import { AthleteActiveDialog, AthleteFormDialog } from "./athlete-dialogs";
@@ -179,35 +173,6 @@ const matchesFilters = (athlete: AthleteRow, filters: Filters) => {
     (filters.status === "active") === athlete.is_active;
   return matchesSearch && matchesCategory && matchesEvent && matchesStatus;
 };
-
-const FilterSelect = ({
-  items,
-  label,
-  onChange,
-  value,
-}: {
-  items: { label: string; value: string }[];
-  label: string;
-  onChange: (value: string) => void;
-  value: string;
-}) => (
-  <Select
-    items={items}
-    onValueChange={(next) => onChange(String(next))}
-    value={value}
-  >
-    <SelectTrigger aria-label={label} className="w-44">
-      <SelectValue />
-    </SelectTrigger>
-    <SelectContent>
-      {items.map((item) => (
-        <SelectItem key={item.value} value={item.value}>
-          {item.label}
-        </SelectItem>
-      ))}
-    </SelectContent>
-  </Select>
-);
 
 const AthletesEmpty = ({ filtered }: { filtered: boolean }) => (
   <Empty>

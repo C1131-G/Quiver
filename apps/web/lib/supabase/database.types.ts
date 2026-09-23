@@ -344,6 +344,13 @@ export interface Database {
             foreignKeyName: "rounds_session_id_fkey";
             columns: ["session_id"];
             isOneToOne: false;
+            referencedRelation: "session_summaries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rounds_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
             referencedRelation: "sessions";
             referencedColumns: ["id"];
           },
@@ -468,9 +475,109 @@ export interface Database {
       };
     };
     Views: {
-      [_ in never]: never;
+      session_summaries: {
+        Row: {
+          arrows: number | null;
+          athlete_id: string | null;
+          athlete_name: string | null;
+          avg_arrow: number | null;
+          category_id: number | null;
+          category_name: string | null;
+          completed_at: string | null;
+          correction_count: number | null;
+          distance_ids: number[] | null;
+          event_id: number | null;
+          event_name: string | null;
+          formats: string | null;
+          gender: Database["public"]["Enums"]["gender"] | null;
+          id: string | null;
+          id_no: string | null;
+          max_points: number | null;
+          miss_count: number | null;
+          rounds: number | null;
+          scorer_id: string | null;
+          scorer_name: string | null;
+          session_date: string | null;
+          session_type: Database["public"]["Enums"]["session_type"] | null;
+          started_at: string | null;
+          status: Database["public"]["Enums"]["session_status"] | null;
+          target_face_ids: number[] | null;
+          ten_plus_x_count: number | null;
+          title: string | null;
+          total_points: number | null;
+          venue: Database["public"]["Enums"]["venue"] | null;
+          x_count: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sessions_athlete_id_fkey";
+            columns: ["athlete_id"];
+            isOneToOne: false;
+            referencedRelation: "athletes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sessions_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sessions_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sessions_scorer_id_fkey";
+            columns: ["scorer_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Functions: {
+      athlete_performance: {
+        Args: {
+          p_athlete_ids?: string[];
+          p_by_week?: boolean;
+          p_category_ids?: number[];
+          p_distance_ids?: number[];
+          p_event_ids?: number[];
+          p_from?: string;
+          p_genders?: Database["public"]["Enums"]["gender"][];
+          p_session_types?: Database["public"]["Enums"]["session_type"][];
+          p_target_face_ids?: number[];
+          p_to?: string;
+          p_venues?: Database["public"]["Enums"]["venue"][];
+        };
+        Returns: {
+          arrows: number;
+          athlete_id: string;
+          athlete_name: string;
+          avg_arrow: number;
+          best_session_avg: number;
+          category_name: string;
+          distance_id: number;
+          event_name: string;
+          gender: Database["public"]["Enums"]["gender"];
+          id_no: string;
+          last_session_date: string;
+          meters: number;
+          miss_count: number;
+          sessions: number;
+          target_face_id: number;
+          target_face_name: string;
+          ten_plus_x_count: number;
+          total_points: number;
+          week_start: string;
+          x_count: number;
+        }[];
+      };
       correct_arrow: {
         Args: { p_arrow_id: string; p_reason: string; p_value: string };
         Returns: {

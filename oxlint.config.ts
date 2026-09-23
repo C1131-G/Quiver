@@ -10,12 +10,27 @@ import vitest from "ultracite/oxlint/vitest";
 
 const jsPlugins = selectJsPlugins(["react-doctor"]);
 
+// Tests run on Bun's runner, imported from "bun:test", so the vitest preset's
+// "import globals from vitest" rule would rewrite them to the wrong package.
+// Oxlint applies an extended config's overrides after this file's, so the
+// rule is switched off inside the preset itself.
+const bunTests = {
+  ...vitest,
+  overrides: (vitest.overrides ?? []).map((override) => ({
+    ...override,
+    rules: {
+      ...override.rules,
+      "vitest/prefer-importing-vitest-globals": "off" as const,
+    },
+  })),
+};
+
 export default defineConfig({
   extends: [
     core,
     react,
     next,
-    vitest,
+    bunTests,
     nextJsPlugins,
     shadcn,
     antiSlop,
