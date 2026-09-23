@@ -196,7 +196,7 @@ const FilterSelect = ({
     onValueChange={(next) => onChange(String(next))}
     value={value}
   >
-    <SelectTrigger aria-label={label} className="sm:w-44">
+    <SelectTrigger aria-label={label} className="w-44">
       <SelectValue />
     </SelectTrigger>
     <SelectContent>
@@ -308,8 +308,8 @@ export const AthletesPage = () => {
         title="Athletes"
       />
 
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-        <InputGroup className="sm:max-w-xs">
+      <div className="mb-4 flex flex-wrap gap-2">
+        <InputGroup className="max-w-xs">
           <InputGroupAddon>
             <MagnifyingGlassIcon aria-hidden="true" />
           </InputGroupAddon>

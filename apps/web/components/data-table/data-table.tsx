@@ -18,13 +18,15 @@ import {
 } from "@workspace/ui/components/table";
 import type { ReactNode } from "react";
 
+import { IconSwap } from "@/components/icon-swap";
+
 import type { DataTableFeatures } from "./data-table-features";
 import { dataTableFeatures } from "./data-table-features";
 
 const DEFAULT_PAGE_SIZE = 20;
 const NO_SORTING: SortingState = [];
 
-const SortIcon = ({ direction }: { direction: false | "asc" | "desc" }) => {
+const SortGlyph = ({ direction }: { direction: false | "asc" | "desc" }) => {
   if (direction === "asc") {
     return <ArrowUpIcon aria-hidden="true" />;
   }
@@ -33,6 +35,12 @@ const SortIcon = ({ direction }: { direction: false | "asc" | "desc" }) => {
   }
   return <ArrowsDownUpIcon aria-hidden="true" className="opacity-40" />;
 };
+
+const SortIcon = ({ direction }: { direction: false | "asc" | "desc" }) => (
+  <IconSwap iconKey={direction || "none"}>
+    <SortGlyph direction={direction} />
+  </IconSwap>
+);
 
 interface DataTableProps<TData extends RowData> {
   // Column value types differ per column, so the list is heterogeneous.
@@ -76,7 +84,7 @@ export const DataTable = <TData extends RowData>({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="overflow-hidden rounded-lg border">
+      <div className="overflow-hidden border">
         <Table aria-label={label}>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

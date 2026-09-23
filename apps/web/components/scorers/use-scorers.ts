@@ -13,7 +13,7 @@ export type AppRole = Database["public"]["Enums"]["app_role"];
 const USERS_KEY = ["profiles"] as const;
 
 /** Admins read every profile through RLS; writes go through admin-users. */
-export const useUsers = () =>
+export const useAccounts = () =>
   useQuery({
     queryFn: async () => {
       const { data, error } = await createClient()

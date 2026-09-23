@@ -85,7 +85,7 @@ export const WorkspaceShell = ({ children }: { children: ReactNode }) => (
             id={MAIN_CONTENT_ID}
             tabIndex={-1}
           >
-            <div className="mx-auto w-full max-w-7xl p-4 md:p-8">
+            <div className="mx-auto w-full max-w-7xl p-8">
               <RouteTransition>{children}</RouteTransition>
             </div>
           </main>

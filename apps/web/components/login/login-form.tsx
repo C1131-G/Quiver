@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
 
+import { IconSwap } from "@/components/icon-swap";
 import { createClient } from "@/lib/supabase/client";
 import { supabaseEnv } from "@/lib/supabase/env";
 import { isAdminRole } from "@/lib/supabase/roles";
@@ -85,7 +86,9 @@ const PasswordField = () => {
         title={label}
         type="button"
       >
-        {visible ? <EyeClosed /> : <EyeOpen />}
+        <IconSwap iconKey={visible ? "hide" : "show"}>
+          {visible ? <EyeClosed /> : <EyeOpen />}
+        </IconSwap>
       </button>
     </div>
   );

@@ -6,26 +6,25 @@ import {
   UserGearIcon,
   UsersThreeIcon,
 } from "@phosphor-icons/react";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import {
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@workspace/ui/components/sidebar";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ComponentType } from "react";
 
 interface NavigationItem {
-  href: "/dashboard" | "/athletes" | "/users" | "/settings";
-  icon: ComponentType<{ "aria-hidden"?: boolean }>;
+  href: "/dashboard" | "/athletes" | "/scorers" | "/settings";
+  icon: PhosphorIcon;
   label: string;
 }
 
 const items: NavigationItem[] = [
   { href: "/dashboard", icon: GaugeIcon, label: "Dashboard" },
   { href: "/athletes", icon: UsersThreeIcon, label: "Athletes" },
-  { href: "/users", icon: UserGearIcon, label: "Users" },
+  { href: "/scorers", icon: UserGearIcon, label: "Scorers" },
   { href: "/settings", icon: GearIcon, label: "Settings" },
 ];
 
@@ -36,7 +35,6 @@ const isNavigationItemActive = (
 
 export const WorkspaceNavigation = () => {
   const pathname = usePathname();
-  const { isMobile, setOpenMobile } = useSidebar();
   return (
     <>
       {items.map(({ href, icon: Icon, label }) => (
@@ -50,17 +48,18 @@ export const WorkspaceNavigation = () => {
                 aria-current={
                   isNavigationItemActive(pathname, href) ? "page" : undefined
                 }
-                onClick={() => {
-                  if (isMobile) {
-                    setOpenMobile(false);
-                  }
-                }}
                 transitionTypes={["nav-forward"]}
               />
             }
             tooltip={label}
           >
-            <Icon aria-hidden />
+            {/* Outline by default, filled for the current page. */}
+            <Icon
+              aria-hidden
+              weight={
+                isNavigationItemActive(pathname, href) ? "fill" : "regular"
+              }
+            />
             <span>{label}</span>
           </SidebarMenuButton>
         </SidebarMenuItem>

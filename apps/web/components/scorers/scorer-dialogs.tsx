@@ -38,8 +38,8 @@ import {
 import type { FormEvent } from "react";
 import { toast } from "sonner";
 
-import type { AppRole, Profile } from "./use-users";
-import { useAdminUsersMutation } from "./use-users";
+import type { AppRole, Profile } from "./use-scorers";
+import { useAdminUsersMutation } from "./use-scorers";
 
 const ROLE_ITEMS: { label: string; value: AppRole }[] = [
   { label: "Scorer (mobile app)", value: "scorer" },
@@ -89,7 +89,7 @@ export const CreateUserDialog = ({ onOpenChange, open }: DialogProps) => {
       <DialogContent>
         <form className="flex flex-col gap-6" onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>Add user</DialogTitle>
+            <DialogTitle>Add scorer</DialogTitle>
             <DialogDescription>
               Scorers sign in on the mobile app only. Share the login ID and
               password with them directly.
@@ -212,7 +212,7 @@ export const EditUserDialog = ({
       <DialogContent>
         <form className="flex flex-col gap-6" onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>Edit user</DialogTitle>
+            <DialogTitle>Edit account</DialogTitle>
             <DialogDescription>
               The login ID ({user?.login_id}) can’t be changed.
             </DialogDescription>

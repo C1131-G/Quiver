@@ -88,7 +88,7 @@ const DashboardPage = () => (
       description="Performance tables, filters, comparisons and exports arrive in the next phase."
       title="Dashboard"
     />
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       <Suspense fallback={<StatCardsSkeleton />}>
         <StatCards />
       </Suspense>

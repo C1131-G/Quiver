@@ -41,21 +41,23 @@ import { DataTable } from "@/components/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
 import { PageHeader } from "@/components/page-header";
 
-import type { Profile } from "./use-users";
-import { useUsers } from "./use-users";
 import {
   CreateUserDialog,
   EditUserDialog,
   ResetPasswordDialog,
   SetActiveDialog,
-} from "./user-dialogs";
+} from "./scorer-dialogs";
+import type { Profile } from "./use-scorers";
+import { useAccounts } from "./use-scorers";
 
 type DialogKind = "edit" | "reset" | "active";
 
+// Scorers first: that is what this page is for. Admin accounts are one
+// filter away, since admins are provisioned here too.
 const ROLE_FILTERS = [
-  { label: "All roles", value: "all" },
   { label: "Scorers", value: "scorer" },
   { label: "Admins", value: "admin" },
+  { label: "All accounts", value: "all" },
 ];
 const STATUS_FILTERS = [
   { label: "All statuses", value: "all" },
@@ -173,7 +175,9 @@ const UsersEmpty = ({ filtered }: { filtered: boolean }) => (
       <EmptyMedia variant="icon">
         <UsersIcon aria-hidden="true" />
       </EmptyMedia>
-      <EmptyTitle>{filtered ? "No matching users" : "No users yet"}</EmptyTitle>
+      <EmptyTitle>
+        {filtered ? "No matching accounts" : "No scorers yet"}
+      </EmptyTitle>
       <EmptyDescription>
         {filtered
           ? "Try a different search or clear the filters."
@@ -183,10 +187,10 @@ const UsersEmpty = ({ filtered }: { filtered: boolean }) => (
   </Empty>
 );
 
-export const UsersPage = () => {
-  const { data, error, isPending } = useUsers();
+export const ScorersPage = () => {
+  const { data, error, isPending } = useAccounts();
   const [search, setSearch] = useState("");
-  const [role, setRole] = useState("all");
+  const [role, setRole] = useState("scorer");
   const [status, setStatus] = useState("all");
   const [creating, setCreating] = useState(false);
   // The user outlives the open state so a closing dialog keeps its text.
@@ -206,7 +210,7 @@ export const UsersPage = () => {
       (data ?? []).filter((user) => matchesFilters(user, search, role, status)),
     [data, search, role, status]
   );
-  const filtered = search !== "" || role !== "all" || status !== "all";
+  const filtered = search !== "" || role !== "scorer" || status !== "all";
 
   const closeDialog = (open: boolean) => {
     if (!open) {
@@ -220,20 +224,20 @@ export const UsersPage = () => {
         action={
           <Button onClick={() => setCreating(true)}>
             <UserPlusIcon aria-hidden="true" data-icon="inline-start" />
-            Add user
+            Add scorer
           </Button>
         }
-        description="Scorer accounts sign in on the mobile app to record scores. Admin accounts use this desktop app."
-        title="Users"
+        description="Scorers sign in on the mobile app to record scores. Switch the filter to Admins to manage desktop admin accounts."
+        title="Scorers"
       />
 
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row">
-        <InputGroup className="sm:max-w-xs">
+      <div className="mb-4 flex flex-wrap gap-2">
+        <InputGroup className="max-w-xs">
           <InputGroupAddon>
             <MagnifyingGlassIcon aria-hidden="true" />
           </InputGroupAddon>
           <InputGroupInput
-            aria-label="Search users"
+            aria-label="Search scorers"
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search name or login ID"
             value={search}
@@ -244,7 +248,7 @@ export const UsersPage = () => {
           onValueChange={(value) => setRole(String(value))}
           value={role}
         >
-          <SelectTrigger aria-label="Filter by role" className="sm:w-40">
+          <SelectTrigger aria-label="Filter by role" className="w-40">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -260,7 +264,7 @@ export const UsersPage = () => {
           onValueChange={(value) => setStatus(String(value))}
           value={status}
         >
-          <SelectTrigger aria-label="Filter by status" className="sm:w-40">
+          <SelectTrigger aria-label="Filter by status" className="w-40">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -292,7 +296,7 @@ export const UsersPage = () => {
           empty={<UsersEmpty filtered={filtered} />}
           getRowId={(user) => user.id}
           initialSorting={[{ desc: false, id: "full_name" }]}
-          label="Users"
+          label="Scorers"
         />
       ) : null}
 

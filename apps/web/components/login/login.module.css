@@ -114,6 +114,7 @@
   cursor: pointer;
   display: inline-flex;
   inline-size: 2rem;
+  transition: color 150ms ease-out;
   inset-inline-end: 0.375rem;
   justify-content: center;
   padding: 0;
@@ -145,11 +146,18 @@
   font: inherit;
   font-weight: 500;
   padding: 0.5rem 0.75rem;
-  transition: opacity 0.15s ease;
+  transition-duration: 150ms;
+  transition-property: opacity, scale;
+  transition-timing-function: ease-out;
 }
 
 .submit:hover:enabled {
   opacity: 0.9;
+}
+
+/* Tactile press feedback, as on every other button in the app. */
+.submit:active:enabled {
+  scale: 0.96;
 }
 
 .submit:focus-visible {

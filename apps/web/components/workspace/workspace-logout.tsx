@@ -26,11 +26,7 @@ export const WorkspaceLogout = () => {
 
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton
-        aria-label="Log out"
-        render={<button aria-label="Log out" onClick={logout} type="button" />}
-        tooltip="Log out"
-      >
+      <SidebarMenuButton onClick={logout} tooltip="Log out">
         <SignOutIcon aria-hidden="true" />
         <span>Log out</span>
       </SidebarMenuButton>

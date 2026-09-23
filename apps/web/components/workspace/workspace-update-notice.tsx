@@ -27,9 +27,7 @@ export const WorkspaceUpdateNotice = () => {
     <SidebarMenuItem>
       <SidebarMenuButton
         aria-label={label}
-        render={
-          <button aria-label={label} onClick={() => install()} type="button" />
-        }
+        onClick={() => install()}
         tooltip={label}
       >
         <DownloadSimpleIcon aria-hidden="true" />

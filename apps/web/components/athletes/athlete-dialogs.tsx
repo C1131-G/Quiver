@@ -149,7 +149,7 @@ export const AthleteFormDialog = ({
       }}
       open={open}
     >
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="max-w-xl">
         <form
           className="flex flex-col gap-6"
           key={athlete?.id ?? "new"}
@@ -165,7 +165,7 @@ export const AthleteFormDialog = ({
             </DialogDescription>
           </DialogHeader>
           <FieldGroup>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-4">
               <Field>
                 <FieldLabel htmlFor="athlete-id-no">ID No.</FieldLabel>
                 <Input
@@ -188,7 +188,7 @@ export const AthleteFormDialog = ({
                 />
                 <FieldDescription>Optional.</FieldDescription>
               </Field>
-              <Field className="sm:col-span-2">
+              <Field className="col-span-2">
                 <FieldLabel htmlFor="athlete-full-name">Name</FieldLabel>
                 <Input
                   autoComplete="off"
@@ -253,7 +253,7 @@ export const AthleteFormDialog = ({
                 name="targetFaceId"
               />
               {mutation.error ? (
-                <FieldError className="sm:col-span-2">
+                <FieldError className="col-span-2">
                   {mutation.error.message}
                 </FieldError>
               ) : null}
