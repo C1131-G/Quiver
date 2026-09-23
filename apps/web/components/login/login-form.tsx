@@ -1,5 +1,20 @@
 "use client";
 
+import { EyeIcon, EyeSlashIcon } from "@phosphor-icons/react";
+import { Button } from "@workspace/ui/components/button";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@workspace/ui/components/field";
+import { Input } from "@workspace/ui/components/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group";
 import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
 
@@ -8,8 +23,6 @@ import { createClient } from "@/lib/supabase/client";
 import { supabaseEnv } from "@/lib/supabase/env";
 import { isAdminRole } from "@/lib/supabase/roles";
 import { usernameToEmail } from "@/lib/supabase/username";
-
-import styles from "./login.module.css";
 
 const NOT_CONFIGURED =
   "Sign-in is not configured for this build. Contact your administrator.";
@@ -33,64 +46,39 @@ const readableError = (message: string) => {
   return "Could not sign in. Check your connection and try again.";
 };
 
-const EyeOpen = () => (
-  <svg
-    aria-hidden="true"
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    strokeWidth="2"
-    viewBox="0 0 24 24"
-  >
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const EyeClosed = () => (
-  <svg
-    aria-hidden="true"
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    strokeWidth="2"
-    viewBox="0 0 24 24"
-  >
-    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-    <line x1="1" x2="23" y1="1" y2="23" />
-  </svg>
-);
-
 const PasswordField = () => {
   const [visible, setVisible] = useState(false);
   const label = visible ? "Hide password" : "Show password";
 
   return (
-    <div className={styles.passwordField}>
-      <input
+    <InputGroup>
+      <InputGroupInput
         autoComplete="current-password"
-        className={styles.input}
         id="login-password"
         name="password"
         required
         type={visible ? "text" : "password"}
       />
-      <button
-        aria-controls="login-password"
-        aria-label={label}
-        aria-pressed={visible}
-        className={styles.toggle}
-        onClick={() => setVisible((current) => !current)}
-        title={label}
-        type="button"
-      >
-        <IconSwap iconKey={visible ? "hide" : "show"}>
-          {visible ? <EyeClosed /> : <EyeOpen />}
-        </IconSwap>
-      </button>
-    </div>
+      <InputGroupAddon align="inline-end">
+        <InputGroupButton
+          aria-controls="login-password"
+          aria-label={label}
+          aria-pressed={visible}
+          onClick={() => setVisible((current) => !current)}
+          size="icon-xs"
+          static
+          title={label}
+        >
+          <IconSwap iconKey={visible ? "hide" : "show"}>
+            {visible ? (
+              <EyeSlashIcon aria-hidden="true" />
+            ) : (
+              <EyeIcon aria-hidden="true" />
+            )}
+          </IconSwap>
+        </InputGroupButton>
+      </InputGroupAddon>
+    </InputGroup>
   );
 };
 
@@ -159,45 +147,45 @@ export const LoginForm = () => {
   }
 
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <section className={styles.intro}>
-          <h1>Welcome back</h1>
-          <p>Log in to your Quiver Dashboard account</p>
-        </section>
-        <form action={signIn} className={styles.form}>
-          <label className={styles.label} htmlFor="login-username">
-            Username
-          </label>
-          <input
-            autoComplete="username"
-            className={styles.input}
-            defaultValue={username}
-            id="login-username"
-            maxLength={64}
-            minLength={3}
-            name="username"
-            required
-            type="text"
-          />
-          <label className={styles.label} htmlFor="login-password">
-            Password
-          </label>
-          <PasswordField />
-          <button
-            className={styles.submit}
-            disabled={isPending || signedIn}
-            type="submit"
-          >
-            {submitLabel}
-          </button>
-        </form>
-        {error ? (
-          <p className={styles.error} role="alert">
-            {error}
+    <main className="flex min-h-svh items-center justify-center p-6">
+      <div className="w-full max-w-sm">
+        <header className="mb-6 flex flex-col gap-1 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Welcome back
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Log in to your Quiver Dashboard account
           </p>
-        ) : null}
-      </main>
-    </div>
+        </header>
+        <form action={signIn}>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="login-username">Username</FieldLabel>
+              <Input
+                autoCapitalize="none"
+                autoComplete="username"
+                defaultValue={username}
+                id="login-username"
+                maxLength={64}
+                minLength={3}
+                name="username"
+                required
+                spellCheck={false}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="login-password">Password</FieldLabel>
+              <PasswordField />
+            </Field>
+            <Field>
+              <Button disabled={isPending || signedIn} size="lg" type="submit">
+                {submitLabel}
+              </Button>
+              {error ? <FieldError>{error}</FieldError> : null}
+            </Field>
+          </FieldGroup>
+        </form>
+      </div>
+    </main>
   );
 };

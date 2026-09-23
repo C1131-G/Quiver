@@ -6,6 +6,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { PageHeader } from "@/components/page-header";
@@ -55,6 +56,9 @@ const StatCards = async () => {
   if (!supabaseEnv) {
     return null;
   }
+  // "Last 7 days" depends on today, so this renders per request, never
+  // at build time.
+  await connection();
   const stats = await loadCounts();
   return (
     <>
