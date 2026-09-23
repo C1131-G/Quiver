@@ -29,6 +29,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { z } from "zod";
 
+import { ExportButton } from "@/components/export/export-button";
 import { PageHeader } from "@/components/page-header";
 import type { Stat } from "@/components/stat-grid";
 import { StatGrid } from "@/components/stat-grid";
@@ -42,6 +43,7 @@ import {
 import { ArrowValue } from "./arrow-value";
 import type { CorrectionTarget } from "./correct-arrow-dialog";
 import { CorrectArrowDialog } from "./correct-arrow-dialog";
+import { exportSession } from "./export-session";
 import { SESSION_TYPE_LABELS, VENUE_LABELS } from "./session-labels";
 import { RoundScorecard } from "./session-scorecard";
 import { SessionStatusBadge } from "./session-status-badge";
@@ -232,7 +234,15 @@ const SessionView = ({ sessionId }: { sessionId: string }) => {
     <div>
       <BackToSessions />
       <PageHeader
-        action={<SessionStatusBadge status={data.status} />}
+        action={
+          <>
+            <SessionStatusBadge status={data.status} />
+            <ExportButton
+              disabled={!corrections.data}
+              onExport={() => exportSession(data, corrections.data ?? [])}
+            />
+          </>
+        }
         description={describe(data)}
         title={data.athlete?.full_name ?? "Session"}
       />

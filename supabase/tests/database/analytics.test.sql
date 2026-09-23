@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(12);
+select plan(19);
 
 -- Seeded accounts (supabase/seed.sql).
 \set admin_id '00000000-0000-4000-8000-000000000001'
@@ -40,6 +40,18 @@ select throws_ok(
   null,
   'anon cannot call athlete_performance'
 );
+select throws_ok(
+  'select * from public.score_distribution()',
+  '42501',
+  null,
+  'anon cannot call score_distribution'
+);
+select throws_ok(
+  'select * from public.arrow_details',
+  '42501',
+  null,
+  'anon cannot read arrow details'
+);
 reset role;
 
 -- Admins see every session.
@@ -68,6 +80,22 @@ select ok(
   'the distance filter narrows rows'
 );
 
+select is(
+  (select sum(arrows) from public.score_distribution()),
+  (select count(*)::bigint from public.arrows),
+  'the score distribution accounts for every arrow'
+);
+select is(
+  (select count(*) from public.arrow_details),
+  (select count(*) from public.arrows),
+  'arrow details has one row per arrow'
+);
+select is(
+  (select sum(arrows) from public.athlete_performance(p_distance_ids => '{8}')),
+  (select count(*)::bigint from public.arrow_details where distance_id = 8),
+  'performance and the arrow export agree on a filter'
+);
+
 -- Admin corrections are applied and audited with the reason.
 select lives_ok(
   $$ select public.correct_arrow(
@@ -89,6 +117,16 @@ select is(
   (select count(*) from public.session_summaries where scorer_id <> :'scorer_id'),
   0::bigint,
   'a scorer sees only their own sessions'
+);
+select is(
+  (select count(*) from public.arrow_details where scorer_id <> :'scorer_id'),
+  0::bigint,
+  'a scorer exports only their own arrows'
+);
+select is(
+  (select sum(arrows) from public.score_distribution()),
+  (select count(*)::bigint from public.arrow_details),
+  'a scorer''s distribution matches their own arrows'
 );
 select is(
   (select coalesce(sum(correction_count), 0)::int from public.session_summaries),

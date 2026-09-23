@@ -1,0 +1,142 @@
+import { Badge } from "@workspace/ui/components/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table";
+
+import type { PerformanceRow } from "@/components/performance/use-performance";
+import {
+  formatAverage,
+  formatDate,
+  formatInteger,
+  formatPercent,
+} from "@/lib/format";
+
+import type { Series } from "./series";
+import { SeriesKey } from "./series-key";
+
+interface Metric {
+  /** Which way is better, when a best value makes sense. */
+  better?: "higher" | "lower";
+  format: (row: PerformanceRow) => string;
+  label: string;
+  score?: (row: PerformanceRow) => number;
+}
+
+const METRICS: Metric[] = [
+  { format: (row) => formatInteger(row.sessions), label: "Sessions" },
+  { format: (row) => formatInteger(row.arrows), label: "Arrows" },
+  {
+    better: "higher",
+    format: (row) => formatAverage(row.avg_arrow),
+    label: "Average per arrow",
+    score: (row) => row.avg_arrow,
+  },
+  {
+    better: "higher",
+    format: (row) => formatAverage(row.best_session_avg),
+    label: "Best session average",
+    score: (row) => row.best_session_avg,
+  },
+  {
+    better: "higher",
+    format: (row) => formatPercent(row.ten_plus_x_count, row.arrows),
+    label: "10 + X rate",
+    score: (row) => row.ten_plus_x_count / row.arrows,
+  },
+  {
+    better: "higher",
+    format: (row) => formatPercent(row.x_count, row.arrows),
+    label: "X rate",
+    score: (row) => row.x_count / row.arrows,
+  },
+  {
+    better: "lower",
+    format: (row) => formatPercent(row.miss_count, row.arrows),
+    label: "Miss rate",
+    score: (row) => row.miss_count / row.arrows,
+  },
+  { format: (row) => formatDate(row.last_session_date), label: "Last shot" },
+];
+
+/** The athlete ids holding the best value, when at least two can compare. */
+const bestOf = (metric: Metric, rows: PerformanceRow[]) => {
+  const { better, score } = metric;
+  if (!(better && score) || rows.length < 2) {
+    return new Set<string>();
+  }
+  const values = rows.map(score);
+  const best = better === "higher" ? Math.max(...values) : Math.min(...values);
+  return new Set(
+    rows.flatMap((row) => (score(row) === best ? [row.athlete_id] : []))
+  );
+};
+
+/** Metrics down the side, athletes across; the best value is marked. */
+export const CompareTable = ({
+  rows,
+  series,
+}: {
+  rows: PerformanceRow[];
+  series: Series[];
+}) => {
+  const rowOf = new Map(rows.map((row) => [row.athlete_id, row]));
+  const compared = new Set(series.map((item) => item.athleteId));
+  const shooting = rows.filter((row) => compared.has(row.athlete_id));
+  return (
+    <div className="border tabular-nums">
+      <Table aria-label="Comparison by metric">
+        <TableHeader>
+          <TableRow>
+            <TableHead>Metric</TableHead>
+            {series.map((item) => (
+              <TableHead key={item.key}>
+                <span className="flex items-center gap-2">
+                  <SeriesKey color={item.color} />
+                  {item.name}
+                </span>
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {METRICS.map((metric) => {
+            const best = bestOf(metric, shooting);
+            return (
+              <TableRow key={metric.label}>
+                <TableCell>{metric.label}</TableCell>
+                {series.map((item) => {
+                  const row = rowOf.get(item.athleteId);
+                  if (!row) {
+                    return (
+                      <TableCell key={item.key}>
+                        <span className="text-muted-foreground">No arrows</span>
+                      </TableCell>
+                    );
+                  }
+                  const isBest = best.has(item.athleteId);
+                  return (
+                    <TableCell key={item.key}>
+                      <span className="flex items-center gap-2">
+                        <span className={isBest ? "font-semibold" : undefined}>
+                          {metric.format(row)}
+                        </span>
+                        {isBest ? (
+                          <Badge variant="secondary">Best</Badge>
+                        ) : null}
+                      </span>
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ChartLineIcon,
   ClipboardTextIcon,
   GaugeIcon,
   GearIcon,
@@ -17,13 +18,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 interface NavigationItem {
-  href: "/dashboard" | "/sessions" | "/athletes" | "/scorers" | "/settings";
+  href:
+    | "/dashboard"
+    | "/compare"
+    | "/sessions"
+    | "/athletes"
+    | "/scorers"
+    | "/settings";
   icon: PhosphorIcon;
   label: string;
 }
 
 const items: NavigationItem[] = [
   { href: "/dashboard", icon: GaugeIcon, label: "Performance" },
+  { href: "/compare", icon: ChartLineIcon, label: "Compare" },
   { href: "/sessions", icon: ClipboardTextIcon, label: "Sessions" },
   { href: "/athletes", icon: UsersThreeIcon, label: "Athletes" },
   { href: "/scorers", icon: UserGearIcon, label: "Scorers" },

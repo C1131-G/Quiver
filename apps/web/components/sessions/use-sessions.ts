@@ -8,9 +8,10 @@ import {
 } from "@tanstack/react-query";
 
 import type { Filters } from "@/components/filters/filters";
-import { ALL, resolveDateRange } from "@/components/filters/filters";
 import { PERFORMANCE_KEY } from "@/components/performance/use-performance";
 import { createClient } from "@/lib/supabase/client";
+
+import { sessionSummariesQuery } from "./session-queries";
 
 export const SESSIONS_PAGE_SIZE = 25;
 
@@ -19,46 +20,11 @@ const SESSION_KEY = ["session"] as const;
 const CORRECTIONS_KEY = ["session-corrections"] as const;
 
 const fetchSessions = async (filters: Filters, page: number) => {
-  const { from, to } = resolveDateRange(filters);
-  let query = createClient()
-    .from("session_summaries")
-    .select("*", { count: "exact" });
-  if (from) {
-    query = query.gte("session_date", from);
-  }
-  if (to) {
-    query = query.lte("session_date", to);
-  }
-  if (filters.athlete !== ALL) {
-    query = query.eq("athlete_id", filters.athlete);
-  }
-  if (filters.category !== ALL) {
-    query = query.eq("category_id", Number(filters.category));
-  }
-  if (filters.event !== ALL) {
-    query = query.eq("event_id", Number(filters.event));
-  }
-  // A session can shoot several formats; match any round.
-  if (filters.distance !== ALL) {
-    query = query.overlaps("distance_ids", [Number(filters.distance)]);
-  }
-  if (filters.face !== ALL) {
-    query = query.overlaps("target_face_ids", [Number(filters.face)]);
-  }
-  if (filters.type !== ALL) {
-    query = query.eq("session_type", filters.type);
-  }
-  if (filters.venue !== ALL) {
-    query = query.eq("venue", filters.venue);
-  }
-  if (filters.gender !== ALL) {
-    query = query.eq("gender", filters.gender);
-  }
   const start = page * SESSIONS_PAGE_SIZE;
-  const { count, data, error } = await query
-    .order("session_date", { ascending: false })
-    .order("started_at", { ascending: false })
-    .range(start, start + SESSIONS_PAGE_SIZE - 1);
+  const { count, data, error } = await sessionSummariesQuery(filters).range(
+    start,
+    start + SESSIONS_PAGE_SIZE - 1
+  );
   if (error) {
     throw new Error("Could not load sessions.");
   }

@@ -5,18 +5,17 @@ import { useQuery } from "@tanstack/react-query";
 import type { Filters } from "@/components/filters/filters";
 import { toPerformanceArgs } from "@/components/filters/filters";
 import { createClient } from "@/lib/supabase/client";
+import { fetchAllRows } from "@/lib/supabase/fetch-all";
 
 export const PERFORMANCE_KEY = ["performance"] as const;
 
-const fetchPerformance = async (filters: Filters, byWeek: boolean) => {
-  const { data, error } = await createClient().rpc(
-    "athlete_performance",
-    toPerformanceArgs(filters, byWeek)
+export const fetchPerformance = (filters: Filters, byWeek: boolean) => {
+  const supabase = createClient();
+  return fetchAllRows((start, end) =>
+    supabase
+      .rpc("athlete_performance", toPerformanceArgs(filters, byWeek))
+      .range(start, end)
   );
-  if (error) {
-    throw new Error("Could not load performance.");
-  }
-  return data;
 };
 
 export type PerformanceRow = Awaited<

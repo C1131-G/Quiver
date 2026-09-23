@@ -64,6 +64,8 @@ export const DEFAULT_FILTERS: Filters = {
   venue: ALL,
 };
 
+export type FilterKey = keyof Filters;
+
 export const FILTER_KEYS = [
   "athlete",
   "category",
@@ -148,12 +150,12 @@ export const resolveDateRange = (
 
 const pickId = (value: string) => (value === ALL ? undefined : [Number(value)]);
 
-export const toPerformanceArgs = (filters: Filters, byWeek: boolean) => {
+/** Arguments every arrow-level analytics function takes. */
+export const toArrowFilterArgs = (filters: Filters) => {
   const { from, to } = resolveDateRange(filters);
   const { athlete, gender, type, venue } = filters;
   return {
     p_athlete_ids: athlete === ALL ? undefined : [athlete],
-    p_by_week: byWeek,
     p_category_ids: pickId(filters.category),
     p_distance_ids: pickId(filters.distance),
     p_event_ids: pickId(filters.event),
@@ -165,3 +167,8 @@ export const toPerformanceArgs = (filters: Filters, byWeek: boolean) => {
     p_venues: venue === ALL ? undefined : [venue],
   };
 };
+
+export const toPerformanceArgs = (filters: Filters, byWeek: boolean) => ({
+  ...toArrowFilterArgs(filters),
+  p_by_week: byWeek,
+});

@@ -42,6 +42,13 @@ export interface Database {
             foreignKeyName: "arrow_corrections_arrow_id_fkey";
             columns: ["arrow_id"];
             isOneToOne: false;
+            referencedRelation: "arrow_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "arrow_corrections_arrow_id_fkey";
+            columns: ["arrow_id"];
+            isOneToOne: false;
             referencedRelation: "arrows";
             referencedColumns: ["id"];
           },
@@ -344,6 +351,13 @@ export interface Database {
             foreignKeyName: "rounds_session_id_fkey";
             columns: ["session_id"];
             isOneToOne: false;
+            referencedRelation: "arrow_details";
+            referencedColumns: ["session_id"];
+          },
+          {
+            foreignKeyName: "rounds_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
             referencedRelation: "session_summaries";
             referencedColumns: ["id"];
           },
@@ -475,6 +489,83 @@ export interface Database {
       };
     };
     Views: {
+      arrow_details: {
+        Row: {
+          aai_no: string | null;
+          arrow_no: number | null;
+          athlete_id: string | null;
+          athlete_name: string | null;
+          category_id: number | null;
+          category_name: string | null;
+          distance_id: number | null;
+          end_no: number | null;
+          event_id: number | null;
+          event_name: string | null;
+          gender: Database["public"]["Enums"]["gender"] | null;
+          id: string | null;
+          id_no: string | null;
+          is_ten_plus_x: boolean | null;
+          is_x: boolean | null;
+          meters: number | null;
+          points: number | null;
+          round_no: number | null;
+          scorer_id: string | null;
+          scorer_name: string | null;
+          session_date: string | null;
+          session_id: string | null;
+          session_type: Database["public"]["Enums"]["session_type"] | null;
+          status: Database["public"]["Enums"]["session_status"] | null;
+          target_face_id: number | null;
+          target_face_name: string | null;
+          title: string | null;
+          value: string | null;
+          venue: Database["public"]["Enums"]["venue"] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rounds_distance_id_fkey";
+            columns: ["distance_id"];
+            isOneToOne: false;
+            referencedRelation: "distances";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rounds_target_face_id_fkey";
+            columns: ["target_face_id"];
+            isOneToOne: false;
+            referencedRelation: "target_faces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sessions_athlete_id_fkey";
+            columns: ["athlete_id"];
+            isOneToOne: false;
+            referencedRelation: "athletes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sessions_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sessions_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sessions_scorer_id_fkey";
+            columns: ["scorer_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       session_summaries: {
         Row: {
           arrows: number | null;
@@ -597,6 +688,27 @@ export interface Database {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      score_distribution: {
+        Args: {
+          p_athlete_ids?: string[];
+          p_category_ids?: number[];
+          p_distance_ids?: number[];
+          p_event_ids?: number[];
+          p_from?: string;
+          p_genders?: Database["public"]["Enums"]["gender"][];
+          p_session_types?: Database["public"]["Enums"]["session_type"][];
+          p_target_face_ids?: number[];
+          p_to?: string;
+          p_venues?: Database["public"]["Enums"]["venue"][];
+        };
+        Returns: {
+          arrows: number;
+          athlete_id: string;
+          distance_id: number;
+          target_face_id: number;
+          value: string;
+        }[];
       };
     };
     Enums: {

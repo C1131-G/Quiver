@@ -22,6 +22,8 @@ import {
 import Link from "next/link";
 
 import { useAthletes, useLookups } from "@/components/athletes/use-athletes";
+import { ExportButton } from "@/components/export/export-button";
+import { exportFilteredWorkbook } from "@/components/export/export-filtered";
 import { FilterBar } from "@/components/filters/filter-bar";
 import { DEFAULT_RANGE, isFiltered } from "@/components/filters/filters";
 import {
@@ -209,6 +211,18 @@ export const SessionsPage = () => {
   return (
     <div>
       <PageHeader
+        action={
+          <ExportButton
+            onExport={() =>
+              exportFilteredWorkbook({
+                athletes: athletes.data,
+                filename: "quiver-sessions",
+                filters,
+                lookups: lookups.data,
+              })
+            }
+          />
+        }
         description="Every scored session, newest first. Open one to see its scorecard and correct arrows."
         title="Sessions"
       />

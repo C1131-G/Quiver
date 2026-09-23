@@ -17,6 +17,8 @@ export const PageHeader = ({
       </h1>
       <p className="text-muted-foreground mt-2 text-pretty">{description}</p>
     </div>
-    {action ? <div className="flex shrink-0 gap-2">{action}</div> : null}
+    {action ? (
+      <div className="flex shrink-0 items-center gap-2">{action}</div>
+    ) : null}
   </header>
 );

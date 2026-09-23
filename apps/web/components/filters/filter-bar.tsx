@@ -9,7 +9,7 @@ import type { AthleteRow, Lookups } from "@/components/athletes/use-athletes";
 
 import type { FilterOption } from "./filter-select";
 import { FilterSelect } from "./filter-select";
-import type { Filters } from "./filters";
+import type { FilterKey, Filters } from "./filters";
 import { ALL, isFiltered, RANGE_PRESETS } from "./filters";
 
 const withAll = (label: string, options: FilterOption[]) => [
@@ -79,21 +79,27 @@ const useFilterOptions = (
     [athletes, lookups]
   );
 
+const NO_HIDDEN_FILTERS: FilterKey[] = [];
+
 /** One filter row shared by the dashboard and the sessions list. */
 export const FilterBar = ({
   athletes,
   filters,
+  hidden = NO_HIDDEN_FILTERS,
   lookups,
   onChange,
   onReset,
 }: {
   athletes: AthleteRow[] | undefined;
   filters: Filters;
+  /** Filters a page sets another way, such as Compare's own athletes. */
+  hidden?: FilterKey[];
   lookups: Lookups | undefined;
   onChange: (patch: Partial<Filters>) => void;
   onReset: () => void;
 }) => {
   const options = useFilterOptions(lookups, athletes);
+  const shows = (key: FilterKey) => !hidden.includes(key);
   const set = (key: keyof Filters) => (value: string) =>
     onChange({ [key]: value });
 
@@ -125,13 +131,15 @@ export const FilterBar = ({
           />
         </>
       ) : null}
-      <FilterSelect
-        className="w-60"
-        items={options.athletes}
-        label="Filter by athlete"
-        onChange={set("athlete")}
-        value={filters.athlete}
-      />
+      {shows("athlete") ? (
+        <FilterSelect
+          className="w-60"
+          items={options.athletes}
+          label="Filter by athlete"
+          onChange={set("athlete")}
+          value={filters.athlete}
+        />
+      ) : null}
       <FilterSelect
         items={options.categories}
         label="Filter by category"
@@ -144,19 +152,23 @@ export const FilterBar = ({
         onChange={set("event")}
         value={filters.event}
       />
-      <FilterSelect
-        className="w-36"
-        items={options.distances}
-        label="Filter by distance"
-        onChange={set("distance")}
-        value={filters.distance}
-      />
-      <FilterSelect
-        items={options.faces}
-        label="Filter by target face"
-        onChange={set("face")}
-        value={filters.face}
-      />
+      {shows("distance") ? (
+        <FilterSelect
+          className="w-36"
+          items={options.distances}
+          label="Filter by distance"
+          onChange={set("distance")}
+          value={filters.distance}
+        />
+      ) : null}
+      {shows("face") ? (
+        <FilterSelect
+          items={options.faces}
+          label="Filter by target face"
+          onChange={set("face")}
+          value={filters.face}
+        />
+      ) : null}
       <FilterSelect
         items={TYPE_ITEMS}
         label="Filter by session type"

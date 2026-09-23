@@ -19,6 +19,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Suspense } from "react";
 
+import { LiveUpdates } from "./live-updates";
 import { MAIN_CONTENT_ID, RouteFocus } from "./route-focus";
 import { RouteTransition } from "./route-transition";
 import { WorkspaceLogout } from "./workspace-logout";
@@ -79,6 +80,7 @@ export const WorkspaceShell = ({ children }: { children: ReactNode }) => (
         <SidebarInset className="h-dvh overflow-hidden">
           <header className="bg-background/95 sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b px-4 backdrop-blur">
             <SidebarTrigger className="-ml-1" />
+            <LiveUpdates />
           </header>
           <main
             className="min-h-0 flex-1 overflow-y-auto focus-visible:outline-none"

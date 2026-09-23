@@ -9,6 +9,8 @@ import {
 } from "@workspace/ui/components/tabs";
 
 import { useAthletes, useLookups } from "@/components/athletes/use-athletes";
+import { ExportButton } from "@/components/export/export-button";
+import { exportFilteredWorkbook } from "@/components/export/export-filtered";
 import { FilterBar } from "@/components/filters/filter-bar";
 import {
   resetFilters,
@@ -45,6 +47,18 @@ export const PerformancePage = () => {
   return (
     <div>
       <PageHeader
+        action={
+          <ExportButton
+            onExport={() =>
+              exportFilteredWorkbook({
+                athletes: athletes.data,
+                filename: "quiver-performance",
+                filters,
+                lookups: lookups.data,
+              })
+            }
+          />
+        }
         description="Scores per athlete and round format. Select a name or a week to see its sessions."
         title="Performance"
       />
