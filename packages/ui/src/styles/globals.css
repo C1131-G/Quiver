@@ -187,3 +187,43 @@
     }
   }
 }
+
+/* Page change in the workspace (apps/web/components/workspace/route-transition.tsx). */
+@layer base {
+  ::view-transition-old(.nav-exit) {
+    animation: nav-exit 160ms ease-out both;
+  }
+
+  ::view-transition-new(.nav-enter) {
+    animation: nav-enter 180ms ease-out both;
+  }
+
+  @keyframes nav-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes nav-exit {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(.nav-exit),
+    ::view-transition-new(.nav-enter) {
+      animation: none;
+    }
+  }
+}

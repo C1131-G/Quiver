@@ -10,28 +10,6 @@ export type UpdateStatus =
   | { state: "ready"; version: string }
   | { message: string; state: "error" };
 
-interface ElectronAuthApi {
-  changePassword: (input: {
-    currentPassword: string;
-    newPassword: string;
-  }) => Promise<{ success: true }>;
-  login: (input: {
-    password: string;
-    username: string;
-  }) => Promise<{ authenticated: true }>;
-  logout: () => Promise<void>;
-  recover: (input: {
-    newPassword: string;
-    recoveryCode: string;
-    username: string;
-  }) => Promise<{ authenticated: true; recoveryCode: string }>;
-  setup: (input: {
-    password: string;
-    username: string;
-  }) => Promise<{ recoveryCode: string }>;
-  status: () => Promise<{ authenticated: boolean; configured: boolean }>;
-}
-
 interface ElectronUpdateApi {
   check: () => Promise<UpdateStatus>;
   install: () => Promise<void>;
@@ -47,7 +25,6 @@ declare global {
   interface Window {
     electronAPI?: {
       backend: {
-        auth: ElectronAuthApi;
         update: ElectronUpdateApi;
       };
       platform: string;

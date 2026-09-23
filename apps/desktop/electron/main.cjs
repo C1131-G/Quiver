@@ -1,12 +1,4 @@
-const {
-  app,
-  BrowserWindow,
-  clipboard,
-  dialog,
-  ipcMain,
-  nativeTheme,
-  shell,
-} = require("electron");
+const { app, BrowserWindow, ipcMain, nativeTheme, shell } = require("electron");
 const { spawn } = require("node:child_process");
 const { once } = require("node:events");
 const {
@@ -20,8 +12,6 @@ const path = require("node:path");
 const { performance } = require("node:perf_hooks");
 const { pathToFileURL } = require("node:url");
 const { setTimeout: delay } = require("node:timers/promises");
-const { z } = require("zod");
-const { createAuthService } = require("./auth.cjs");
 const { registerUpdateHandlers } = require("./ipc/updates.cjs");
 
 const HOST = "127.0.0.1";
@@ -49,9 +39,9 @@ const bootMark = (label) => {
   }
 };
 
-const loginFilePath = () => path.join(__dirname, "login.html");
+const loadingFilePath = () => path.join(__dirname, "loading.html");
 
-const loginWindowUrl = () => pathToFileURL(loginFilePath()).href;
+const loadingWindowUrl = () => pathToFileURL(loadingFilePath()).href;
 
 let serverProcess;
 let serverOrigin;
@@ -285,9 +275,8 @@ const isAppUrl = (url) =>
   (url === serverOrigin || url.startsWith(`${serverOrigin}/`));
 
 /**
- * Attached as soon as the window exists so even the local login phase is
- * fenced: renderer-initiated navigation is allowed only back to the login file
- * or into the app origin once it is known, and anything else opens externally.
+ * Renderer-initiated navigation stays inside the app origin (or the local
+ * loading page); anything else opens in the user's browser.
  */
 const attachNavigationPolicy = (contents) => {
   contents.setWindowOpenHandler(({ url }) => {
@@ -296,7 +285,7 @@ const attachNavigationPolicy = (contents) => {
   });
 
   contents.on("will-navigate", (event, url) => {
-    if (isAppUrl(url) || url === loginWindowUrl()) {
+    if (isAppUrl(url) || url === loadingWindowUrl()) {
       return;
     }
     event.preventDefault();
@@ -304,169 +293,16 @@ const attachNavigationPolicy = (contents) => {
   });
 };
 
-/**
- * The login page is local, so it can never match the server origin. It is
- * trusted by exact file-URL match only — never a prefix — and only for the
- * auth channels; every other channel keeps the strict origin check.
- */
-const assertTrustedSender = (event, { allowLoginWindow = false } = {}) => {
-  const senderUrl = event.sender.getURL();
-  if (allowLoginWindow && senderUrl === loginWindowUrl()) {
-    return;
-  }
-  if (!isAppUrl(senderUrl)) {
+/** IPC is only answered for pages served by the app's own server. */
+const assertTrustedSender = (event) => {
+  if (!isAppUrl(event.sender.getURL())) {
     throw new Error("Untrusted renderer.");
   }
 };
 
-/** Created lazily, once userData is resolvable (after app ready). */
-let authService;
-
-const getAuthService = (event, { allowLoginWindow = false } = {}) => {
-  assertTrustedSender(event, { allowLoginWindow });
-  authService ??= createAuthService(
-    path.join(app.getPath("userData"), "owner.json")
-  );
-  return authService;
-};
-
-/**
- * Navigates the renderer into the app once the server can answer, on behalf
- * of the local login page (continueToApp). Failures reject into the page's
- * catch so the user sees them; on success the page is torn down by the
- * navigation and the pending promise simply never settles.
- */
-const navigateToApp = async (contents, pathname) => {
-  const origin = await ensureServer();
-  contents.once("did-finish-load", () => bootMark("first Next paint"));
-  await contents.loadURL(`${origin}${pathname}`);
-};
-
-/** Returns the renderer from the app to the local login screen. */
-const navigateToLogin = (contents) => {
-  contents.once("did-finish-load", () => bootMark("login painted"));
-  return contents.loadFile(loginFilePath());
-};
-
-/** Destinations the local login page may ask the main process to open. */
-const AUTHENTICATED_LOGIN_DESTINATIONS = new Set(["/"]);
-
-/**
- * Recovery codes are four groups of four from auth.cjs's alphabet. Anything
- * else is rejected rather than copied or written to disk, so these channels
- * stay a recovery-code feature rather than a general-purpose clipboard and
- * file writer for the renderer.
- */
-const recoveryCodeSchema = z
-  .string()
-  .regex(/^[A-Z0-9]{4}(?:-[A-Z0-9]{4}){3}$/u);
-
-const parseRecoveryCode = (value) => {
-  const parsed = recoveryCodeSchema.safeParse(value);
-  if (!parsed.success) {
-    throw new Error("That is not a recovery code.");
-  }
-  return parsed.data;
-};
-
-const recoveryCodeDocument = (code) =>
-  [
-    `${PRODUCT_NAME} — recovery code`,
-    "",
-    code,
-    "",
-    "This code is the only way to reset your password if you forget it.",
-    "Keep this file somewhere safe, and separate from this computer.",
-    "",
-    `Saved ${new Date().toISOString().slice(0, 10)}`,
-    "",
-  ].join("\r\n");
-
-const LOGIN_WINDOW = { allowLoginWindow: true };
-
-const registerAuthHandlers = () => {
-  /**
-   * The local login page owns the whole account surface — login, first-run
-   * setup, and recovery — so those channels trust it by exact file-URL match.
-   * Logout is the exception: the app calls it, and the main process answers
-   * it by navigating the sender back to the login page.
-   */
-  const handleAuth = (channel, action, options = {}) => {
-    ipcMain.handle(channel, (event, input) =>
-      action(getAuthService(event, options), input, event)
-    );
-  };
-
-  handleAuth("auth.status", (service) => service.status(), LOGIN_WINDOW);
-  handleAuth(
-    "auth.login",
-    (service, input) => service.login(input),
-    LOGIN_WINDOW
-  );
-  handleAuth(
-    "auth.setup",
-    (service, input) => service.setup(input),
-    LOGIN_WINDOW
-  );
-  handleAuth(
-    "auth.recover",
-    (service, input) => service.recover(input),
-    LOGIN_WINDOW
-  );
-  handleAuth("auth.changePassword", async (service, input) => {
-    await service.requireSession();
-    return service.changePassword(input);
-  });
-  handleAuth("auth.logout", async (service, _input, event) => {
-    await service.logout();
-    if (event.sender.getURL() !== loginWindowUrl()) {
-      // Deferred so the invoke response reaches the renderer before the page
-      // it is rendered in is torn down by the navigation.
-      setImmediate(() => {
-        navigateToLogin(event.sender);
-      });
-    }
-  });
-
-  ipcMain.handle("app.continue", async (event, destination) => {
-    const service = getAuthService(event, LOGIN_WINDOW);
-    if (!AUTHENTICATED_LOGIN_DESTINATIONS.has(destination)) {
-      throw new Error("Unsupported destination.");
-    }
-    await service.requireSession();
-    await navigateToApp(event.sender, destination);
-  });
-
-  ipcMain.handle("app.copyRecoveryCode", (event, code) => {
-    assertTrustedSender(event, LOGIN_WINDOW);
-    clipboard.writeText(parseRecoveryCode(code));
-  });
-
-  /**
-   * The renderer hands over the code and nothing else — the surrounding text
-   * and the extension are composed here, so this channel can never be used to
-   * write chosen bytes to a chosen path. The user still picks the location.
-   */
-  ipcMain.handle("app.saveRecoveryCode", async (event, code) => {
-    assertTrustedSender(event, LOGIN_WINDOW);
-    const recoveryCode = parseRecoveryCode(code);
-    const parentWindow = BrowserWindow.fromWebContents(event.sender);
-    const result = await dialog.showSaveDialog(parentWindow ?? undefined, {
-      defaultPath: "quiver-dashboard-recovery-code.txt",
-      filters: [{ extensions: ["txt"], name: "Text file" }],
-    });
-    if (result.canceled || !result.filePath) {
-      return { saved: false };
-    }
-    writeFileSync(result.filePath, recoveryCodeDocument(recoveryCode), "utf-8");
-    return { path: result.filePath, saved: true };
-  });
-};
-
 const registerIpcHandlers = () => {
-  registerAuthHandlers();
   registerUpdateHandlers({
-    assertTrustedSender: (event) => assertTrustedSender(event),
+    assertTrustedSender,
     getWindows: () => BrowserWindow.getAllWindows(),
     ipcMain,
     // Strictly app.isPackaged, not isProduction: a --production preview run
@@ -484,6 +320,8 @@ const resolveBackgroundColor = () =>
   nativeTheme.shouldUseDarkColors ? "#0a0b0d" : "#ffffff";
 
 const createWindow = async () => {
+  // Boot the server alongside window creation and first paint, not after.
+  const serverReady = ensureServer();
   const mainWindow = new BrowserWindow({
     backgroundColor: resolveBackgroundColor(),
     height: 800,
@@ -503,29 +341,20 @@ const createWindow = async () => {
   attachNavigationPolicy(mainWindow.webContents);
 
   /**
-   * Paint the real login form instead of a spinner: it needs no server, so
-   * the user can start typing while the Next server boots in the background.
-   * A successful login navigates into the app from the main process.
+   * Paint a local loading screen immediately — it needs no server — then
+   * open the app once the Next server answers. Its proxy sends signed-out
+   * users to Supabase login and everyone else to the dashboard.
    */
   mainWindow.maximize();
-  mainWindow.webContents.once("did-finish-load", () =>
-    bootMark("login painted")
-  );
-  await mainWindow.loadFile(loginFilePath());
+  await mainWindow.loadFile(loadingFilePath());
   mainWindow.show();
-};
+  bootMark("loading painted");
 
-/**
- * The server starts before the window and is awaited only by its consumers;
- * a failure to start it is fatal, so the app quits.
- */
-const startServices = async () => {
-  try {
-    await ensureServer();
-  } catch (error) {
-    console.error(error);
-    app.quit();
-  }
+  const origin = await serverReady;
+  mainWindow.webContents.once("did-finish-load", () =>
+    bootMark("first Next paint")
+  );
+  await mainWindow.loadURL(origin);
 };
 
 const startApp = async () => {
@@ -533,8 +362,6 @@ const startApp = async () => {
   bootMark("whenReady");
 
   registerIpcHandlers();
-  startServices();
-
   await createWindow();
 
   app.on("activate", async () => {

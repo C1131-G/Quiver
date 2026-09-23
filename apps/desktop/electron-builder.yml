@@ -7,7 +7,7 @@ directories:
   output: release
 
 # The renderer is served by the standalone Next server, so the asar only needs
-# the main process and its runtime dependencies (electron-updater, zod), which
+# the main process and its runtime dependency (electron-updater), which
 # electron-builder collects from this package's `dependencies`.
 files:
   - electron/**/*

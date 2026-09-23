@@ -21,7 +21,11 @@ export default defineConfig({
     antiSlop,
     jsPlugins,
   ],
-  ignorePatterns: core.ignorePatterns,
+  ignorePatterns: [
+    ...(core.ignorePatterns ?? []),
+    // Vendored shadcn primitives, kept as generated (as in AthleteHub).
+    "packages/ui/src/components/**",
+  ],
   jsPlugins: [...jsPlugins.jsPlugins, ...shadcn.jsPlugins],
   settings: jsPluginSettings,
 });

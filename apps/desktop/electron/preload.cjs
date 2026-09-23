@@ -1,16 +1,11 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
+/**
+ * Sign-in is handled by Supabase inside the web app, so the bridge only
+ * carries what needs the desktop: the auto-updater.
+ */
 contextBridge.exposeInMainWorld("electronAPI", {
   backend: {
-    auth: {
-      changePassword: (input) =>
-        ipcRenderer.invoke("auth.changePassword", input),
-      login: (input) => ipcRenderer.invoke("auth.login", input),
-      logout: () => ipcRenderer.invoke("auth.logout"),
-      recover: (input) => ipcRenderer.invoke("auth.recover", input),
-      setup: (input) => ipcRenderer.invoke("auth.setup", input),
-      status: () => ipcRenderer.invoke("auth.status"),
-    },
     update: {
       check: () => ipcRenderer.invoke("update.check"),
       install: () => ipcRenderer.invoke("update.install"),
@@ -23,16 +18,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
       },
       status: () => ipcRenderer.invoke("update.status"),
     },
-  },
-  // Only used by the local login page; the main process rejects this channel
-  // from any other renderer and for any non-whitelisted destination.
-  desktop: {
-    continueToApp: (destination) =>
-      ipcRenderer.invoke("app.continue", destination),
-    copyRecoveryCode: (code) =>
-      ipcRenderer.invoke("app.copyRecoveryCode", code),
-    saveRecoveryCode: (code) =>
-      ipcRenderer.invoke("app.saveRecoveryCode", code),
   },
   platform: process.platform,
 });

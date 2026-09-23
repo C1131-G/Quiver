@@ -14,7 +14,7 @@ const fontMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quiver Dashboard",
+  title: { default: "Quiver Dashboard", template: "%s — Quiver Dashboard" },
 };
 
 const RootLayout = ({
