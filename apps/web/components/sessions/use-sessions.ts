@@ -11,6 +11,7 @@ import type { Filters } from "@/components/filters/filters";
 import { PERFORMANCE_KEY } from "@/components/performance/use-performance";
 import { createClient } from "@/lib/supabase/client";
 
+import type { toChanges } from "./score-editor";
 import { sessionSummariesQuery } from "./session-queries";
 
 export const SESSIONS_PAGE_SIZE = 25;
@@ -97,10 +98,11 @@ const fetchCorrections = async (sessionId: string) => {
   const { data, error } = await createClient()
     .from("arrow_corrections")
     .select(
-      "id, arrow_id, old_value, new_value, reason, corrected_at, corrector:profiles(full_name), arrow:arrows!inner(arrow_no, end:ends!inner(end_no, round:rounds!inner(round_no, session_id)))"
+      "id, arrow_id, round_no, end_no, arrow_no, old_value, new_value, reason, corrected_at, corrector:profiles(full_name)"
     )
-    .eq("arrow.end.round.session_id", sessionId)
-    .order("corrected_at", { ascending: false });
+    .eq("session_id", sessionId)
+    .order("corrected_at", { ascending: false })
+    .order("id", { ascending: false });
   if (error) {
     throw new Error("Could not load the correction history.");
   }
@@ -117,29 +119,32 @@ export const useCorrections = (sessionId: string) =>
     queryKey: [...CORRECTIONS_KEY, sessionId],
   });
 
-/** Admin score correction; the database logs every change with its reason. */
-export const useCorrectArrow = (sessionId: string) => {
+const CHECK_VIOLATION = "23514";
+
+/**
+ * Saves an admin's edits to a session in one transaction. The database
+ * checks each score against the round and face, and logs every change.
+ */
+export const useSaveScores = (sessionId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
-      arrowId,
+      changes,
       reason,
-      value,
     }: {
-      arrowId: string;
+      changes: ReturnType<typeof toChanges>;
       reason: string;
-      value: string;
     }) => {
-      const { error } = await createClient().rpc("correct_arrow", {
-        p_arrow_id: arrowId,
+      const { error } = await createClient().rpc("admin_save_scores", {
+        p_changes: changes,
         p_reason: reason,
-        p_value: value,
+        p_session_id: sessionId,
       });
       if (error) {
         throw new Error(
-          error.code === "23514"
-            ? "That score is not possible on this target face."
-            : "Could not save the correction. Try again."
+          error.code === CHECK_VIOLATION
+            ? `Not saved: ${error.message}.`
+            : "Could not save the scores. Nothing was changed; try again."
         );
       }
     },
@@ -153,6 +158,7 @@ export const useCorrectArrow = (sessionId: string) => {
         }),
         queryClient.invalidateQueries({ queryKey: SESSIONS_KEY }),
         queryClient.invalidateQueries({ queryKey: PERFORMANCE_KEY }),
+        queryClient.invalidateQueries({ queryKey: ["compare"] }),
       ]),
   });
 };

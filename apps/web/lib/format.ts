@@ -66,3 +66,27 @@ export const formatInteger = (value: number | null | undefined) =>
 /** A round format: distance and target face, e.g. "70 m · 122 cm". */
 export const formatRoundFormat = (meters: number, faceName: string) =>
   `${meters} m · ${faceName}`;
+
+const dayDateFormat = new Intl.DateTimeFormat(undefined, {
+  day: "numeric",
+  month: "short",
+  weekday: "short",
+  year: "numeric",
+});
+
+/** A session date with its weekday, e.g. "Tue, 22 Sep 2026". */
+export const formatDayDate = (value: string) =>
+  dayDateFormat.format(parseIsoDate(value));
+
+const NOON = 12;
+
+/**
+ * A time the way range scorecards write it: 12-hour, with FN (forenoon,
+ * before noon) or AN (afternoon).
+ */
+export const formatSessionTime = (value: string) => {
+  const date = new Date(value);
+  const hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours % NOON || NOON}:${minutes} ${hours < NOON ? "FN" : "AN"}`;
+};

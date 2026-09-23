@@ -11,31 +11,43 @@ export interface Database {
     Tables: {
       arrow_corrections: {
         Row: {
-          arrow_id: string;
+          arrow_id: string | null;
+          arrow_no: number;
           corrected_at: string;
           corrected_by: string | null;
+          end_no: number;
           id: number;
-          new_value: string;
-          old_value: string;
+          new_value: string | null;
+          old_value: string | null;
           reason: string | null;
+          round_no: number;
+          session_id: string;
         };
         Insert: {
-          arrow_id: string;
+          arrow_id?: string | null;
+          arrow_no: number;
           corrected_at?: string;
           corrected_by?: string | null;
+          end_no: number;
           id?: never;
-          new_value: string;
-          old_value: string;
+          new_value?: string | null;
+          old_value?: string | null;
           reason?: string | null;
+          round_no: number;
+          session_id: string;
         };
         Update: {
-          arrow_id?: string;
+          arrow_id?: string | null;
+          arrow_no?: number;
           corrected_at?: string;
           corrected_by?: string | null;
+          end_no?: number;
           id?: never;
-          new_value?: string;
-          old_value?: string;
+          new_value?: string | null;
+          old_value?: string | null;
           reason?: string | null;
+          round_no?: number;
+          session_id?: string;
         };
         Relationships: [
           {
@@ -57,6 +69,27 @@ export interface Database {
             columns: ["corrected_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "arrow_corrections_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "arrow_details";
+            referencedColumns: ["session_id"];
+          },
+          {
+            foreignKeyName: "arrow_corrections_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "session_summaries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "arrow_corrections_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "sessions";
             referencedColumns: ["id"];
           },
         ];
@@ -632,6 +665,10 @@ export interface Database {
       };
     };
     Functions: {
+      admin_save_scores: {
+        Args: { p_changes: Json; p_reason: string; p_session_id: string };
+        Returns: undefined;
+      };
       athlete_performance: {
         Args: {
           p_athlete_ids?: string[];

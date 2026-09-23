@@ -8,6 +8,7 @@ import {
   addDays,
   formatPercent,
   formatRoundFormat,
+  formatSessionTime,
   parseIsoDate,
   toIsoDate,
 } from "./format";
@@ -37,4 +38,19 @@ test("a face only offers the rings it has", () => {
   expect(valuesForFace(6)).toEqual(["X", "10", "9", "8", "7", "6", "M"]);
   expect(valuesForFace(5)).toContain("5");
   expect(valuesForFace(5)).not.toContain("4");
+});
+
+test("session times read 12-hour with FN before noon and AN after", () => {
+  expect(formatSessionTime(new Date(2026, 8, 22, 9, 5).toISOString())).toBe(
+    "9:05 FN"
+  );
+  expect(formatSessionTime(new Date(2026, 8, 22, 12, 30).toISOString())).toBe(
+    "12:30 AN"
+  );
+  expect(formatSessionTime(new Date(2026, 8, 22, 0, 15).toISOString())).toBe(
+    "12:15 FN"
+  );
+  expect(formatSessionTime(new Date(2026, 8, 22, 16, 45).toISOString())).toBe(
+    "4:45 AN"
+  );
 });

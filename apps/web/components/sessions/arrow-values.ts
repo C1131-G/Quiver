@@ -18,3 +18,6 @@ export const valuesForFace = (lowestScore: number) =>
   ARROW_VALUES.filter(
     (value) => value === "X" || value === "M" || Number(value) >= lowestScore
   );
+
+export const isScoreOnFace = (value: string, lowestScore: number) =>
+  valuesForFace(lowestScore).some((allowed) => allowed === value);

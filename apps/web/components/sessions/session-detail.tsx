@@ -1,6 +1,10 @@
 "use client";
 
-import { ArrowLeftIcon, ClipboardTextIcon } from "@phosphor-icons/react";
+import {
+  ArrowLeftIcon,
+  ClipboardTextIcon,
+  PencilSimpleIcon,
+} from "@phosphor-icons/react";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -35,16 +39,17 @@ import type { Stat } from "@/components/stat-grid";
 import { StatGrid } from "@/components/stat-grid";
 import {
   formatAverage,
-  formatDate,
   formatDateTime,
+  formatDayDate,
   formatPercent,
+  formatSessionTime,
 } from "@/lib/format";
 
 import { ArrowValue } from "./arrow-value";
-import type { CorrectionTarget } from "./correct-arrow-dialog";
-import { CorrectArrowDialog } from "./correct-arrow-dialog";
 import { exportSession } from "./export-session";
+import { ScoreEditorPanel } from "./score-editor-panel";
 import { SESSION_TYPE_LABELS, VENUE_LABELS } from "./session-labels";
+import { scoreEnds } from "./session-score";
 import { RoundScorecard } from "./session-scorecard";
 import { SessionStatusBadge } from "./session-status-badge";
 import type { ArrowCorrection, SessionDetail as Session } from "./use-sessions";
@@ -94,6 +99,35 @@ const BackToSessions = () => (
   </Button>
 );
 
+/** What happened to the arrow: changed, added or removed. */
+const ChangeCell = ({ correction }: { correction: ArrowCorrection }) => {
+  const { new_value: next, old_value: previous } = correction;
+  if (previous === null && next !== null) {
+    return (
+      <span className="flex items-center gap-2">
+        Added
+        <ArrowValue className="size-6" value={next} />
+      </span>
+    );
+  }
+  if (previous !== null && next === null) {
+    return (
+      <span className="flex items-center gap-2">
+        <ArrowValue className="size-6" value={previous} />
+        Removed
+      </span>
+    );
+  }
+  return (
+    <span className="flex items-center gap-2">
+      <ArrowValue className="size-6" value={previous ?? ""} />
+      <span className="sr-only">changed to</span>
+      <span aria-hidden="true">→</span>
+      <ArrowValue className="size-6" value={next ?? ""} />
+    </span>
+  );
+};
+
 const CorrectionHistory = ({
   corrections,
 }: {
@@ -106,7 +140,7 @@ const CorrectionHistory = ({
     <CardContent>
       {corrections.length === 0 ? (
         <p className="text-muted-foreground">
-          No arrows in this session have been corrected.
+          No scores in this session have been edited.
         </p>
       ) : (
         <div className="tabular-nums">
@@ -127,23 +161,11 @@ const CorrectionHistory = ({
                     {formatDateTime(correction.corrected_at)}
                   </TableCell>
                   <TableCell>
-                    Round {correction.arrow.end.round.round_no}, end{" "}
-                    {correction.arrow.end.end_no}, arrow{" "}
-                    {correction.arrow.arrow_no}
+                    Round {correction.round_no}, end {correction.end_no}, arrow{" "}
+                    {correction.arrow_no}
                   </TableCell>
                   <TableCell>
-                    <span className="flex items-center gap-2">
-                      <ArrowValue
-                        className="size-6"
-                        value={correction.old_value}
-                      />
-                      <span className="sr-only">changed to</span>
-                      <span aria-hidden="true">→</span>
-                      <ArrowValue
-                        className="size-6"
-                        value={correction.new_value}
-                      />
-                    </span>
+                    <ChangeCell correction={correction} />
                   </TableCell>
                   <TableCell className="max-w-sm whitespace-normal">
                     <span className="text-pretty">
@@ -191,7 +213,7 @@ export const SessionDetailSkeleton = () => (
 
 const describe = (session: Session) =>
   [
-    formatDate(session.session_date),
+    `${formatDayDate(session.session_date)}, ${formatSessionTime(session.started_at)}`,
     session.title,
     SESSION_TYPE_LABELS[session.session_type],
     VENUE_LABELS[session.venue],
@@ -201,16 +223,39 @@ const describe = (session: Session) =>
     .filter(Boolean)
     .join(" · ");
 
+/** Each round's scorecard, with the session total carried across rounds. */
+const Scorecards = ({
+  correctedArrowIds,
+  session,
+}: {
+  correctedArrowIds: Set<string>;
+  session: Session;
+}) => {
+  let totalBefore = 0;
+  return session.rounds.map((round) => {
+    const before = totalBefore;
+    totalBefore += scoreEnds(round.ends).at(-1)?.running ?? 0;
+    return (
+      <RoundScorecard
+        correctedArrowIds={correctedArrowIds}
+        key={round.id}
+        round={round}
+        totalBefore={before}
+      />
+    );
+  });
+};
+
 const SessionView = ({ sessionId }: { sessionId: string }) => {
   const session = useSession(sessionId);
   const corrections = useCorrections(sessionId);
-  // The target outlives the open state so a closing dialog keeps its text.
-  const [target, setTarget] = useState<CorrectionTarget | null>(null);
-  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
   const correctedArrowIds = useMemo(
     () =>
       new Set(
-        (corrections.data ?? []).map((correction) => correction.arrow_id)
+        (corrections.data ?? []).flatMap((correction) =>
+          correction.arrow_id ? [correction.arrow_id] : []
+        )
       ),
     [corrections.data]
   );
@@ -237,6 +282,16 @@ const SessionView = ({ sessionId }: { sessionId: string }) => {
         action={
           <>
             <SessionStatusBadge status={data.status} />
+            {editing ? null : (
+              <Button
+                disabled={data.rounds.length === 0}
+                onClick={() => setEditing(true)}
+                variant="outline"
+              >
+                <PencilSimpleIcon aria-hidden="true" data-icon="inline-start" />
+                Edit scores
+              </Button>
+            )}
             <ExportButton
               disabled={!corrections.data}
               onExport={() => exportSession(data, corrections.data ?? [])}
@@ -248,17 +303,11 @@ const SessionView = ({ sessionId }: { sessionId: string }) => {
       />
       <StatGrid stats={sessionTotals(data)} />
       <div className="flex flex-col gap-6">
-        {data.rounds.map((round) => (
-          <RoundScorecard
-            correctedArrowIds={correctedArrowIds}
-            key={round.id}
-            onCorrect={(next) => {
-              setTarget(next);
-              setOpen(true);
-            }}
-            round={round}
-          />
-        ))}
+        {editing ? (
+          <ScoreEditorPanel onDone={() => setEditing(false)} session={data} />
+        ) : (
+          <Scorecards correctedArrowIds={correctedArrowIds} session={data} />
+        )}
         {data.rounds.length === 0 ? (
           <p className="text-muted-foreground">
             No rounds have been scored yet.
@@ -276,12 +325,6 @@ const SessionView = ({ sessionId }: { sessionId: string }) => {
           {data.notes}
         </p>
       ) : null}
-      <CorrectArrowDialog
-        onOpenChange={setOpen}
-        open={open}
-        sessionId={sessionId}
-        target={target}
-      />
     </div>
   );
 };
