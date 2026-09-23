@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import { supabaseEnv } from "./env";
+import { isAdminRole } from "./roles";
 
 const LOGIN_PATH = "/login";
 const HOME_PATH = "/dashboard";
@@ -64,7 +65,14 @@ export const updateSession = async (request: NextRequest) => {
   // randomly signed out. getClaims() validates the JWT; never trust
   // getSession() on the server.
   const { data } = await supabase.auth.getClaims();
-  const isSignedIn = Boolean(data?.claims);
+  let isSignedIn = Boolean(data?.claims);
+
+  // Scorer accounts are mobile-only. A non-admin session here is ended, not
+  // just redirected, so it can't reach any page or data from the desktop.
+  if (isSignedIn && !isAdminRole(data?.claims?.app_metadata)) {
+    await supabase.auth.signOut({ scope: "local" });
+    isSignedIn = false;
+  }
 
   if (!isSignedIn && !isLoginPage) {
     return redirectTo(request, LOGIN_PATH, response);

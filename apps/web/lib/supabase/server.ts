@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+import type { Database } from "./database.types";
 import { supabaseEnv } from "./env";
 
 /**
@@ -13,19 +14,23 @@ export const createClient = async () => {
   }
   const cookieStore = await cookies();
 
-  return createServerClient(supabaseEnv.url, supabaseEnv.publishableKey, {
-    cookies: {
-      getAll: () => cookieStore.getAll(),
-      setAll: (cookiesToSet) => {
-        try {
-          for (const { name, value, options } of cookiesToSet) {
-            cookieStore.set(name, value, options);
+  return createServerClient<Database>(
+    supabaseEnv.url,
+    supabaseEnv.publishableKey,
+    {
+      cookies: {
+        getAll: () => cookieStore.getAll(),
+        setAll: (cookiesToSet) => {
+          try {
+            for (const { name, value, options } of cookiesToSet) {
+              cookieStore.set(name, value, options);
+            }
+          } catch {
+            // Called from a Server Component, which cannot set cookies. Safe to
+            // ignore: proxy.ts refreshes the session on every request.
           }
-        } catch {
-          // Called from a Server Component, which cannot set cookies. Safe to
-          // ignore: proxy.ts refreshes the session on every request.
-        }
+        },
       },
-    },
-  });
+    }
+  );
 };

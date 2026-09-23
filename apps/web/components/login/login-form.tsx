@@ -5,6 +5,7 @@ import { useActionState, useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 import { supabaseEnv } from "@/lib/supabase/env";
+import { isAdminRole } from "@/lib/supabase/roles";
 import { usernameToEmail } from "@/lib/supabase/username";
 
 import styles from "./login.module.css";
@@ -12,14 +13,24 @@ import styles from "./login.module.css";
 const NOT_CONFIGURED =
   "Sign-in is not configured for this build. Contact your administrator.";
 
+const SCORER_ACCOUNT =
+  "This is a scorer account. Scorers use the Quiver mobile app; only admins can sign in here.";
+
 /**
  * Supabase answers a bad username or password with one generic error on
  * purpose (so accounts can't be probed); anything else is a connection issue.
  */
-const readableError = (message: string) =>
-  message.toLowerCase().includes("invalid login credentials")
-    ? "The username or password is incorrect."
-    : "Could not sign in. Check your connection and try again.";
+const readableError = (message: string) => {
+  const lowered = message.toLowerCase();
+  if (lowered.includes("invalid login credentials")) {
+    return "The username or password is incorrect.";
+  }
+  // Deactivated accounts are banned in Supabase Auth.
+  if (lowered.includes("banned")) {
+    return "This account has been deactivated. Contact your administrator.";
+  }
+  return "Could not sign in. Check your connection and try again.";
+};
 
 const EyeOpen = () => (
   <svg
@@ -104,14 +115,23 @@ export const LoginForm = () => {
           username: submittedUsername,
         };
       }
-      const { error: signInError } =
-        await createClient().auth.signInWithPassword({
+      const supabase = createClient();
+      const { data, error: signInError } =
+        await supabase.auth.signInWithPassword({
           email: usernameToEmail(submittedUsername),
           password: String(formData.get("password") ?? ""),
         });
       if (signInError) {
         return {
           error: readableError(signInError.message),
+          signedIn: false,
+          username: submittedUsername,
+        };
+      }
+      if (!isAdminRole(data.user?.app_metadata)) {
+        await supabase.auth.signOut({ scope: "local" });
+        return {
+          error: SCORER_ACCOUNT,
           signedIn: false,
           username: submittedUsername,
         };

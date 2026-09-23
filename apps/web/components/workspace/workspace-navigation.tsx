@@ -1,6 +1,11 @@
 "use client";
 
-import { GaugeIcon, GearIcon } from "@phosphor-icons/react";
+import {
+  GaugeIcon,
+  GearIcon,
+  UserGearIcon,
+  UsersThreeIcon,
+} from "@phosphor-icons/react";
 import {
   SidebarMenuButton,
   SidebarMenuItem,
@@ -12,13 +17,15 @@ import { usePathname } from "next/navigation";
 import type { ComponentType } from "react";
 
 interface NavigationItem {
-  href: "/dashboard" | "/settings";
+  href: "/dashboard" | "/athletes" | "/users" | "/settings";
   icon: ComponentType<{ "aria-hidden"?: boolean }>;
   label: string;
 }
 
 const items: NavigationItem[] = [
   { href: "/dashboard", icon: GaugeIcon, label: "Dashboard" },
+  { href: "/athletes", icon: UsersThreeIcon, label: "Athletes" },
+  { href: "/users", icon: UserGearIcon, label: "Users" },
   { href: "/settings", icon: GearIcon, label: "Settings" },
 ];
 
