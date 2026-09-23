@@ -1,29 +1,14 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes"
+import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
+import { useEffect } from "react";
+import type { ComponentProps } from "react";
 
-function ThemeProvider({
-  children,
-  ...props
-}: React.ComponentProps<typeof NextThemesProvider>) {
-  return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      {...props}
-    >
-      <ThemeHotkey />
-      {children}
-    </NextThemesProvider>
-  )
-}
+import { runThemeTransition } from "@/lib/theme-transition";
 
-function isTypingTarget(target: EventTarget | null) {
+const isTypingTarget = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) {
-    return false
+    return false;
   }
 
   return (
@@ -31,41 +16,69 @@ function isTypingTarget(target: EventTarget | null) {
     target.tagName === "INPUT" ||
     target.tagName === "TEXTAREA" ||
     target.tagName === "SELECT"
-  )
-}
+  );
+};
 
-function ThemeHotkey() {
-  const { resolvedTheme, setTheme } = useTheme()
+// The capitalized name is required for React component semantics.
+// oxlint-disable-next-line sonarjs/function-name
+const ThemeHotkey = () => {
+  const { resolvedTheme, setTheme } = useTheme();
 
-  React.useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.defaultPrevented || event.repeat) {
-        return
-      }
+  useEffect(
+    // oxlint-disable-next-line prefer-arrow-callback
+    function listenForThemeHotkey() {
+      const onKeyDown = (event: KeyboardEvent) => {
+        if (event.defaultPrevented || event.repeat) {
+          return;
+        }
 
-      if (event.metaKey || event.ctrlKey || event.altKey) {
-        return
-      }
+        // WCAG 2.1.4 forbids an always-on single-character shortcut with no way
+        // to disable or remap it, so this requires a non-printing modifier.
+        if (!event.altKey || event.metaKey || event.ctrlKey) {
+          return;
+        }
 
-      if (event.key.toLowerCase() !== "d") {
-        return
-      }
+        if (event.key.toLowerCase() !== "d") {
+          return;
+        }
 
-      if (isTypingTarget(event.target)) {
-        return
-      }
+        if (isTypingTarget(event.target)) {
+          return;
+        }
 
-      setTheme(resolvedTheme === "dark" ? "light" : "dark")
-    }
+        event.preventDefault();
 
-    window.addEventListener("keydown", onKeyDown)
+        runThemeTransition(() =>
+          setTheme(resolvedTheme === "dark" ? "light" : "dark")
+        );
+      };
 
-    return () => {
-      window.removeEventListener("keydown", onKeyDown)
-    }
-  }, [resolvedTheme, setTheme])
+      window.addEventListener("keydown", onKeyDown);
 
-  return null
-}
+      return function stopListeningForThemeHotkey() {
+        window.removeEventListener("keydown", onKeyDown);
+      };
+    },
+    [resolvedTheme, setTheme]
+  );
 
-export { ThemeProvider }
+  return null;
+};
+
+const ThemeProvider = ({
+  children,
+  ...props
+}: ComponentProps<typeof NextThemesProvider>) => (
+  <NextThemesProvider
+    attribute="class"
+    defaultTheme="system"
+    enableSystem
+    disableTransitionOnChange
+    {...props}
+  >
+    <ThemeHotkey />
+    {children}
+  </NextThemesProvider>
+);
+
+export { ThemeProvider };

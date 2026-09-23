@@ -1,0 +1,4 @@
+[install]
+# Hoisted (flat) node_modules, so the Next standalone bundle the desktop app
+# ships contains real package folders instead of symlinks into the store.
+linker = "hoisted"

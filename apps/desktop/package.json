@@ -1,0 +1,33 @@
+{
+  "name": "desktop",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Quiver Dashboard desktop app.",
+  "license": "UNLICENSED",
+  "author": {
+    "name": "CIBI",
+    "email": "abilazlee@gmail.com"
+  },
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "clean": "node scripts/clean.mjs",
+    "dist:prepare": "bun run clean && bun run --cwd ../web build && bun run standalone",
+    "electron:dev": "electronmon electron/main.cjs",
+    "electron:preview": "bun run --cwd ../web build && bun run standalone && electron electron/main.cjs --production",
+    "package": "bun run dist:prepare && electron-builder --win",
+    "package:dir": "bun run dist:prepare && electron-builder --win --dir",
+    "release": "bun run dist:prepare && electron-builder --win --publish always",
+    "standalone": "node scripts/prepare-standalone.mjs"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.3",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "electron": "44.4.4",
+    "electron-builder": "^26.15.3",
+    "electronmon": "^2.0.4"
+  },
+  "productName": "Quiver Dashboard"
+}

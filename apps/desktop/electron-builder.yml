@@ -1,0 +1,62 @@
+appId: com.cibi.quiver-dashboard
+productName: Quiver Dashboard
+copyright: Copyright © 2026 CIBI
+
+directories:
+  buildResources: build-resources
+  output: release
+
+# The renderer is served by the standalone Next server, so the asar only needs
+# the main process and its runtime dependencies (electron-updater, zod), which
+# electron-builder collects from this package's `dependencies`.
+files:
+  - electron/**/*
+  - package.json
+
+# Kept outside the asar: the Next server resolves `.next` and `public` from the
+# real filesystem relative to server.js.
+extraResources:
+  - from: ../web/.next/standalone
+    to: standalone
+    # Without an explicit filter the default matcher drops the dot-prefixed
+    # `.next` directory. `node_modules` is stripped regardless, so afterPack
+    # restores it.
+    filter:
+      - "**/*"
+
+asar: true
+afterPack: scripts/after-pack.mjs
+
+# The app has no i18n, so Electron's other bundled Chromium locale .pak files
+# are dead weight.
+electronLanguages:
+  - en-US
+
+# Every renderer dependency ships inside `.next/standalone`; nothing native
+# needs rebuilding against Electron's ABI.
+npmRebuild: false
+
+# One predictable name per platform/arch so release assets are unambiguous.
+artifactName: Quiver-Dashboard-${version}-${os}-${arch}.${ext}
+
+publish:
+  provider: github
+  owner: C1131-G
+  repo: Quiver
+
+win:
+  # `zip` is the no-installer option for locked-down machines.
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: zip
+      arch: [x64]
+  icon: build-resources/icon.ico
+
+nsis:
+  allowToChangeInstallationDirectory: true
+  oneClick: false
+  perMachine: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Quiver Dashboard

@@ -1,28 +1,44 @@
 {
-  "name": "Quiver Dashboard",
-  "version": "0.0.1",
-  "private": true,
+  "devDependencies": {
+    "@shadcn/lint": "^0.1.0",
+    "@shadscan/cli": "^0.17.0",
+    "@workspace/typescript-config": "workspace:*",
+    "fallow": "^3.28.0",
+    "lefthook": "^2.1.14",
+    "lint-staged": "^17.5.1",
+    "oxfmt": "^0.70.0",
+    "oxlint": "^1.85.0",
+    "oxlint-plugin-react-doctor": "^0.9.13",
+    "turbo": "^2.9.18",
+    "typescript": "^7.0.2",
+    "ultracite": "7.12.0"
+  },
+  "name": "Quiver",
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
-    "lint": "turbo lint",
-    "format": "turbo format",
-    "typecheck": "turbo typecheck"
+    "lint": "ultracite check",
+    "format": "ultracite fix",
+    "typecheck": "turbo typecheck",
+    "check": "ultracite check",
+    "fix": "ultracite fix",
+    "prepare": "lefthook install",
+    "fallow": "fallow",
+    "shadscan": "shadscan apps/web",
+    "electron:dev": "bun run --cwd apps/desktop electron:dev",
+    "electron:preview": "bun run --cwd apps/desktop electron:preview",
+    "package:win": "bun run --cwd apps/desktop package",
+    "release": "bun run --cwd apps/desktop release"
   },
-  "devDependencies": {
-    "@workspace/eslint-config": "workspace:*",
-    "@workspace/typescript-config": "workspace:*",
-    "prettier": "^3.8.3",
-    "prettier-plugin-tailwindcss": "^0.8.0",
-    "turbo": "^2.9.18",
-    "typescript": "^5"
-  },
-  "packageManager": "bun@1.4.0",
-  "engines": {
-    "node": ">=20"
-  },
+  "type": "module",
+  "version": "0.0.1",
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "private": true,
+  "packageManager": "bun@1.4.0",
+  "engines": {
+    "node": ">=20"
+  }
 }

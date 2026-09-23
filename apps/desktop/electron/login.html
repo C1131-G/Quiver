@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quiver Dashboard — Log in</title>
+    <style>
+      :root {
+        --background: #ffffff;
+        --foreground: #0a0b0d;
+        --muted-foreground: #6b6f76;
+        --border: rgba(10, 11, 13, 0.12);
+        --card: #ffffff;
+        --input: #ffffff;
+        --destructive: #b3261e;
+        --primary: #0a0b0d;
+        --primary-foreground: #ffffff;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --background: #0a0b0d;
+          --foreground: #f5f6f7;
+          --muted-foreground: #9ba1a9;
+          --border: rgba(245, 246, 247, 0.16);
+          --card: #131519;
+          --input: #131519;
+          --destructive: #f2b8b5;
+          --primary: #f5f6f7;
+          --primary-foreground: #0a0b0d;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        align-items: center;
+        background: var(--background);
+        color: var(--foreground);
+        display: flex;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        justify-content: center;
+        line-height: 1.5;
+      }
+
+      main {
+        inline-size: min(24rem, calc(100vw - 3rem));
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        margin: 0;
+      }
+
+      form,
+      .intro {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .intro {
+        margin-block-end: 1.5rem;
+        text-align: center;
+      }
+
+      .intro p {
+        color: var(--muted-foreground);
+        font-size: 0.875rem;
+        margin: 0;
+      }
+
+      label {
+        display: flex;
+        flex-direction: column;
+        font-size: 0.875rem;
+        font-weight: 500;
+        gap: 0.375rem;
+      }
+
+      input {
+        background: var(--input);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        color: var(--foreground);
+        font: inherit;
+        inline-size: 100%;
+        padding: 0.5rem 0.75rem;
+      }
+
+      input:focus-visible {
+        outline: 2px solid var(--foreground);
+        outline-offset: 1px;
+      }
+
+      .password-field {
+        position: relative;
+      }
+
+      .password-field input {
+        padding-inline-end: 2.75rem;
+      }
+
+      .password-field button {
+        align-items: center;
+        background: none;
+        block-size: 2rem;
+        border: none;
+        border-radius: 0.375rem;
+        color: var(--muted-foreground);
+        cursor: pointer;
+        display: inline-flex;
+        inline-size: 2rem;
+        justify-content: center;
+        padding: 0;
+        position: absolute;
+        inset-inline-end: 0.375rem;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      .password-field button:hover {
+        color: var(--foreground);
+      }
+
+      .password-field button:focus-visible {
+        outline: 2px solid var(--foreground);
+        outline-offset: 1px;
+      }
+
+      .password-field svg {
+        block-size: 1.125rem;
+        inline-size: 1.125rem;
+      }
+
+      button {
+        background: var(--primary);
+        border: none;
+        border-radius: 0.5rem;
+        color: var(--primary-foreground);
+        cursor: pointer;
+        font: inherit;
+        font-weight: 500;
+        padding: 0.5rem 0.75rem;
+        transition: opacity 0.15s ease;
+      }
+
+      button:hover:enabled {
+        opacity: 0.9;
+      }
+
+      button:focus-visible {
+        outline: 2px solid var(--foreground);
+        outline-offset: 2px;
+      }
+
+      button:disabled {
+        cursor: default;
+        opacity: 0.6;
+      }
+
+      .text-button {
+        background: none;
+        color: var(--muted-foreground);
+        cursor: pointer;
+        font: inherit;
+        font-size: 0.875rem;
+        padding: 0;
+        text-align: center;
+      }
+
+      .text-button:hover {
+        color: var(--foreground);
+        opacity: 1;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .error {
+        color: var(--destructive);
+        font-size: 0.875rem;
+        margin: 1rem 0 0;
+      }
+
+      .recovery-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .recovery-actions button {
+        flex: 1;
+      }
+
+      button.secondary {
+        background: none;
+        border: 1px solid var(--border);
+        color: var(--foreground);
+      }
+
+      button.secondary:hover:enabled {
+        background: var(--card);
+        opacity: 1;
+      }
+
+      .recovery-status {
+        color: var(--muted-foreground);
+        font-size: 0.875rem;
+        margin: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .recovery-code {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+        font-size: 1.125rem;
+        letter-spacing: 0.125rem;
+        margin: 0;
+        padding: 0.75rem;
+        text-align: center;
+        user-select: all;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        button {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="intro" data-view="login" id="login-view">
+        <h1>Welcome back</h1>
+        <p>Log in to your Quiver Dashboard account</p>
+      </section>
+      <form data-view="login" id="login-form">
+        <label for="login-username">Username</label>
+        <input
+          autocomplete="username"
+          id="login-username"
+          maxlength="32"
+          minlength="3"
+          name="username"
+          required
+          type="text"
+        />
+        <label for="login-password">Password</label>
+        <div class="password-field">
+          <input
+            autocomplete="current-password"
+            id="login-password"
+            name="password"
+            required
+            type="password"
+          />
+          <button
+            aria-controls="login-password"
+            aria-label="Show password"
+            aria-pressed="false"
+            class="toggle-password"
+            title="Show password"
+            type="button"
+          >
+            <svg
+              aria-hidden="true"
+              fill="none"
+              id="eye-open"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <svg
+              aria-hidden="true"
+              fill="none"
+              hidden
+              id="eye-closed"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+              />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+          </button>
+        </div>
+        <button type="submit">Log in</button>
+        <button class="text-button" id="show-recovery" type="button">
+          Forgot your password?
+        </button>
+      </form>
+
+      <section class="intro" data-view="setup" hidden id="setup-view">
+        <h1>Welcome to Quiver Dashboard</h1>
+        <p>Create your account to get started.</p>
+      </section>
+      <form data-view="setup" hidden id="setup-form">
+        <label for="setup-username">Username</label>
+        <input
+          autocomplete="username"
+          id="setup-username"
+          maxlength="32"
+          minlength="3"
+          name="username"
+          required
+          type="text"
+        />
+        <label for="setup-password">Password</label>
+        <div class="password-field">
+          <input
+            autocomplete="new-password"
+            id="setup-password"
+            minlength="8"
+            name="password"
+            required
+            type="password"
+          />
+          <button
+            aria-controls="setup-password"
+            aria-label="Show password"
+            aria-pressed="false"
+            class="toggle-password"
+            title="Show password"
+            type="button"
+          >
+            <svg
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <svg
+              aria-hidden="true"
+              fill="none"
+              hidden
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+              />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+          </button>
+        </div>
+        <label for="setup-confirm">Confirm password</label>
+        <div class="password-field">
+          <input
+            autocomplete="new-password"
+            id="setup-confirm"
+            minlength="8"
+            name="confirm"
+            required
+            type="password"
+          />
+          <button
+            aria-controls="setup-confirm"
+            aria-label="Show password"
+            aria-pressed="false"
+            class="toggle-password"
+            title="Show password"
+            type="button"
+          >
+            <svg
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <svg
+              aria-hidden="true"
+              fill="none"
+              hidden
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+              />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+          </button>
+        </div>
+        <button type="submit">Create account</button>
+      </form>
+
+      <section class="intro" data-view="recovery" hidden id="recovery-view">
+        <h1>Recover access</h1>
+        <p>
+          Use your recovery code to set a new password. Codes look like
+          XXXX-XXXX-XXXX-XXXX.
+        </p>
+      </section>
+      <form data-view="recovery" hidden id="recovery-form">
+        <label for="recovery-username">Username</label>
+        <input
+          autocomplete="username"
+          id="recovery-username"
+          maxlength="32"
+          minlength="3"
+          name="username"
+          required
+          type="text"
+        />
+        <label for="recovery-code">Recovery code</label>
+        <input
+          autocomplete="off"
+          id="recovery-code"
+          name="recoveryCode"
+          required
+          type="text"
+        />
+        <label for="recovery-password">New password</label>
+        <div class="password-field">
+          <input
+            autocomplete="new-password"
+            id="recovery-password"
+            minlength="8"
+            name="newPassword"
+            required
+            type="password"
+          />
+          <button
+            aria-controls="recovery-password"
+            aria-label="Show password"
+            aria-pressed="false"
+            class="toggle-password"
+            title="Show password"
+            type="button"
+          >
+            <svg
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <svg
+              aria-hidden="true"
+              fill="none"
+              hidden
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+              />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+          </button>
+        </div>
+        <button type="submit">Recover access</button>
+        <button class="text-button" id="show-login" type="button">
+          Back to log in
+        </button>
+      </form>
+
+      <section class="intro" data-view="code" hidden id="code-view">
+        <h1>Your recovery code</h1>
+        <p>
+          Write it down and keep it safe — it is the only way to recover access
+          if you forget your password. You will not be shown it again.
+        </p>
+        <output class="recovery-code" id="recovery-code-value"></output>
+        <div class="recovery-actions">
+          <button class="secondary" id="copy-recovery-code" type="button">
+            Copy code
+          </button>
+          <button class="secondary" id="save-recovery-code" type="button">
+            Save as text file
+          </button>
+        </div>
+        <p
+          class="recovery-status"
+          hidden
+          id="recovery-status"
+          role="status"
+        ></p>
+        <button id="continue-to-app" type="button">
+          Continue to Quiver Dashboard
+        </button>
+      </section>
+
+      <p class="error" hidden id="error" role="alert"></p>
+    </main>
+    <script>
+      const auth = window.electronAPI?.backend?.auth;
+      const desktop = window.electronAPI?.desktop;
+      // Each view is a section plus (except the code view) its form, paired
+      // by data-view so the pair is shown and hidden together.
+      const views = document.querySelectorAll("main > [data-view]");
+      const errorParagraph = document.getElementById("error");
+      const recoveryCodeValue = document.getElementById("recovery-code-value");
+
+      // The raw IPC error carries an "Error invoking remote method" wrapper
+      // followed by the error class name; show only the human message.
+      const readableError = (error) =>
+        error instanceof Error
+          ? error.message
+              .replace(
+                /^Error invoking remote method '[^']+':\s*(?:Error:\s*)?/,
+                ""
+              )
+              .replace(/^[A-Za-z]+Error:\s*/, "")
+          : "Something went wrong. Try again.";
+
+      const setError = (message) => {
+        errorParagraph.textContent = message;
+        errorParagraph.hidden = message === "";
+      };
+
+      const recoveryStatus = document.getElementById("recovery-status");
+
+      const setRecoveryStatus = (message) => {
+        recoveryStatus.textContent = message;
+        recoveryStatus.hidden = message === "";
+      };
+
+      const showView = (id) => {
+        setError("");
+        setRecoveryStatus("");
+        for (const view of views) {
+          view.hidden = view.dataset.view !== id.replace("-view", "");
+        }
+      };
+
+      const requireDesktop = () => {
+        if (!auth || !desktop) {
+          setError(
+            "Open the Quiver Dashboard desktop app to manage your account."
+          );
+          return false;
+        }
+        return true;
+      };
+
+      const setPending = (button, label) => {
+        button.disabled = label !== null;
+        button.textContent = label ?? button.dataset.label;
+      };
+
+      for (const button of document.querySelectorAll(
+        "form button[type=submit], #continue-to-app, #save-recovery-code"
+      )) {
+        button.dataset.label = button.textContent;
+      }
+
+      // Every password field gets an eye toggle. The hidden IDL property only
+      // reflects to the attribute on HTMLElement, so SVG elements need the
+      // attribute set explicitly.
+      for (const toggle of document.querySelectorAll(".toggle-password")) {
+        const input = document.getElementById(
+          toggle.getAttribute("aria-controls")
+        );
+        if (!input) {
+          continue;
+        }
+        const [eyeOpen, eyeClosed] = toggle.querySelectorAll("svg");
+        const setHidden = (element, hidden) => {
+          if (hidden) {
+            element.setAttribute("hidden", "");
+          } else {
+            element.removeAttribute("hidden");
+          }
+        };
+        toggle.addEventListener("click", () => {
+          const visible = input.type === "text";
+          input.type = visible ? "password" : "text";
+          toggle.setAttribute("aria-pressed", String(!visible));
+          toggle.setAttribute(
+            "aria-label",
+            visible ? "Show password" : "Hide password"
+          );
+          toggle.title = visible ? "Show password" : "Hide password";
+          setHidden(eyeOpen, !visible);
+          setHidden(eyeClosed, visible);
+        });
+      }
+
+      const continueToApp = async (button) => {
+        setPending(button, "Starting Quiver Dashboard…");
+        try {
+          await desktop.continueToApp("/");
+          // On success the navigation tears this page down first.
+        } catch (error) {
+          setPending(button, null);
+          setError(readableError(error));
+        }
+      };
+
+      document
+        .getElementById("login-form")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          if (!requireDesktop()) {
+            return;
+          }
+          const formData = new FormData(event.currentTarget);
+          const submitButton = event.currentTarget.querySelector(
+            "button[type=submit]"
+          );
+          setPending(submitButton, "Logging in…");
+          try {
+            await auth.login({
+              password: String(formData.get("password") ?? ""),
+              username: String(formData.get("username") ?? ""),
+            });
+          } catch (error) {
+            setPending(submitButton, null);
+            setError(readableError(error));
+            return;
+          }
+          if (!desktop) {
+            setPending(submitButton, null);
+            setError("The desktop navigation bridge is unavailable.");
+            return;
+          }
+          // The login itself succeeded; what is left is reaching the app.
+          setPending(submitButton, "Starting Quiver Dashboard…");
+          try {
+            await desktop.continueToApp("/");
+            // On success the navigation tears this page down first.
+          } catch (error) {
+            setPending(submitButton, null);
+            setError(readableError(error));
+          }
+        });
+
+      document
+        .getElementById("setup-form")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          if (!requireDesktop()) {
+            return;
+          }
+          const form = event.currentTarget;
+          const formData = new FormData(form);
+          if (formData.get("password") !== formData.get("confirm")) {
+            setError("The passwords do not match.");
+            return;
+          }
+          const submitButton = form.querySelector("button[type=submit]");
+          setPending(submitButton, "Creating account…");
+          try {
+            const { recoveryCode } = await auth.setup({
+              password: String(formData.get("password") ?? ""),
+              username: String(formData.get("username") ?? ""),
+            });
+            recoveryCodeValue.textContent = recoveryCode;
+            showView("code-view");
+          } catch (error) {
+            setPending(submitButton, null);
+            setError(readableError(error));
+          }
+        });
+
+      document
+        .getElementById("recovery-form")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          if (!requireDesktop()) {
+            return;
+          }
+          const form = event.currentTarget;
+          const formData = new FormData(form);
+          const submitButton = form.querySelector("button[type=submit]");
+          setPending(submitButton, "Recovering access…");
+          try {
+            const { recoveryCode } = await auth.recover({
+              newPassword: String(formData.get("newPassword") ?? ""),
+              recoveryCode: String(formData.get("recoveryCode") ?? ""),
+              username: String(formData.get("username") ?? ""),
+            });
+            recoveryCodeValue.textContent = recoveryCode;
+            showView("code-view");
+          } catch (error) {
+            setPending(submitButton, null);
+            setError(readableError(error));
+          }
+        });
+
+      document
+        .getElementById("continue-to-app")
+        .addEventListener("click", (event) => {
+          if (requireDesktop()) {
+            continueToApp(event.currentTarget);
+          }
+        });
+
+      document
+        .getElementById("copy-recovery-code")
+        .addEventListener("click", async () => {
+          if (!requireDesktop()) {
+            return;
+          }
+          try {
+            await desktop.copyRecoveryCode(recoveryCodeValue.textContent);
+            setRecoveryStatus("Recovery code copied to the clipboard.");
+          } catch (error) {
+            setRecoveryStatus("");
+            setError(readableError(error));
+          }
+        });
+
+      document
+        .getElementById("save-recovery-code")
+        .addEventListener("click", async (event) => {
+          if (!requireDesktop()) {
+            return;
+          }
+          const button = event.currentTarget;
+          setPending(button, "Saving…");
+          try {
+            const result = await desktop.saveRecoveryCode(
+              recoveryCodeValue.textContent
+            );
+            setRecoveryStatus(result.saved ? `Saved to ${result.path}` : "");
+          } catch (error) {
+            setRecoveryStatus("");
+            setError(readableError(error));
+          }
+          setPending(button, null);
+        });
+
+      document.getElementById("show-recovery").addEventListener("click", () => {
+        showView("recovery-view");
+      });
+      document.getElementById("show-login").addEventListener("click", () => {
+        showView("login-view");
+      });
+
+      /** A fresh install creates the owner account; later launches log in. */
+      const bootstrap = async () => {
+        if (!auth) {
+          setError("Open the Quiver Dashboard desktop app to continue.");
+          return;
+        }
+        try {
+          const { configured } = await auth.status();
+          showView(configured ? "login-view" : "setup-view");
+        } catch {
+          // Default to setup so a fresh install can still create an account.
+          // If an account already exists, submitting the setup form returns a
+          // clear "already configured" error and the user can restart instead.
+          showView("setup-view");
+          setError(
+            "Could not verify your account. Create one below, or restart the app if you already have an account."
+          );
+        }
+      };
+
+      bootstrap();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,55 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0B1220" />
+      <stop offset="55%" stop-color="#132038" />
+      <stop offset="100%" stop-color="#0A1A2F" />
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#22D3EE" stop-opacity="0.35" />
+      <stop offset="70%" stop-color="#22D3EE" stop-opacity="0.06" />
+      <stop offset="100%" stop-color="#22D3EE" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="shaft" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#8FA3B8" />
+      <stop offset="55%" stop-color="#EEF4FA" />
+      <stop offset="100%" stop-color="#FFFFFF" />
+    </linearGradient>
+    <linearGradient id="head" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#CBD5E1" />
+      <stop offset="45%" stop-color="#F8FAFC" />
+      <stop offset="100%" stop-color="#FFFFFF" />
+    </linearGradient>
+    <radialGradient id="core" cx="0.38" cy="0.32" r="0.8">
+      <stop offset="0%" stop-color="#CFFAFE" />
+      <stop offset="55%" stop-color="#22D3EE" />
+      <stop offset="100%" stop-color="#0E7490" />
+    </radialGradient>
+  </defs>
+
+  <!-- App-icon plate -->
+  <rect width="1024" height="1024" rx="228" fill="url(#bg)" />
+  <circle cx="512" cy="512" r="470" fill="url(#glow)" />
+
+  <!-- 360 dial: ticked outer ring -->
+  <circle cx="512" cy="512" r="404" fill="none" stroke="#22D3EE" stroke-opacity="0.28"
+          stroke-width="12" stroke-linecap="round" stroke-dasharray="4 44" />
+
+  <!-- Target rings -->
+  <g fill="none">
+    <circle cx="512" cy="512" r="344" stroke="#E2E8F0" stroke-opacity="0.92" stroke-width="46" />
+    <circle cx="512" cy="512" r="252" stroke="#22D3EE" stroke-width="46" />
+    <circle cx="512" cy="512" r="160" stroke="#E2E8F0" stroke-opacity="0.92" stroke-width="46" />
+  </g>
+
+  <!-- Bullseye -->
+  <circle cx="512" cy="512" r="86" fill="url(#core)" />
+
+  <!-- Arrow on the 45° axis: fletching, shaft, head struck through the bullseye -->
+  <g>
+    <path d="M150 874 L100.5 824.5 L206.5 718.5 L256 768 Z" fill="#67E8F9" fill-opacity="0.95" />
+    <path d="M150 874 L199.5 923.5 L305.5 817.5 L256 768 Z" fill="#0E7490" />
+    <path d="M196 828 L470 554" stroke="url(#shaft)" stroke-width="52" stroke-linecap="round" />
+    <path d="M580 444 L416 478 L546 608 Z" fill="url(#head)" />
+  </g>
+</svg>
