@@ -1,0 +1,67 @@
+import "@/global.css";
+import { useSelector } from "@tanstack/react-store";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import { ActivityIndicator, View } from "react-native";
+import { Toaster } from "sonner-native";
+import { useUniwind } from "uniwind";
+
+import { authAtom, restoreSession } from "@/auth/auth-store";
+import { StyledGestureRoot } from "@/components/styled";
+import { refreshTokensWhileActive } from "@/lib/supabase";
+
+const Loading = () => (
+  <View className="bg-background flex-1 items-center justify-center">
+    <ActivityIndicator accessibilityLabel="Loading QuiverScore" />
+  </View>
+);
+
+const RootLayout = () => {
+  const { theme } = useUniwind();
+  const status = useSelector(authAtom, (state) => state.status);
+
+  useEffect(
+    // oxlint-disable-next-line prefer-arrow-callback -- named for stack traces and the effects skill
+    function followAuthSession() {
+      return restoreSession();
+    },
+    []
+  );
+
+  useEffect(
+    // oxlint-disable-next-line prefer-arrow-callback -- named for stack traces and the effects skill
+    function refreshTokensInForeground() {
+      return refreshTokensWhileActive();
+    },
+    []
+  );
+
+  const signedIn = status === "signed-in";
+
+  return (
+    <StyledGestureRoot className="bg-background flex-1">
+      {/* The default "auto" style follows the system theme, as Uniwind does. */}
+      <StatusBar />
+      {status === "loading" ? (
+        <Loading />
+      ) : (
+        // The navigator's own background, so dark mode never flashes white
+        // between screens; each screen paints bg-background over it.
+        <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Protected guard={signedIn}>
+              <Stack.Screen name="index" />
+            </Stack.Protected>
+            <Stack.Protected guard={!signedIn}>
+              <Stack.Screen name="sign-in" />
+            </Stack.Protected>
+          </Stack>
+        </ThemeProvider>
+      )}
+      <Toaster position="bottom-center" richColors theme="system" />
+    </StyledGestureRoot>
+  );
+};
+
+export default RootLayout;

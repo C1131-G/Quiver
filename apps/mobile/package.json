@@ -1,0 +1,50 @@
+{
+  "name": "mobile",
+  "version": "0.0.1",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "doctor": "expo-doctor"
+  },
+  "dependencies": {
+    "@rn-primitives/label": "1.5.2",
+    "@rn-primitives/slot": "1.5.2",
+    "@supabase/supabase-js": "2.117.0",
+    "@tanstack/react-form": "1.33.5",
+    "@tanstack/react-store": "0.11.1",
+    "@workspace/shared": "workspace:*",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "expo": "~57.0.24",
+    "expo-constants": "~57.0.19",
+    "expo-linking": "~57.0.10",
+    "expo-router": "~57.0.22",
+    "expo-secure-store": "~57.0.4",
+    "expo-status-bar": "~57.0.1",
+    "expo-system-ui": "~57.0.4",
+    "lucide-react-native": "1.48.0",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-svg": "15.15.4",
+    "react-native-worklets": "0.10.1",
+    "sonner-native": "0.27.0",
+    "tailwind-merge": "3.7.0",
+    "tailwindcss": "4.3.3",
+    "uniwind": "1.12.0",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.2",
+    "@types/react": "~19.2.2",
+    "typescript": "~6.0.3"
+  }
+}

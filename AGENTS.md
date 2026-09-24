@@ -33,6 +33,7 @@ Load the skill before writing the code, not after. Two or more rows can apply at
 | Supabase auth, RLS, Realtime, or the Supabase CLI | `supabase` |
 | A migration, SQL function, view, index, or policy in `supabase/` | `supabase-postgres-best-practices` |
 | Lint or format errors, or Oxlint config | `ultracite` |
+| Any Expo or React Native code in `apps/mobile` | Read `apps/mobile/AGENTS.md` first |
 | Onboarding a repository, or this table needs updating | `setup-agent-rules` |
 | Auditing the repo against the skills its stack implies, or checking this setup is applied | `audit-with-skills` |
 | Reading or reviewing a research paper | `read-research-paper` |
@@ -53,6 +54,9 @@ These choices are deliberate. A skill's generic advice does not override them. C
 - **Shared Edge Function contracts live in `supabase/functions/_shared/`.** The web app imports them as `@contracts/*`. Validate with the same zod schema on both sides, and never duplicate them.
 - **Dialogs keep a snapshot of the row they opened with.** Live updates can refetch the list while a dialog is open, and the form must not change underneath the user.
 - **Roles live in `app_metadata`, and `private.is_admin()` also requires an active profile.** Deactivating an account removes its access right away, without waiting for the token to expire.
+- **QuiverScore pins React to what React Native was built with.** The workspace hoists Quiver Dashboard's React, so `apps/mobile` keeps its own copy, and `metro.config.js` and the `paths` in its `tsconfig.json` point every `react` import there. expo-doctor reports the two copies as duplicates; the exported bundle holds only one. Remove the redirect only once both apps use the same React version.
+- **QuiverScore keeps the Supabase session in SecureStore, split into chunks.** SecureStore rejects values over 2048 bytes (`apps/mobile/src/lib/secure-storage.ts`). Offline, an expired session still counts as signed in, so scorers are never locked out at the range.
+- **Code both apps need lives in `packages/shared`** (`@workspace/shared/*`): the `Database` types, arrow rules, and account helpers. `bun run db:types` writes the types there and copies them to `apps/web/lib/supabase/database.types.ts` until the dashboard imports them from the package.
 - **Paging uses OFFSET with UUIDv4 keys.** QuiverScore generates the IDs, and each list holds hundreds of rows, not millions. Revisit keyset paging only if that changes.
 
 <!-- BEGIN:nextjs-agent-rules -->
