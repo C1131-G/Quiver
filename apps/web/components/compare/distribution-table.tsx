@@ -1,6 +1,7 @@
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -33,12 +34,15 @@ export const DistributionTable = ({
   }
   return (
     <div className="border tabular-nums">
-      <Table aria-label="Where arrows land, by ring">
+      <Table>
+        <TableCaption className="sr-only">
+          Where arrows land, by ring
+        </TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead>Ring</TableHead>
+            <TableHead scope="col">Ring</TableHead>
             {series.map((athleteSeries) => (
-              <TableHead key={athleteSeries.key}>
+              <TableHead key={athleteSeries.key} scope="col">
                 <span className="flex items-center gap-2">
                   <SeriesKey color={athleteSeries.color} />
                   {athleteSeries.name}

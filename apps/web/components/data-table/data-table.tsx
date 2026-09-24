@@ -11,6 +11,7 @@ import { Button } from "@workspace/ui/components/button";
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -42,9 +43,12 @@ const SortIcon = ({ direction }: { direction: false | "asc" | "desc" }) => (
   </IconSwap>
 );
 
-interface DataTableProps<TData extends RowData> {
-  columns: ColumnDef<DataTableFeatures, TData, unknown>[];
-  data: TData[];
+interface DataTableProps<
+  TData extends RowData,
+  TColumns extends readonly ColumnDef<DataTableFeatures, TData, unknown>[],
+> {
+  columns: TColumns;
+  rows: TData[];
   empty: ReactNode;
   getRowId: (row: TData) => string;
   initialSorting?: SortingState;
@@ -52,18 +56,21 @@ interface DataTableProps<TData extends RowData> {
   pageSize?: number;
 }
 
-export const DataTable = <TData extends RowData>({
+export const DataTable = <
+  TData extends RowData,
+  TColumns extends readonly ColumnDef<DataTableFeatures, TData, unknown>[],
+>({
   columns,
-  data,
+  rows,
   empty,
   getRowId,
   initialSorting = NO_SORTING,
   label,
   pageSize = DEFAULT_PAGE_SIZE,
-}: DataTableProps<TData>) => {
+}: DataTableProps<TData, TColumns>) => {
   const table = useTable({
-    columns,
-    data,
+    columns: [...columns],
+    data: rows,
     enableSortingRemoval: false,
     features: dataTableFeatures,
     getRowId,
@@ -73,7 +80,7 @@ export const DataTable = <TData extends RowData>({
     },
   });
 
-  if (data.length === 0) {
+  if (rows.length === 0) {
     return empty;
   }
 
@@ -83,13 +90,16 @@ export const DataTable = <TData extends RowData>({
   return (
     <div className="flex flex-col gap-3">
       <div className="overflow-hidden border">
-        <Table aria-label={label}>
+        <Table>
+          <TableCaption className="sr-only">{label}</TableCaption>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   const canSort = header.column.getCanSort();
                   const direction = header.column.getIsSorted();
+                  const showSortButton = !header.isPlaceholder && canSort;
+                  const showPlainHeader = !header.isPlaceholder && !canSort;
                   let ariaSort: "ascending" | "descending" | "none" = "none";
                   if (direction === "asc") {
                     ariaSort = "ascending";
@@ -100,8 +110,9 @@ export const DataTable = <TData extends RowData>({
                     <TableHead
                       aria-sort={canSort ? ariaSort : undefined}
                       key={header.id}
+                      scope="col"
                     >
-                      {!header.isPlaceholder && canSort ? (
+                      {showSortButton ? (
                         <Button
                           className="-ml-2"
                           onClick={header.column.getToggleSortingHandler()}
@@ -112,7 +123,7 @@ export const DataTable = <TData extends RowData>({
                           <SortIcon direction={direction} />
                         </Button>
                       ) : null}
-                      {!header.isPlaceholder && !canSort ? (
+                      {showPlainHeader ? (
                         <table.FlexRender header={header} />
                       ) : null}
                     </TableHead>
@@ -140,7 +151,7 @@ export const DataTable = <TData extends RowData>({
           className="flex items-center justify-between gap-2"
         >
           <p className="text-muted-foreground text-xs tabular-nums">
-            Page {pageIndex + 1} of {pageCount} · {data.length} total
+            Page {pageIndex + 1} of {pageCount} · {rows.length} total
           </p>
           <div className="flex gap-2">
             <Button

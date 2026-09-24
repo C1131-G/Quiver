@@ -43,15 +43,18 @@ export const athleteFormSchema = z
 
 export type AthleteFormResult =
   | { input: AthleteInput; ok: true }
-  | { error: string; ok: false };
+  | { error: string; field: string | undefined; ok: false };
 
 /** Reads a submitted athlete form; the first problem is the message shown. */
 export const readAthleteForm = (form: FormData): AthleteFormResult => {
   const parsed = athleteFormSchema.safeParse(Object.fromEntries(form));
-  return parsed.success
-    ? { input: parsed.data, ok: true }
-    : {
-        error: parsed.error.issues[0]?.message ?? "Check the form.",
-        ok: false,
-      };
+  if (parsed.success) {
+    return { input: parsed.data, ok: true };
+  }
+  const [issue] = parsed.error.issues;
+  return {
+    error: issue?.message ?? "Check the form.",
+    field: issue?.path[0] === undefined ? undefined : String(issue.path[0]),
+    ok: false,
+  };
 };

@@ -1,7 +1,6 @@
 {
   "extends": "@workspace/typescript-config/nextjs.json",
   "compilerOptions": {
-    "exactOptionalPropertyTypes": true,
     "paths": {
       "@/*": ["./*"],
       "@contracts/*": ["../../supabase/functions/_shared/*"],

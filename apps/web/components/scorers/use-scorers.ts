@@ -1,21 +1,21 @@
 "use client";
 
 import type { AdminUsersRequest } from "@contracts/admin-users-contract";
+import { adminUsersResponseSchema } from "@contracts/admin-users-contract";
 import {
   queryOptions,
   useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/client";
-import type { Database } from "@/lib/supabase/database.types";
 import { invokeFunction } from "@/lib/supabase/functions";
 import { loadError } from "@/lib/supabase/load-error";
+import { parseTableRows, profileSchema } from "@/lib/supabase/table-rows";
+import type { Profile } from "@/lib/supabase/table-rows";
 
-export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
-export type AppRole = Database["public"]["Enums"]["app_role"];
+export type { AppRole, Profile } from "@/lib/supabase/table-rows";
 
 export const accountKeys = {
   all: ["profiles"] as const,
@@ -25,33 +25,51 @@ export const accountKeys = {
 export const accountsQuery = () =>
   queryOptions({
     queryFn: async () => {
-      const { data, error } = await createClient()
+      const { data: profiles, error } = await createClient()
         .from("profiles")
         .select("*")
         .order("full_name");
       if (error) {
         throw loadError("Could not load users.", error);
       }
-      return data;
+      return parseTableRows(profileSchema, profiles, "Could not load users.");
     },
     queryKey: accountKeys.all,
   });
 
 export const useAccounts = () => useQuery(accountsQuery());
 
-// The function answers with the changed profile, or { ok: true } for a
-// password reset. Callers only need success; the list refetches.
-const adminUsersResponseSchema = z.union([
-  z.object({ profile: z.object({ id: z.uuid() }).loose() }),
-  z.object({ ok: z.literal(true) }),
-]);
+/**
+ * Folds a validated changed profile into the cached list without refetching.
+ * Pure so the merge order is unit-testable; the list stays ordered by name
+ * the way the query orders it.
+ */
+export const upsertAccountProfile = (
+  previous: Profile[] | undefined,
+  profile: Profile
+): Profile[] | undefined => {
+  if (!previous) {
+    return previous;
+  }
+  const merged = previous.some((row) => row.id === profile.id)
+    ? previous.map((row) => (row.id === profile.id ? profile : row))
+    : [...previous, profile];
+  return merged.toSorted((a, b) => a.full_name.localeCompare(b.full_name));
+};
 
 export const useAdminUsersMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (request: AdminUsersRequest) =>
       invokeFunction("admin-users", request, adminUsersResponseSchema),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: accountKeys.all }),
+    // The response carries the changed profile, so patch the exact cached
+    // list instead of refetching. A password reset changes no list data.
+    onSuccess: (response) => {
+      if ("profile" in response) {
+        queryClient.setQueryData<Profile[]>(accountKeys.all, (previous) =>
+          upsertAccountProfile(previous, response.profile)
+        );
+      }
+    },
   });
 };

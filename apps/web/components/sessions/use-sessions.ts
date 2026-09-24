@@ -13,6 +13,12 @@ import type { Filters } from "@/components/filters/filters";
 import { performanceKeys } from "@/components/performance/use-performance";
 import { createClient } from "@/lib/supabase/client";
 import { loadError } from "@/lib/supabase/load-error";
+import {
+  arrowCorrectionSchema,
+  parseTableRows,
+  sessionDetailSchema,
+  sessionSummarySchema,
+} from "@/lib/supabase/table-rows";
 
 import type { toChanges } from "./score-editor";
 import { sessionSummariesQuery } from "./session-list-query";
@@ -32,19 +38,28 @@ export const sessionKeys = {
 
 const fetchSessions = async (filters: Filters, page: number) => {
   const start = page * SESSIONS_PAGE_SIZE;
-  const { count, data, error } = await sessionSummariesQuery(filters).range(
+  const {
+    count,
+    data: summaries,
+    error,
+  } = await sessionSummariesQuery(filters).range(
     start,
     start + SESSIONS_PAGE_SIZE - 1
   );
   if (error) {
     throw loadError("Could not load sessions.", error);
   }
-  return { rows: data, total: count ?? 0 };
+  return {
+    rows: parseTableRows(
+      sessionSummarySchema,
+      summaries,
+      "Could not load sessions."
+    ),
+    total: count ?? 0,
+  };
 };
 
-export type SessionSummary = Awaited<
-  ReturnType<typeof fetchSessions>
->["rows"][number];
+export type { SessionSummary } from "@/lib/supabase/table-rows";
 
 /** Newest first, a page at a time, so years of sessions stay browsable. */
 export const sessionsQuery = (filters: Filters, page: number) =>
@@ -68,7 +83,7 @@ const SESSION_SELECT = `*,
     ends(id, end_no, arrows(id, arrow_no, value, points, is_x, is_ten_plus_x)))`;
 
 const fetchSession = async (sessionId: string) => {
-  const { data, error } = await createClient()
+  const { data: sessionRow, error } = await createClient()
     .from("sessions")
     .select(SESSION_SELECT)
     .eq("id", sessionId)
@@ -76,11 +91,18 @@ const fetchSession = async (sessionId: string) => {
   if (error) {
     throw loadError("Could not load the session.", error);
   }
-  if (!data) {
+  if (!sessionRow) {
     return null;
   }
+  const parsed = sessionDetailSchema.safeParse(sessionRow);
+  if (!parsed.success) {
+    throw new Error(
+      "Could not load the session. The server sent data in an unexpected shape."
+    );
+  }
+  const session = parsed.data;
   // Embedded rows come back unordered; the scorecard reads in shooting order.
-  const rounds = data.rounds
+  const rounds = session.rounds
     .map((round) => ({
       ...round,
       ends: round.ends
@@ -91,15 +113,15 @@ const fetchSession = async (sessionId: string) => {
         .toSorted((a, b) => a.end_no - b.end_no),
     }))
     .toSorted((a, b) => a.round_no - b.round_no);
-  return { ...data, rounds };
+  return { ...session, rounds };
 };
 
-export type SessionDetail = NonNullable<
-  Awaited<ReturnType<typeof fetchSession>>
->;
-export type SessionRound = SessionDetail["rounds"][number];
-export type SessionEnd = SessionRound["ends"][number];
-export type SessionArrow = SessionEnd["arrows"][number];
+export type {
+  SessionArrow,
+  SessionDetail,
+  SessionEnd,
+  SessionRound,
+} from "@/lib/supabase/table-rows";
 
 export const sessionQuery = (sessionId: string) =>
   queryOptions({
@@ -111,7 +133,7 @@ export const useSession = (sessionId: string) =>
   useQuery(sessionQuery(sessionId));
 
 const fetchCorrections = async (sessionId: string) => {
-  const { data, error } = await createClient()
+  const { data: corrections, error } = await createClient()
     .from("arrow_corrections")
     .select(
       "id, arrow_id, round_no, end_no, arrow_no, old_value, new_value, reason, corrected_at, corrector:profiles(full_name)"
@@ -122,12 +144,14 @@ const fetchCorrections = async (sessionId: string) => {
   if (error) {
     throw loadError("Could not load the correction history.", error);
   }
-  return data;
+  return parseTableRows(
+    arrowCorrectionSchema,
+    corrections,
+    "Could not load the correction history."
+  );
 };
 
-export type ArrowCorrection = Awaited<
-  ReturnType<typeof fetchCorrections>
->[number];
+export type { ArrowCorrection } from "@/lib/supabase/table-rows";
 
 export const correctionsQuery = (sessionId: string) =>
   queryOptions({

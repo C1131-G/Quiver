@@ -20,9 +20,11 @@ const Page = () => (
   <div>
     <PageHeader
       action={
-        <Suspense fallback={<ExportButtonSkeleton />}>
-          <CompareExportButton />
-        </Suspense>
+        <SectionErrorBoundary title="Export could not be shown">
+          <Suspense fallback={<ExportButtonSkeleton />}>
+            <CompareExportButton />
+          </Suspense>
+        </SectionErrorBoundary>
       }
       description="Put athletes side by side on the same round format: totals, the weekly trend and where their arrows land."
       title="Compare"

@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
+import { useEffect, useRef } from "react";
 
 import { readText, useAccountForm } from "./use-account-form";
 import type { AppRole } from "./use-scorers";
@@ -46,13 +47,34 @@ const toCreateRequest = (form: FormData) => ({
       : ("scorer" as const),
 });
 
+const FORM_ERROR_ID = "create-user-error";
+
 const CreateUserForm = ({ onSaved }: { onSaved: () => void }) => {
-  const { error, isPending, onSubmit } = useAccountForm(
+  const { error, field, isPending, onSubmit } = useAccountForm(
     toCreateRequest,
     onSaved
   );
+  const errorRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  useEffect(
+    // oxlint-disable-next-line prefer-arrow-callback -- named for stack traces and the effects skill
+    function focusCreateError() {
+      if (!error) {
+        return;
+      }
+      const input = field
+        ? formRef.current?.querySelector(`[name="${CSS.escape(field)}"]`)
+        : null;
+      const target = input instanceof HTMLElement ? input : errorRef.current;
+      target?.focus();
+    },
+    [error, field]
+  );
+  const invalid = (name: string) => field === name;
+  const describedBy = (name: string) =>
+    invalid(name) ? FORM_ERROR_ID : undefined;
   return (
-    <form className="flex flex-col gap-6" onSubmit={onSubmit}>
+    <form className="flex flex-col gap-6" onSubmit={onSubmit} ref={formRef}>
       <DialogHeader>
         <DialogTitle>Add scorer</DialogTitle>
         <DialogDescription>
@@ -64,6 +86,8 @@ const CreateUserForm = ({ onSaved }: { onSaved: () => void }) => {
         <Field>
           <FieldLabel htmlFor="user-full-name">Full name</FieldLabel>
           <Input
+            aria-describedby={describedBy("fullName")}
+            aria-invalid={invalid("fullName")}
             autoComplete="off"
             id="user-full-name"
             maxLength={120}
@@ -74,6 +98,8 @@ const CreateUserForm = ({ onSaved }: { onSaved: () => void }) => {
         <Field>
           <FieldLabel htmlFor="user-login-id">Login ID</FieldLabel>
           <Input
+            aria-describedby={describedBy("loginId")}
+            aria-invalid={invalid("loginId")}
             autoCapitalize="none"
             autoComplete="off"
             id="user-login-id"
@@ -91,7 +117,12 @@ const CreateUserForm = ({ onSaved }: { onSaved: () => void }) => {
         <Field>
           <FieldLabel htmlFor="user-role">Role</FieldLabel>
           <Select defaultValue="scorer" items={ROLE_ITEMS} name="role">
-            <SelectTrigger className="w-full" id="user-role">
+            <SelectTrigger
+              aria-describedby={describedBy("role")}
+              aria-invalid={invalid("role")}
+              className="w-full"
+              id="user-role"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -106,6 +137,8 @@ const CreateUserForm = ({ onSaved }: { onSaved: () => void }) => {
         <Field>
           <FieldLabel htmlFor="user-password">Password</FieldLabel>
           <Input
+            aria-describedby={describedBy("password")}
+            aria-invalid={invalid("password")}
             autoComplete="new-password"
             id="user-password"
             maxLength={72}
@@ -116,7 +149,11 @@ const CreateUserForm = ({ onSaved }: { onSaved: () => void }) => {
           />
           <FieldDescription>At least 8 characters.</FieldDescription>
         </Field>
-        {error ? <FieldError>{error}</FieldError> : null}
+        {error ? (
+          <FieldError id={FORM_ERROR_ID} ref={errorRef} tabIndex={-1}>
+            {error}
+          </FieldError>
+        ) : null}
       </FieldGroup>
       <DialogFooter>
         <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>

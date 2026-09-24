@@ -184,13 +184,17 @@ export const useComparison = (
   const format = option?.format ?? null;
   const weekly = useQuery(compareWeeklyQuery(filters, ids, format));
   const distribution = useQuery(scoreDistributionQuery(filters, ids, format));
-  const formatRows = (summary.data ?? []).filter(
-    (row) =>
-      format !== null &&
-      sameFormat(
-        { distanceId: row.distance_id, faceId: row.target_face_id },
-        format
-      )
+  const formatRows = useMemo(
+    () =>
+      (summary.data ?? []).filter(
+        (row) =>
+          format !== null &&
+          sameFormat(
+            { distanceId: row.distance_id, faceId: row.target_face_id },
+            format
+          )
+      ),
+    [format, summary.data]
   );
   const lowestScore =
     lookups?.targetFaces.find((face) => face.id === format?.faceId)

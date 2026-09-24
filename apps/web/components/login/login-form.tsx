@@ -16,7 +16,7 @@ import {
   InputGroupInput,
 } from "@workspace/ui/components/input-group";
 import { useRouter } from "next/navigation";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import { IconSwap } from "@/components/icon-swap";
 import { createClient } from "@/lib/supabase/client";
@@ -46,13 +46,21 @@ const readableError = (message: string) => {
   return "Could not sign in. Check your connection and try again.";
 };
 
-const PasswordField = () => {
+const PasswordField = ({
+  describedBy,
+  invalid,
+}: {
+  describedBy: string | undefined;
+  invalid: boolean;
+}) => {
   const [visible, setVisible] = useState(false);
   const label = visible ? "Hide password" : "Show password";
 
   return (
     <InputGroup>
       <InputGroupInput
+        aria-describedby={describedBy}
+        aria-invalid={invalid}
         autoComplete="current-password"
         id="login-password"
         name="password"
@@ -83,7 +91,7 @@ const PasswordField = () => {
 };
 
 interface SignInState {
-  error: string | null;
+  error: string | undefined;
   signedIn: boolean;
   username: string;
 }
@@ -107,7 +115,7 @@ export const LoginForm = () => {
         };
       }
       const supabase = createClient();
-      const { data, error: signInError } =
+      const { data: session, error: signInError } =
         await supabase.auth.signInWithPassword({
           email: usernameToEmail(submittedUsername),
           password: String(formData.get("password") ?? ""),
@@ -119,7 +127,7 @@ export const LoginForm = () => {
           username: submittedUsername,
         };
       }
-      if (!isAdminRole(data.user?.app_metadata)) {
+      if (!isAdminRole(session.user?.app_metadata)) {
         await supabase.auth.signOut({ scope: "local" });
         return {
           error: SCORER_ACCOUNT,
@@ -130,10 +138,10 @@ export const LoginForm = () => {
       // The session cookie is set; re-run the proxy so the server sees it.
       router.replace("/dashboard");
       router.refresh();
-      return { error: null, signedIn: true, username: submittedUsername };
+      return { error: undefined, signedIn: true, username: submittedUsername };
     },
     {
-      error: supabaseEnv ? null : NOT_CONFIGURED,
+      error: supabaseEnv ? undefined : NOT_CONFIGURED,
       signedIn: false,
       username: "",
     }
@@ -145,6 +153,20 @@ export const LoginForm = () => {
   } else if (signedIn) {
     submitLabel = "Starting Quiver Dashboard…";
   }
+
+  // Sign-in failures are form-level (Supabase answers bad credentials with
+  // one generic error), so the summary takes focus and both fields point at
+  // it until the next attempt.
+  const errorRef = useRef<HTMLDivElement>(null);
+  useEffect(
+    // oxlint-disable-next-line prefer-arrow-callback -- named for stack traces and the effects skill
+    function focusLoginError() {
+      if (error) {
+        errorRef.current?.focus();
+      }
+    },
+    [error]
+  );
 
   return (
     <main className="flex min-h-svh items-center justify-center p-6">
@@ -162,6 +184,8 @@ export const LoginForm = () => {
             <Field>
               <FieldLabel htmlFor="login-username">Username</FieldLabel>
               <Input
+                aria-describedby={error ? "login-error" : undefined}
+                aria-invalid={Boolean(error)}
                 autoCapitalize="none"
                 autoComplete="username"
                 defaultValue={username}
@@ -175,13 +199,20 @@ export const LoginForm = () => {
             </Field>
             <Field>
               <FieldLabel htmlFor="login-password">Password</FieldLabel>
-              <PasswordField />
+              <PasswordField
+                describedBy={error ? "login-error" : undefined}
+                invalid={Boolean(error)}
+              />
             </Field>
             <Field>
               <Button disabled={isPending || signedIn} size="lg" type="submit">
                 {submitLabel}
               </Button>
-              {error ? <FieldError>{error}</FieldError> : null}
+              {error ? (
+                <FieldError id="login-error" ref={errorRef} tabIndex={-1}>
+                  {error}
+                </FieldError>
+              ) : null}
             </Field>
           </FieldGroup>
         </form>

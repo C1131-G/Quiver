@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Skeleton } from "@workspace/ui/components/skeleton";
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 
 import { DataTable } from "@/components/data-table/data-table";
 import { PageHeader } from "@/components/page-header";
@@ -88,14 +88,14 @@ const UsersEmpty = ({ filtered }: { filtered: boolean }) => (
 );
 
 export const ScorersPage = () => {
-  const { data, error, isPending } = useAccounts();
+  const { data: accounts, error, isPending } = useAccounts();
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("scorer");
   const [status, setStatus] = useState("all");
   const [creating, setCreating] = useState(false);
   // The user outlives the open state so a closing dialog keeps its text.
-  const [dialogKind, setDialogKind] = useState<AccountDialogKind | null>(null);
-  const [dialogUser, setDialogUser] = useState<Profile | null>(null);
+  const [dialogKind, setDialogKind] = useState<AccountDialogKind>();
+  const [dialogUser, setDialogUser] = useState<Profile>();
 
   const columns = useMemo(
     () =>
@@ -105,16 +105,21 @@ export const ScorersPage = () => {
       }),
     []
   );
+  // The list filters on the deferred keystrokes so typing stays responsive
+  // while the account list re-filters in the background.
+  const deferredSearch = useDeferredValue(search);
   const rows = useMemo(
     () =>
-      (data ?? []).filter((user) => matchesFilters(user, search, role, status)),
-    [data, search, role, status]
+      (accounts ?? []).filter((user) =>
+        matchesFilters(user, deferredSearch, role, status)
+      ),
+    [accounts, deferredSearch, role, status]
   );
   const filtered = search !== "" || role !== "scorer" || status !== "all";
 
   const closeDialog = (open: boolean) => {
     if (!open) {
-      setDialogKind(null);
+      setDialogKind(undefined);
     }
   };
 
@@ -189,10 +194,10 @@ export const ScorersPage = () => {
           {error.message}
         </p>
       ) : null}
-      {data ? (
+      {accounts ? (
         <DataTable
           columns={columns}
-          data={rows}
+          rows={rows}
           empty={<UsersEmpty filtered={filtered} />}
           getRowId={(user) => user.id}
           initialSorting={[{ desc: false, id: "full_name" }]}

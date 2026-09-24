@@ -36,13 +36,16 @@ export const invokeFunction = async <TBody extends object, TResult>(
   body: TBody,
   schema: z.ZodType<TResult>
 ): Promise<TResult> => {
-  const { data, error } = await createClient().functions.invoke(name, {
-    body,
-  });
+  const { data: response, error } = await createClient().functions.invoke(
+    name,
+    {
+      body,
+    }
+  );
   if (error) {
     throw new Error(await readErrorMessage(error));
   }
-  const parsed = schema.safeParse(data);
+  const parsed = schema.safeParse(response);
   if (!parsed.success) {
     throw new Error(GENERIC_ERROR);
   }

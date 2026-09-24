@@ -42,6 +42,7 @@ test("a complete form becomes a database row, trimmed", () => {
 test("an unset select is an error, not the number 0", () => {
   expect(readAthleteForm(formOf({ ...valid, categoryId: "" }))).toEqual({
     error: "Select a category.",
+    field: "categoryId",
     ok: false,
   });
 });
@@ -49,6 +50,7 @@ test("an unset select is an error, not the number 0", () => {
 test("an unknown gender is rejected instead of becoming male", () => {
   expect(readAthleteForm(formOf({ ...valid, gender: "x" }))).toEqual({
     error: "Select a gender.",
+    field: "gender",
     ok: false,
   });
 });
@@ -56,6 +58,7 @@ test("an unknown gender is rejected instead of becoming male", () => {
 test("a blank name is required", () => {
   expect(readAthleteForm(formOf({ ...valid, fullName: "   " }))).toEqual({
     error: "Name is required.",
+    field: "fullName",
     ok: false,
   });
 });

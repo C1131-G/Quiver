@@ -25,4 +25,4 @@ const parsed = supabaseEnvSchema.safeParse({
   url: process.env.NEXT_PUBLIC_SUPABASE_URL,
 });
 
-export const supabaseEnv = parsed.success ? parsed.data : null;
+export const supabaseEnv = parsed.success ? parsed.data : undefined;

@@ -17,15 +17,15 @@ export const fetchAllRows = async <T>(
   for (let start = 0; ; start += MAX_ROWS) {
     // Pages must load in order; each one decides whether another follows.
     // oxlint-disable-next-line no-await-in-loop
-    const { data, error } = await fetchPage(start, start + MAX_ROWS - 1);
-    if (error || !data) {
+    const { data: page, error } = await fetchPage(start, start + MAX_ROWS - 1);
+    if (error || !page) {
       throw loadError(
         "Could not load the data. Check your connection and try again.",
         error ?? {}
       );
     }
-    rows.push(...data);
-    if (data.length < MAX_ROWS) {
+    rows.push(...page);
+    if (page.length < MAX_ROWS) {
       return rows;
     }
   }

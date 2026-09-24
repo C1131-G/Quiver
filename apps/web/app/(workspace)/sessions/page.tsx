@@ -20,9 +20,11 @@ const Page = () => (
   <div>
     <PageHeader
       action={
-        <Suspense fallback={<ExportButtonSkeleton />}>
-          <FilteredExportButton filename="quiver-sessions" />
-        </Suspense>
+        <SectionErrorBoundary title="Export could not be shown">
+          <Suspense fallback={<ExportButtonSkeleton />}>
+            <FilteredExportButton filename="quiver-sessions" />
+          </Suspense>
+        </SectionErrorBoundary>
       }
       description="Every scored session, newest first. Open one to see its scorecard and correct arrows."
       title="Sessions"

@@ -1,3 +1,4 @@
+import { Toaster } from "@workspace/ui/components/sonner";
 import { cn } from "@workspace/ui/lib/utils";
 import type { Metadata } from "next";
 
@@ -33,7 +34,10 @@ const RootLayout = ({
     )}
   >
     <body>
-      <ThemeProvider>{children}</ThemeProvider>
+      <ThemeProvider>
+        {children}
+        <Toaster position="bottom-right" />
+      </ThemeProvider>
     </body>
   </html>
 );

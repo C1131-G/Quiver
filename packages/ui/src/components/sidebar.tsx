@@ -16,6 +16,9 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
 import * as React from "react";
 
+import { writeCookie } from "../lib/cookies";
+import { cssVars } from "../lib/css";
+
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
@@ -67,7 +70,11 @@ function SidebarProvider({
       }
 
       // This sets the cookie to keep the sidebar state.
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+      writeCookie(
+        SIDEBAR_COOKIE_NAME,
+        String(openState),
+        SIDEBAR_COOKIE_MAX_AGE
+      );
     },
     [setOpenProp, open]
   );
@@ -111,13 +118,13 @@ function SidebarProvider({
     <SidebarContext.Provider value={contextValue}>
       <div
         data-slot="sidebar-wrapper"
-        style={
+        style={cssVars(
           {
             "--sidebar-width": SIDEBAR_WIDTH,
             "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
-            ...style,
-          } as React.CSSProperties
-        }
+          },
+          style
+        )}
         className={cn(
           "group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
           className
@@ -138,7 +145,7 @@ function Sidebar({
   children,
   dir,
   ...props
-}: React.ComponentProps<"div"> & {
+}: React.ComponentProps<"nav"> & {
   side?: "left" | "right";
   variant?: "sidebar" | "floating" | "inset";
   collapsible?: "offcanvas" | "icon" | "none";
@@ -147,7 +154,7 @@ function Sidebar({
 
   if (collapsible === "none") {
     return (
-      <div
+      <nav
         data-slot="sidebar"
         className={cn(
           "bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col",
@@ -156,7 +163,7 @@ function Sidebar({
         {...props}
       >
         {children}
-      </div>
+      </nav>
     );
   }
 
@@ -181,7 +188,7 @@ function Sidebar({
             : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
         )}
       />
-      <div
+      <nav
         data-slot="sidebar-container"
         data-side={side}
         className={cn(
@@ -201,7 +208,7 @@ function Sidebar({
         >
           {children}
         </div>
-      </div>
+      </nav>
     </div>
   );
 }
@@ -580,11 +587,7 @@ function SidebarMenuSkeleton({
       <Skeleton
         className="h-4 max-w-(--skeleton-width) flex-1"
         data-sidebar="menu-skeleton-text"
-        style={
-          {
-            "--skeleton-width": width,
-          } as React.CSSProperties
-        }
+        style={cssVars({ "--skeleton-width": width })}
       />
     </div>
   );

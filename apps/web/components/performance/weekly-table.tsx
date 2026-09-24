@@ -3,6 +3,7 @@
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -28,7 +29,9 @@ const DAYS_PER_WEEK = 7;
 
 interface WeeklyLine {
   first: PerformanceRow;
+  firstWeek: string;
   key: string;
+  lastWeek: string;
   weeks: Map<string, PerformanceRow>;
 }
 
@@ -43,7 +46,21 @@ const pivot = (rows: PerformanceRow[]) => {
     }
     weeks.add(row.week_start);
     const key = formatKey(row);
-    const line = lines.get(key) ?? { first: row, key, weeks: new Map() };
+    const line = lines.get(key) ?? {
+      first: row,
+      firstWeek: row.week_start,
+      key,
+      lastWeek: row.week_start,
+      weeks: new Map(),
+    };
+    // ISO weeks sort lexicographically, so the extremes are tracked in the
+    // same pass instead of re-scanning every line at render time.
+    if (row.week_start < line.firstWeek) {
+      line.firstWeek = row.week_start;
+    }
+    if (row.week_start > line.lastWeek) {
+      line.lastWeek = row.week_start;
+    }
     line.weeks.set(row.week_start, row);
     lines.set(key, line);
   }
@@ -57,11 +74,10 @@ const signedAverage = new Intl.NumberFormat(undefined, {
 });
 
 /** Change in average from the first week shot to the last. */
-const weeklyChange = (line: WeeklyLine, weeks: string[]) => {
-  const shot = weeks.filter((week) => line.weeks.has(week));
-  const first = line.weeks.get(shot[0] ?? "");
-  const last = line.weeks.get(shot.at(-1) ?? "");
-  if (!first || !last || shot.length < 2) {
+const weeklyChange = (line: WeeklyLine) => {
+  const first = line.weeks.get(line.firstWeek);
+  const last = line.weeks.get(line.lastWeek);
+  if (!first || !last || line.firstWeek === line.lastWeek) {
     return "—";
   }
   return signedAverage.format(last.avg_arrow - first.avg_arrow);
@@ -117,14 +133,19 @@ export const WeeklyTable = ({
   }
   return (
     <div className="border tabular-nums">
-      <Table aria-label="Weekly average per arrow">
+      <Table>
+        <TableCaption className="sr-only">
+          Weekly average per arrow
+        </TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead>Athlete</TableHead>
+            <TableHead scope="col">Athlete</TableHead>
             {weeks.map((week) => (
-              <TableHead key={week}>Week of {formatShortDate(week)}</TableHead>
+              <TableHead key={week} scope="col">
+                Week of {formatShortDate(week)}
+              </TableHead>
             ))}
-            <TableHead>Change</TableHead>
+            <TableHead scope="col">Change</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -146,7 +167,7 @@ export const WeeklyTable = ({
                   <WeekCell filters={filters} line={line} week={week} />
                 </TableCell>
               ))}
-              <TableCell>{weeklyChange(line, weeks)}</TableCell>
+              <TableCell>{weeklyChange(line)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

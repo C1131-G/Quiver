@@ -39,13 +39,14 @@ const registerUpdateHandlers = ({
     if (!isPackaged) {
       return latest;
     }
+    broadcast({ state: "checking" });
     try {
-      return await autoUpdater.checkForUpdates();
+      await autoUpdater.checkForUpdates();
     } catch (error) {
       console.error("Update check failed.", error);
       broadcast({ message: describeUpdateError(error), state: "error" });
-      return latest;
     }
+    return latest;
   };
 
   if (isPackaged) {
@@ -55,8 +56,8 @@ const registerUpdateHandlers = ({
     autoUpdater.on("checking-for-update", () => {
       broadcast({ state: "checking" });
     });
-    autoUpdater.on("update-available", (info) => {
-      broadcast({ state: "downloading", version: info.version });
+    autoUpdater.on("update-available", (release) => {
+      broadcast({ state: "downloading", version: release.version });
     });
     autoUpdater.on("update-not-available", () => {
       broadcast(IDLE_STATUS);
@@ -68,8 +69,8 @@ const registerUpdateHandlers = ({
         version: latest.version,
       });
     });
-    autoUpdater.on("update-downloaded", (info) => {
-      broadcast({ state: "ready", version: info.version });
+    autoUpdater.on("update-downloaded", (release) => {
+      broadcast({ state: "ready", version: release.version });
     });
     autoUpdater.on("error", (error) => {
       console.error("Updater reported an error.", error);
@@ -87,8 +88,7 @@ const registerUpdateHandlers = ({
 
   ipcMain.handle("update.check", (event) => {
     assertTrustedSender(event);
-    checkNow();
-    return latest;
+    return checkNow();
   });
 
   ipcMain.handle("update.install", (event) => {

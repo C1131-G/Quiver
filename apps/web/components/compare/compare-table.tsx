@@ -2,6 +2,7 @@ import { Badge } from "@workspace/ui/components/badge";
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -91,12 +92,13 @@ export const CompareTable = ({
   const shooting = rows.filter((row) => compared.has(row.athlete_id));
   return (
     <div className="border tabular-nums">
-      <Table aria-label="Comparison by metric">
+      <Table>
+        <TableCaption className="sr-only">Comparison by metric</TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead>Metric</TableHead>
+            <TableHead scope="col">Metric</TableHead>
             {series.map((athleteSeries) => (
-              <TableHead key={athleteSeries.key}>
+              <TableHead key={athleteSeries.key} scope="col">
                 <span className="flex items-center gap-2">
                   <SeriesKey color={athleteSeries.color} />
                   {athleteSeries.name}

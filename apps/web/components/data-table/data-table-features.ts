@@ -7,7 +7,6 @@ import {
   rowSortingFeature,
   sortFn_alphanumeric,
   sortFn_basic,
-  sortFn_datetime,
   sortFn_text,
   tableFeatures,
 } from "@tanstack/react-table";
@@ -15,18 +14,20 @@ import {
 /**
  * Sorting and pagination are the only table features the admin lists need;
  * registering them explicitly keeps unused v9 features out of the bundle.
+ * Each feature is listed before its dependent row-model slot, which the v9
+ * feature registry requires for clear inference and diagnostics.
  */
+// oxlint-disable-next-line eslint/sort-keys -- v9 requires prerequisite features before their dependent slots
 export const dataTableFeatures = tableFeatures({
-  paginatedRowModel: createPaginatedRowModel(),
   rowPaginationFeature,
+  paginatedRowModel: createPaginatedRowModel(),
   rowSortingFeature,
+  sortedRowModel: createSortedRowModel(),
   sortFns: {
     alphanumeric: sortFn_alphanumeric,
     basic: sortFn_basic,
-    datetime: sortFn_datetime,
     text: sortFn_text,
   },
-  sortedRowModel: createSortedRowModel(),
 });
 
 export type DataTableFeatures = typeof dataTableFeatures;

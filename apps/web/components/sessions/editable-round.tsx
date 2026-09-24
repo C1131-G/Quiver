@@ -11,6 +11,7 @@ import {
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -66,16 +67,31 @@ export const EditableRound = ({
       </CardHeader>
       <CardContent>
         <div className="tabular-nums">
-          <Table aria-label={`Round ${roundNo} scores, editable`}>
+          <Table>
+            <TableCaption className="sr-only">
+              {`Round ${roundNo} scores, editable`}
+            </TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-14">End</TableHead>
-                <TableHead>Arrows</TableHead>
-                <TableHead className="w-16 text-right">End</TableHead>
-                <TableHead className="w-16 text-right">Dist</TableHead>
-                <TableHead className="w-16 text-right">Total</TableHead>
-                <TableHead className="w-16 text-right">10 + X</TableHead>
-                <TableHead className="w-12 text-right">X</TableHead>
+                <TableHead className="w-14" scope="col">
+                  End
+                </TableHead>
+                <TableHead scope="col">Arrows</TableHead>
+                <TableHead className="w-16 text-right" scope="col">
+                  End
+                </TableHead>
+                <TableHead className="w-16 text-right" scope="col">
+                  Dist
+                </TableHead>
+                <TableHead className="w-16 text-right" scope="col">
+                  Total
+                </TableHead>
+                <TableHead className="w-16 text-right" scope="col">
+                  10 + X
+                </TableHead>
+                <TableHead className="w-12 text-right" scope="col">
+                  X
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

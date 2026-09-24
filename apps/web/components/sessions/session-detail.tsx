@@ -16,7 +16,7 @@ import {
 } from "@workspace/ui/components/empty";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 
 import { ExportButton } from "@/components/export/export-button";
@@ -96,6 +96,12 @@ const SessionContent = ({
 }) => {
   const corrections = useCorrections(sessionId);
   const [editing, setEditing] = useState(false);
+  const athleteName = session.athlete?.full_name ?? "Session";
+  // Metadata can only say "Session": the name is read in the browser, so the
+  // tab title is synced here. Next resets it on the next navigation.
+  useEffect(() => {
+    document.title = `${athleteName} — Quiver Dashboard`;
+  }, [athleteName]);
   const correctedArrowIds = useMemo(
     () =>
       new Set(
@@ -130,7 +136,7 @@ const SessionContent = ({
           </>
         }
         description={describeSession(session)}
-        title={session.athlete?.full_name ?? "Session"}
+        title={athleteName}
       />
       {/* A failed refresh keeps the last good scores (and any edit) on screen. */}
       {refreshError ? (
@@ -179,14 +185,14 @@ export const SessionDetailSkeleton = () => (
 );
 
 const SessionView = ({ sessionId }: { sessionId: string }) => {
-  const { data, error, isPending } = useSession(sessionId);
+  const { data: session, error, isPending } = useSession(sessionId);
 
   // Data first: a failed background refetch must not unmount what is shown.
-  if (data) {
+  if (session) {
     return (
       <SessionContent
         refreshError={error}
-        session={data}
+        session={session}
         sessionId={sessionId}
       />
     );

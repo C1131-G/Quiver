@@ -20,9 +20,11 @@ const Page = () => (
   <div>
     <PageHeader
       action={
-        <Suspense fallback={<ExportButtonSkeleton />}>
-          <FilteredExportButton filename="quiver-performance" />
-        </Suspense>
+        <SectionErrorBoundary title="Export could not be shown">
+          <Suspense fallback={<ExportButtonSkeleton />}>
+            <FilteredExportButton filename="quiver-performance" />
+          </Suspense>
+        </SectionErrorBoundary>
       }
       description="Scores per athlete and round format. Select a name or a week to see its sessions."
       title="Performance"

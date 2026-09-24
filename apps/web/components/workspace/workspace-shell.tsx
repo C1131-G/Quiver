@@ -19,6 +19,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Suspense } from "react";
 
+import { SectionErrorBoundary } from "@/components/section-error-boundary";
+
 import { LiveUpdates } from "./live-updates";
 import { MAIN_CONTENT_ID, RouteFocus } from "./route-focus";
 import { RouteTransition } from "./route-transition";
@@ -33,16 +35,16 @@ export const WorkspaceShell = ({ children }: { children: ReactNode }) => (
   <>
     {/* usePathname is dynamic, which a prerendered shell cannot resolve. */}
     {/* RouteFocus has no visible output; its null fallback avoids layout shift. */}
-    <Suspense fallback={null}>
-      <RouteFocus />
-    </Suspense>
+    <SectionErrorBoundary title="Navigation could not be shown">
+      <Suspense fallback={null}>
+        <RouteFocus />
+      </Suspense>
+    </SectionErrorBoundary>
     <TooltipProvider>
       <SidebarProvider>
-        {/* Sidebar renders a div it owns, so the landmark comes from the role
-            rather than a nav tag. Without it axe reports the sidebar header and
-            footer as content outside any landmark. */}
-        {/* oxlint-disable-next-line jsx-a11y/prefer-tag-over-role */}
-        <Sidebar aria-label="Workspace" collapsible="icon" role="navigation">
+        {/* The sidebar renders a native nav landmark, so its header and
+            footer sit inside a landmark instead of orphaned content. */}
+        <Sidebar aria-label="Workspace" collapsible="icon">
           <a
             className="bg-background focus-visible:ring-ring sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-xl focus:border focus:px-3 focus:py-2 focus:text-sm focus-visible:ring-2"
             href={`#${MAIN_CONTENT_ID}`}
@@ -53,6 +55,7 @@ export const WorkspaceShell = ({ children }: { children: ReactNode }) => (
             <Link
               className="truncate px-2 font-semibold group-data-[collapsible=icon]:hidden"
               href="/dashboard"
+              translate="no"
             >
               Quiver Dashboard
             </Link>
@@ -62,9 +65,11 @@ export const WorkspaceShell = ({ children }: { children: ReactNode }) => (
               <SidebarGroupLabel>Workspace</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  <Suspense fallback={<WorkspaceNavigationSkeleton />}>
-                    <WorkspaceNavigation />
-                  </Suspense>
+                  <SectionErrorBoundary title="Navigation could not be shown">
+                    <Suspense fallback={<WorkspaceNavigationSkeleton />}>
+                      <WorkspaceNavigation />
+                    </Suspense>
+                  </SectionErrorBoundary>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -83,7 +88,7 @@ export const WorkspaceShell = ({ children }: { children: ReactNode }) => (
             <LiveUpdates />
           </header>
           <main
-            className="min-h-0 flex-1 overflow-y-auto focus-visible:outline-none"
+            className="focus-visible:ring-ring/50 min-h-0 flex-1 scroll-mt-14 overflow-y-auto focus-visible:ring-2 focus-visible:outline-none"
             id={MAIN_CONTENT_ID}
             tabIndex={-1}
           >

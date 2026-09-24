@@ -15,6 +15,7 @@ import { Skeleton } from "@workspace/ui/components/skeleton";
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -136,19 +137,28 @@ const SessionRow = ({ session }: { session: SessionSummary }) => {
 
 const SessionsTable = ({ rows }: { rows: SessionSummary[] }) => (
   <div className="border tabular-nums">
-    <Table aria-label="Sessions">
+    <Table>
+      <TableCaption className="sr-only">Sessions</TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead>Date</TableHead>
-          <TableHead>Athlete</TableHead>
-          <TableHead>Session</TableHead>
-          <TableHead>Format</TableHead>
-          <TableHead className="text-right">Score</TableHead>
-          <TableHead className="text-right">Avg / arrow</TableHead>
-          <TableHead className="text-right">10 + X</TableHead>
-          <TableHead className="text-right">X</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Scorer</TableHead>
+          <TableHead scope="col">Date</TableHead>
+          <TableHead scope="col">Athlete</TableHead>
+          <TableHead scope="col">Session</TableHead>
+          <TableHead scope="col">Format</TableHead>
+          <TableHead className="text-right" scope="col">
+            Score
+          </TableHead>
+          <TableHead className="text-right" scope="col">
+            Avg / arrow
+          </TableHead>
+          <TableHead className="text-right" scope="col">
+            10 + X
+          </TableHead>
+          <TableHead className="text-right" scope="col">
+            X
+          </TableHead>
+          <TableHead scope="col">Status</TableHead>
+          <TableHead scope="col">Scorer</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

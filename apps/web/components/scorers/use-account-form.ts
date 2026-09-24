@@ -9,9 +9,10 @@ import { useAdminUsersMutation } from "./use-scorers";
 
 interface FormState {
   error: string | undefined;
+  field: string | undefined;
 }
 
-const NO_ERROR: FormState = { error: undefined };
+const NO_ERROR: FormState = { error: undefined, field: undefined };
 
 /**
  * Submits an account form: checks it against the same schema the Edge
@@ -26,7 +27,12 @@ export const useAccountForm = (
     async (_previous: FormState, form: FormData): Promise<FormState> => {
       const parsed = adminUsersRequestSchema.safeParse(toRequest(form));
       if (!parsed.success) {
-        return { error: parsed.error.issues[0]?.message ?? "Check the form." };
+        const [issue] = parsed.error.issues;
+        return {
+          error: issue?.message ?? "Check the form.",
+          field:
+            issue?.path[0] === undefined ? undefined : String(issue.path[0]),
+        };
       }
       try {
         await mutation.mutateAsync(parsed.data);
@@ -36,6 +42,7 @@ export const useAccountForm = (
             error instanceof Error
               ? error.message
               : "Could not update the account.",
+          field: undefined,
         };
       }
       onSaved();
@@ -55,7 +62,7 @@ export const useAccountForm = (
     startTransition(() => submit(form));
   };
 
-  return { error: state.error, isPending, onSubmit };
+  return { error: state.error, field: state.field, isPending, onSubmit };
 };
 
 export const readText = (form: FormData, name: string) =>

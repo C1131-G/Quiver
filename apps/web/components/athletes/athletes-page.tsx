@@ -19,7 +19,7 @@ import {
   InputGroupInput,
 } from "@workspace/ui/components/input-group";
 import { Skeleton } from "@workspace/ui/components/skeleton";
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 
 import { DataTable } from "@/components/data-table/data-table";
 import { FilterSelect } from "@/components/filters/filter-select";
@@ -92,8 +92,8 @@ export const AthletesPage = () => {
     status: ALL,
   });
   // The athlete outlives the open state so a closing dialog keeps its text.
-  const [dialogKind, setDialogKind] = useState<AthleteDialogKind | null>(null);
-  const [dialogAthlete, setDialogAthlete] = useState<AthleteRow | null>(null);
+  const [dialogKind, setDialogKind] = useState<AthleteDialogKind>();
+  const [dialogAthlete, setDialogAthlete] = useState<AthleteRow>();
 
   const columns = useMemo(
     () =>
@@ -103,12 +103,15 @@ export const AthletesPage = () => {
       }),
     []
   );
+  // The list filters on the deferred keystrokes so typing stays responsive
+  // while a large roster re-filters in the background.
+  const deferredSearch = useDeferredValue(filters.search);
   const rows = useMemo(
     () =>
       (athletes.data ?? []).filter((athlete) =>
-        matchesFilters(athlete, filters)
+        matchesFilters(athlete, { ...filters, search: deferredSearch })
       ),
-    [athletes.data, filters]
+    [athletes.data, deferredSearch, filters]
   );
   const categoryItems = useMemo(
     () => [
@@ -139,7 +142,7 @@ export const AthletesPage = () => {
     setFilters((current) => ({ ...current, [key]: value }));
   const closeDialog = (open: boolean) => {
     if (!open) {
-      setDialogKind(null);
+      setDialogKind(undefined);
     }
   };
   const error = athletes.error ?? lookups.error;
@@ -151,7 +154,7 @@ export const AthletesPage = () => {
           <Button
             disabled={!lookups.data}
             onClick={() => {
-              setDialogAthlete(null);
+              setDialogAthlete(undefined);
               setDialogKind("form");
             }}
           >
@@ -210,7 +213,7 @@ export const AthletesPage = () => {
       {athletes.data ? (
         <DataTable
           columns={columns}
-          data={rows}
+          rows={rows}
           empty={<AthletesEmpty filtered={filtered} />}
           getRowId={(athlete) => athlete.id}
           initialSorting={[{ desc: false, id: "full_name" }]}

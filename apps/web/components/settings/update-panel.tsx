@@ -27,7 +27,7 @@ const STATUS_LABEL = {
  * same check on demand and see its result. Renders nothing in a browser.
  */
 export const UpdatePanel = () => {
-  const { available, check, install, status } = useAppUpdate();
+  const { actionPending, available, check, install, status } = useAppUpdate();
 
   if (!available) {
     return null;
@@ -68,13 +68,17 @@ export const UpdatePanel = () => {
             ) : null}
           </div>
           {status.state === "ready" ? (
-            <Button className="shrink-0" onClick={() => install()}>
+            <Button
+              className="shrink-0"
+              disabled={actionPending}
+              onClick={() => install()}
+            >
               Restart and install
             </Button>
           ) : (
             <Button
               className="shrink-0"
-              disabled={busy}
+              disabled={busy || actionPending}
               onClick={() => check()}
               variant="outline"
             >

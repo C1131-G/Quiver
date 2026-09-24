@@ -168,7 +168,7 @@
   html:active-view-transition-type(theme)::view-transition-new(root) {
     mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="m20 0 20 35H0z" fill="white"/></svg>')
       center / 0 no-repeat;
-    animation: theme-wipe 0.7s;
+    animation: theme-wipe 0.25s;
     animation-fill-mode: both;
   }
 
@@ -253,5 +253,21 @@
     ::view-transition-new(.nav-back-enter) {
       animation: none;
     }
+  }
+}
+
+/*
+ * Reduced motion for shared UI: dialogs, menus, tooltips, skeleton pulse and
+ * spinners collapse to near-instant state changes. Opacity fades still read
+ * as transitions; movement does not. Route and theme view transitions keep
+ * their own branches above.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

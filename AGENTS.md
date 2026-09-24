@@ -21,12 +21,18 @@ Load the skill before writing the code, not after. Two or more rows can apply at
 | Any code change, in any language | `enforce-code-quality` |
 | Editing a `.ts` or `.tsx` file | `enforce-typescript-strict` |
 | Parsing untrusted data — search params, JSON, RPC results, form input | `type-safety-validation` |
+| Reviewing or editing React/Next components, rendering, data fetching, or performance | `vercel-react-best-practices` |
+| Reviewing or editing JSX, controls, forms, tables, dialogs, or other UI markup | `accessible-html` |
+| Reviewing accessibility compliance, keyboard/focus, forms, screen readers, or hit areas | `better-accessibility` |
 | About to write or edit a `useEffect` | `audit-react-effects` |
 | An interaction that waits on the server — submit, save, load, spinner placement | `apply-react-async-ui` |
 | The file imports `useQuery`, `useMutation`, `useSuspenseQuery`, or `queryClient` | `use-tanstack-query` |
-| The file imports `@tanstack/react-table` | `bunx @tanstack/intent@latest load @tanstack/react-table#getting-started` (and `#table-state`) |
+| The file imports `@tanstack/react-table` or uses its state/features | `bunx @tanstack/intent@latest load @tanstack/react-table#create-table-hook`, `#getting-started`, `#migrate-v8-to-v9`, and `#table-state`; load applicable `@tanstack/table-core#core`, `#table-features`, `#typescript`, `#client-vs-server`, `#pagination`, `#sorting`, and `#migrate-v8-to-v9` |
+| A TanStack Table is combined with Query-backed server filtering, sorting, pagination, or infinite data | `bunx @tanstack/intent@latest load @tanstack/react-table#with-tanstack-query` |
 | The file has `createFileRoute`, a route loader, or reads TanStack search params | `use-tanstack-router` |
 | Showing the user a toast (`sonner`) | `ask-sonner` |
+| Adding or reviewing Motion animations | `animate` |
+| Adding or reviewing React View Transitions or route motion | `vercel-react-view-transitions` |
 | A route, layout, page, or server/client boundary in `apps/web/app` | `nextjs-app-architecture`, `nextjs-react-typescript` |
 | `"use cache"`, `cacheLife`, Suspense boundaries, or prefetching | `next-cache-components-optimizer`, `next-partial-prefetching-adoption` |
 | A Next.js layout shell, sidebar, or streaming boundary | `apply-next-shell-nav` |
@@ -36,6 +42,8 @@ Load the skill before writing the code, not after. Two or more rows can apply at
 | Onboarding a repository, or this table needs updating | `setup-agent-rules` |
 | Auditing the repo against the skills its stack implies, or checking this setup is applied | `audit-with-skills` |
 | Reading or reviewing a research paper | `read-research-paper` |
+
+<important if="you are changing data ownership, feature placement, dialog snapshots, roles, or paging">
 
 ## Architecture decisions
 
@@ -48,6 +56,7 @@ These choices are deliberate. A skill's generic advice does not override them. C
 - **Roles live in `app_metadata`, and `private.is_admin()` also requires an active profile.** Deactivating an account removes its access right away, without waiting for the token to expire.
 - **Paging uses OFFSET with UUIDv4 keys.** The mobile app generates the IDs, and each list holds hundreds of rows, not millions. Revisit keyset paging only if that changes.
 
+</important>
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

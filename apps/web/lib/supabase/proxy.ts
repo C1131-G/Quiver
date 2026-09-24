@@ -64,12 +64,12 @@ export const updateSession = async (request: NextRequest) => {
   // Nothing may run between createServerClient and getClaims(), or users get
   // randomly signed out. getClaims() validates the JWT; never trust
   // getSession() on the server.
-  const { data } = await supabase.auth.getClaims();
-  let isSignedIn = Boolean(data?.claims);
+  const { data: claims } = await supabase.auth.getClaims();
+  let isSignedIn = Boolean(claims?.claims);
 
   // Scorer accounts are mobile-only. A non-admin session here is ended, not
   // just redirected, so it can't reach any page or data from the desktop.
-  if (isSignedIn && !isAdminRole(data?.claims?.app_metadata)) {
+  if (isSignedIn && !isAdminRole(claims?.claims?.app_metadata)) {
     await supabase.auth.signOut({ scope: "local" });
     isSignedIn = false;
   }

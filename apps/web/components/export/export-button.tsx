@@ -29,10 +29,13 @@ export const ExportButton = ({
         // The save dialog opens outside the page, so say that it is ready.
         toast.success("Export ready. Choose where to save it.");
       } catch (error) {
+        // Failures stay on screen until dismissed: the export produced no
+        // file, so the message is the only record of what went wrong.
         toast.error(
           error instanceof Error
             ? error.message
-            : "Could not export. Try again."
+            : "Could not export. Try again.",
+          { duration: Number.POSITIVE_INFINITY }
         );
       }
     });

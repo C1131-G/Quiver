@@ -123,7 +123,7 @@ export const SummaryTable = ({
   return (
     <DataTable
       columns={columns}
-      data={rows}
+      rows={rows}
       empty={<PerformanceEmpty />}
       getRowId={formatKey}
       initialSorting={[{ desc: true, id: "avg_arrow" }]}

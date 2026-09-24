@@ -9,6 +9,7 @@ import { ViewTransition } from "react";
  */
 export const RouteTransition = ({ children }: { children: ReactNode }) => (
   <ViewTransition
+    default="none"
     enter={{ default: "nav-enter", "nav-back": "nav-back-enter" }}
     exit={{ default: "nav-exit", "nav-back": "nav-back-exit" }}
   >

@@ -47,3 +47,11 @@ next-env.d.ts
 # electron
 apps/desktop/release/
 !.env.example
+
+# untracked agent worktrees
+.claude/worktrees/
+
+# playwright
+apps/web/e2e/.auth/
+apps/web/test-results/
+apps/web/playwright-report/

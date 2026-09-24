@@ -1,4 +1,5 @@
 import type { Workbook } from "exceljs";
+import { z } from "zod";
 
 export interface SheetColumn<T> {
   header: string;
@@ -27,10 +28,11 @@ const REVOKE_DELAY_MS = 10_000;
  * day is built at UTC midnight or it would shift in time zones east of UTC.
  */
 export const excelDate = (value: string | null) => {
-  if (!value) {
+  if (value === null) {
     return null;
   }
-  const [year, month, day] = value.split("-").map(Number);
+  const date = z.iso.date().parse(value);
+  const [year, month, day] = date.split("-").map(Number);
   return new Date(Date.UTC(year ?? 1970, (month ?? 1) - 1, day ?? 1));
 };
 

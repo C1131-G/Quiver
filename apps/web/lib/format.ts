@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 const dateFormat = new Intl.DateTimeFormat(undefined, {
   day: "numeric",
   month: "short",
@@ -26,9 +28,15 @@ const averageFormat = new Intl.NumberFormat(undefined, {
 
 const integerFormat = new Intl.NumberFormat();
 
+const isoDateSchema = z.iso.date();
+// Postgres `timestamptz` values arrive with numeric offsets ("+00:00"), which
+// the default ISO datetime pattern rejects; offsets must stay allowed.
+const isoDateTimeSchema = z.iso.datetime({ offset: true });
+
 /** A Postgres `date` ("2026-09-22") as a local calendar day, never UTC. */
 export const parseIsoDate = (value: string) => {
-  const [year, month, day] = value.split("-").map(Number);
+  const date = isoDateSchema.parse(value);
+  const [year, month, day] = date.split("-").map(Number);
   return new Date(year ?? 1970, (month ?? 1) - 1, day ?? 1);
 };
 
@@ -52,7 +60,7 @@ export const formatShortDate = (value: string) =>
   shortDateFormat.format(parseIsoDate(value));
 
 export const formatDateTime = (value: string) =>
-  dateTimeFormat.format(new Date(value));
+  dateTimeFormat.format(new Date(isoDateTimeSchema.parse(value)));
 
 export const formatPercent = (part: number, whole: number) =>
   whole > 0 ? percentFormat.format(part / whole) : "—";
@@ -85,7 +93,7 @@ const NOON = 12;
  * before noon) or AN (afternoon).
  */
 export const formatSessionTime = (value: string) => {
-  const date = new Date(value);
+  const date = new Date(isoDateTimeSchema.parse(value));
   const hours = date.getHours();
   const minutes = String(date.getMinutes()).padStart(2, "0");
   return `${hours % NOON || NOON}:${minutes} ${hours < NOON ? "FN" : "AN"}`;

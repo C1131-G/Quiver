@@ -18,9 +18,7 @@ import {
   excelDate,
   PERCENT_FORMAT,
 } from "@/lib/export/workbook";
-import type { Database } from "@/lib/supabase/database.types";
-
-type ArrowDetail = Database["public"]["Views"]["arrow_details"]["Row"];
+import type { ArrowDetail } from "@/lib/supabase/table-rows";
 
 const ratio = (part: number | null, whole: number | null) =>
   whole ? (part ?? 0) / whole : null;

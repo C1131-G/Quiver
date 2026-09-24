@@ -8,6 +8,11 @@ import {
 import { downloadWorkbook } from "@/lib/export/workbook";
 import { toIsoDate } from "@/lib/format";
 import { fetchAllRows } from "@/lib/supabase/fetch-all";
+import {
+  arrowDetailSchema,
+  parseTableRows,
+  sessionSummarySchema,
+} from "@/lib/supabase/table-rows";
 
 import {
   arrowsSheet,
@@ -32,7 +37,7 @@ export const exportFilteredWorkbook = async ({
   filters: Filters;
   lookups: Lookups | undefined;
 }) => {
-  const [summary, weekly, sessions, arrows] = await Promise.all([
+  const [summary, weekly, sessionRows, arrowRows] = await Promise.all([
     fetchPerformance(filters, false),
     fetchPerformance(filters, true),
     fetchAllRows((start, end) =>
@@ -40,6 +45,16 @@ export const exportFilteredWorkbook = async ({
     ),
     fetchAllRows((start, end) => arrowDetailsQuery(filters).range(start, end)),
   ]);
+  const sessions = parseTableRows(
+    sessionSummarySchema,
+    sessionRows,
+    "Could not load sessions."
+  );
+  const arrows = parseTableRows(
+    arrowDetailSchema,
+    arrowRows,
+    "Could not load arrows."
+  );
   if (arrows.length === 0) {
     throw new Error("Nothing to export: no arrows match these filters.");
   }

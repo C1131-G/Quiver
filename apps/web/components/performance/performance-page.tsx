@@ -41,6 +41,8 @@ export const PerformancePage = () => {
   const athletes = useAthletes();
   const lookups = useLookups();
   const rows = performance.data;
+  const showSummary = view === SUMMARY && rows !== undefined;
+  const showWeekly = view === WEEKLY && rows !== undefined;
 
   return (
     <div>
@@ -68,15 +70,15 @@ export const PerformancePage = () => {
           </p>
         ) : null}
         <TabsContent aria-busy={performance.isFetching} value={SUMMARY}>
-          {rows && view === SUMMARY ? (
-            <SummaryTable filters={filters} rows={rows} />
+          {showSummary ? (
+            <SummaryTable filters={filters} rows={rows ?? []} />
           ) : (
             <TableSkeleton />
           )}
         </TabsContent>
         <TabsContent aria-busy={performance.isFetching} value={WEEKLY}>
-          {rows && view === WEEKLY ? (
-            <WeeklyTable filters={filters} rows={rows} />
+          {showWeekly ? (
+            <WeeklyTable filters={filters} rows={rows ?? []} />
           ) : (
             <TableSkeleton />
           )}

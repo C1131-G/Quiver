@@ -18,6 +18,7 @@ import {
   FieldLabel,
 } from "@workspace/ui/components/field";
 import { Input } from "@workspace/ui/components/input";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { readText, useAccountForm } from "./use-account-form";
@@ -26,7 +27,7 @@ import type { Profile } from "./use-scorers";
 interface AccountDialogProps {
   onOpenChange: (open: boolean) => void;
   open: boolean;
-  user: Profile | null;
+  user: Profile | undefined;
 }
 
 const RenameForm = ({
@@ -36,7 +37,7 @@ const RenameForm = ({
   onSaved: () => void;
   user: Profile;
 }) => {
-  const { error, isPending, onSubmit } = useAccountForm(
+  const { error, field, isPending, onSubmit } = useAccountForm(
     (form) => ({
       action: "update",
       fullName: readText(form, "fullName"),
@@ -44,8 +45,26 @@ const RenameForm = ({
     }),
     onSaved
   );
+  const errorRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  useEffect(
+    // oxlint-disable-next-line prefer-arrow-callback -- named for stack traces and the effects skill
+    function focusRenameError() {
+      if (!error) {
+        return;
+      }
+      const input =
+        field === "fullName"
+          ? formRef.current?.querySelector('[name="fullName"]')
+          : null;
+      const target = input instanceof HTMLElement ? input : errorRef.current;
+      target?.focus();
+    },
+    [error, field]
+  );
+  const invalid = field === "fullName";
   return (
-    <form className="flex flex-col gap-6" onSubmit={onSubmit}>
+    <form className="flex flex-col gap-6" onSubmit={onSubmit} ref={formRef}>
       <DialogHeader>
         <DialogTitle>Edit account</DialogTitle>
         <DialogDescription>
@@ -56,6 +75,8 @@ const RenameForm = ({
         <Field>
           <FieldLabel htmlFor="edit-full-name">Full name</FieldLabel>
           <Input
+            aria-describedby={invalid ? "edit-account-error" : undefined}
+            aria-invalid={invalid}
             defaultValue={user.full_name}
             id="edit-full-name"
             maxLength={120}
@@ -63,7 +84,11 @@ const RenameForm = ({
             required
           />
         </Field>
-        {error ? <FieldError>{error}</FieldError> : null}
+        {error ? (
+          <FieldError id="edit-account-error" ref={errorRef} tabIndex={-1}>
+            {error}
+          </FieldError>
+        ) : null}
       </FieldGroup>
       <DialogFooter>
         <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
@@ -101,7 +126,7 @@ const ResetPasswordForm = ({
   onSaved: () => void;
   user: Profile;
 }) => {
-  const { error, isPending, onSubmit } = useAccountForm(
+  const { error, field, isPending, onSubmit } = useAccountForm(
     (form) => ({
       action: "resetPassword",
       password: readText(form, "password"),
@@ -113,8 +138,26 @@ const ResetPasswordForm = ({
       onSaved();
     }
   );
+  const errorRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  useEffect(
+    // oxlint-disable-next-line prefer-arrow-callback -- named for stack traces and the effects skill
+    function focusResetError() {
+      if (!error) {
+        return;
+      }
+      const input =
+        field === "password"
+          ? formRef.current?.querySelector('[name="password"]')
+          : null;
+      const target = input instanceof HTMLElement ? input : errorRef.current;
+      target?.focus();
+    },
+    [error, field]
+  );
+  const invalid = field === "password";
   return (
-    <form className="flex flex-col gap-6" onSubmit={onSubmit}>
+    <form className="flex flex-col gap-6" onSubmit={onSubmit} ref={formRef}>
       <DialogHeader>
         <DialogTitle>Reset password</DialogTitle>
         <DialogDescription>
@@ -126,6 +169,8 @@ const ResetPasswordForm = ({
         <Field>
           <FieldLabel htmlFor="reset-password">New password</FieldLabel>
           <Input
+            aria-describedby={invalid ? "reset-password-error" : undefined}
+            aria-invalid={invalid}
             autoComplete="new-password"
             id="reset-password"
             maxLength={72}
@@ -136,7 +181,11 @@ const ResetPasswordForm = ({
           />
           <FieldDescription>At least 8 characters.</FieldDescription>
         </Field>
-        {error ? <FieldError>{error}</FieldError> : null}
+        {error ? (
+          <FieldError id="reset-password-error" ref={errorRef} tabIndex={-1}>
+            {error}
+          </FieldError>
+        ) : null}
       </FieldGroup>
       <DialogFooter>
         <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>

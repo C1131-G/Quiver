@@ -10,6 +10,8 @@ import {
 import { useTheme } from "next-themes";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
+import { cssVars } from "../lib/css";
+
 // next-themes reports any string; Sonner accepts only these three.
 const toToasterTheme = (
   theme: string | undefined
@@ -30,14 +32,12 @@ const Toaster = ({ ...props }: ToasterProps) => {
         error: <XCircleIcon className="size-4" />,
         loading: <SpinnerIcon className="size-4 animate-spin" />,
       }}
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
-        } as React.CSSProperties
-      }
+      style={cssVars({
+        "--normal-bg": "var(--popover)",
+        "--normal-text": "var(--popover-foreground)",
+        "--normal-border": "var(--border)",
+        "--border-radius": "var(--radius)",
+      })}
       toastOptions={{
         classNames: {
           toast: "cn-toast",

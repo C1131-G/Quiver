@@ -50,3 +50,23 @@ export const adminUsersRequestSchema = z.discriminatedUnion("action", [
 
 /** What the app sends, before the function trims and lower-cases it. */
 export type AdminUsersRequest = z.input<typeof adminUsersRequestSchema>;
+
+/**
+ * What the function answers with, validated on both sides. Create, rename
+ * and activation return the changed profile; a password reset changes no
+ * list data, so it answers `{ ok: true }`.
+ */
+export const adminUsersProfileSchema = z.object({
+  created_at: z.iso.datetime({ offset: true }),
+  full_name: z.string(),
+  id: z.uuid(),
+  is_active: z.boolean(),
+  login_id: z.string(),
+  role: z.enum(["admin", "scorer"]),
+  updated_at: z.iso.datetime({ offset: true }),
+});
+export const adminUsersResponseSchema = z.union([
+  z.object({ profile: adminUsersProfileSchema }),
+  z.object({ ok: z.literal(true) }),
+]);
+export type AdminUsersResponse = z.output<typeof adminUsersResponseSchema>;

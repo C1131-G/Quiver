@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import type { FormEvent } from "react";
-import { startTransition, useActionState } from "react";
+import { startTransition, useActionState, useEffect, useRef } from "react";
 
 import { readAthleteForm } from "./athlete-form";
 import type { AthleteRow, Gender, Lookups } from "./use-athletes";
@@ -59,14 +59,18 @@ const toOptions = <T extends { id: number; is_active: boolean }>(
 
 const SelectField = ({
   defaultValue,
+  describedBy,
   id,
+  invalid,
   items,
   label,
   name,
 }: {
   /** Undefined for a new athlete, which starts with nothing selected. */
   defaultValue: string | undefined;
+  describedBy: string | undefined;
   id: string;
+  invalid: boolean;
   items: Option[];
   label: string;
   name: string;
@@ -74,7 +78,12 @@ const SelectField = ({
   <Field>
     <FieldLabel htmlFor={id}>{label}</FieldLabel>
     <Select defaultValue={defaultValue} items={items} name={name} required>
-      <SelectTrigger className="w-full" id={id}>
+      <SelectTrigger
+        aria-describedby={describedBy}
+        aria-invalid={invalid}
+        className="w-full"
+        id={id}
+      >
         <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
       </SelectTrigger>
       <SelectContent>
@@ -90,9 +99,12 @@ const SelectField = ({
 
 interface SaveState {
   error: string | undefined;
+  field: string | undefined;
 }
 
-const NO_ERROR: SaveState = { error: undefined };
+const NO_ERROR: SaveState = { error: undefined, field: undefined };
+
+const FORM_ERROR_ID = "athlete-form-error";
 
 /** The form itself; it mounts with the dialog, so every open starts clean. */
 const AthleteForm = ({
@@ -100,7 +112,7 @@ const AthleteForm = ({
   lookups,
   onSaved,
 }: {
-  athlete: AthleteRow | null;
+  athlete: AthleteRow | undefined;
   lookups: Lookups;
   onSaved: () => void;
 }) => {
@@ -111,13 +123,13 @@ const AthleteForm = ({
     async (_previous: SaveState, form: FormData): Promise<SaveState> => {
       const read = readAthleteForm(form);
       if (!read.ok) {
-        return { error: read.error };
+        return { error: read.error, field: read.field };
       }
       try {
         // Resolves after the athletes list has refetched, so the closing
         // dialog reveals the saved row.
         await mutation.mutateAsync({
-          id: athlete?.id ?? null,
+          id: athlete?.id,
           input: read.input,
         });
       } catch (error) {
@@ -126,6 +138,7 @@ const AthleteForm = ({
             error instanceof Error
               ? error.message
               : "Could not save the athlete.",
+          field: undefined,
         };
       }
       onSaved();
@@ -145,8 +158,31 @@ const AthleteForm = ({
     startTransition(() => saveAction(form));
   };
 
+  // Validation errors move focus to the failing field so keyboard and screen
+  // reader users land where they need to act; server errors focus the summary.
+  const errorRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  useEffect(
+    // oxlint-disable-next-line prefer-arrow-callback -- named for stack traces and the effects skill
+    function focusFormError() {
+      if (!state.error) {
+        return;
+      }
+      const field = state.field
+        ? formRef.current?.querySelector(`[name="${CSS.escape(state.field)}"]`)
+        : null;
+      const target = field instanceof HTMLElement ? field : errorRef.current;
+      target?.focus();
+    },
+    [state.error, state.field]
+  );
+
+  const invalid = (field: string) => state.field === field;
+  const describedBy = (field: string) =>
+    invalid(field) ? FORM_ERROR_ID : undefined;
+
   return (
-    <form className="flex flex-col gap-6" onSubmit={onSubmit}>
+    <form className="flex flex-col gap-6" onSubmit={onSubmit} ref={formRef}>
       <DialogHeader>
         <DialogTitle>{editing ? "Edit athlete" : "Add athlete"}</DialogTitle>
         <DialogDescription>
@@ -159,6 +195,8 @@ const AthleteForm = ({
           <Field>
             <FieldLabel htmlFor="athlete-id-no">ID No.</FieldLabel>
             <Input
+              aria-describedby={describedBy("idNo")}
+              aria-invalid={invalid("idNo")}
               autoComplete="off"
               defaultValue={athlete?.id_no}
               id="athlete-id-no"
@@ -170,6 +208,8 @@ const AthleteForm = ({
           <Field>
             <FieldLabel htmlFor="athlete-aai-no">AAI No.</FieldLabel>
             <Input
+              aria-describedby={describedBy("aaiNo")}
+              aria-invalid={invalid("aaiNo")}
               autoComplete="off"
               defaultValue={athlete?.aai_no ?? ""}
               id="athlete-aai-no"
@@ -181,6 +221,8 @@ const AthleteForm = ({
           <Field className="col-span-2">
             <FieldLabel htmlFor="athlete-full-name">Name</FieldLabel>
             <Input
+              aria-describedby={describedBy("fullName")}
+              aria-invalid={invalid("fullName")}
               autoComplete="off"
               defaultValue={athlete?.full_name}
               id="athlete-full-name"
@@ -191,14 +233,18 @@ const AthleteForm = ({
           </Field>
           <SelectField
             defaultValue={athlete?.gender}
+            describedBy={describedBy("gender")}
             id="athlete-gender"
+            invalid={invalid("gender")}
             items={GENDER_ITEMS}
             label="Gender"
             name="gender"
           />
           <SelectField
             defaultValue={athlete ? String(athlete.category_id) : undefined}
+            describedBy={describedBy("categoryId")}
             id="athlete-category"
+            invalid={invalid("categoryId")}
             items={toOptions(
               lookups.categories,
               (row) => row.name,
@@ -209,7 +255,9 @@ const AthleteForm = ({
           />
           <SelectField
             defaultValue={athlete ? String(athlete.event_id) : undefined}
+            describedBy={describedBy("eventId")}
             id="athlete-event"
+            invalid={invalid("eventId")}
             items={toOptions(
               lookups.events,
               (row) => row.name,
@@ -220,7 +268,9 @@ const AthleteForm = ({
           />
           <SelectField
             defaultValue={athlete ? String(athlete.distance_id) : undefined}
+            describedBy={describedBy("distanceId")}
             id="athlete-distance"
+            invalid={invalid("distanceId")}
             items={toOptions(
               lookups.distances,
               (row) => `${row.meters} m`,
@@ -231,7 +281,9 @@ const AthleteForm = ({
           />
           <SelectField
             defaultValue={athlete ? String(athlete.target_face_id) : undefined}
+            describedBy={describedBy("targetFaceId")}
             id="athlete-target-face"
+            invalid={invalid("targetFaceId")}
             items={toOptions(
               lookups.targetFaces,
               (row) => row.name,
@@ -241,7 +293,14 @@ const AthleteForm = ({
             name="targetFaceId"
           />
           {state.error ? (
-            <FieldError className="col-span-2">{state.error}</FieldError>
+            <FieldError
+              className="col-span-2"
+              id={FORM_ERROR_ID}
+              ref={errorRef}
+              tabIndex={-1}
+            >
+              {state.error}
+            </FieldError>
           ) : null}
         </div>
       </FieldGroup>
@@ -261,7 +320,7 @@ export const AthleteFormDialog = ({
   onOpenChange,
   open,
 }: {
-  athlete: AthleteRow | null;
+  athlete: AthleteRow | undefined;
   lookups: Lookups;
   onOpenChange: (open: boolean) => void;
   open: boolean;

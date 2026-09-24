@@ -10,9 +10,14 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/database.types";
 import { loadError } from "@/lib/supabase/load-error";
+import {
+  athleteRowSchema,
+  lookupsSchema,
+  parseTableRows,
+} from "@/lib/supabase/table-rows";
 
 type Tables = Database["public"]["Tables"];
-export type Gender = Database["public"]["Enums"]["gender"];
+export type { Gender } from "@/lib/supabase/table-rows";
 export type AthleteInput = Pick<
   Tables["athletes"]["Insert"],
   | "aai_no"
@@ -37,17 +42,17 @@ const ATHLETE_SELECT =
   "*, category:categories(name), event:events(name), distance:distances(meters), target_face:target_faces(name)";
 
 const fetchAthletes = async () => {
-  const { data, error } = await createClient()
+  const { data: athletes, error } = await createClient()
     .from("athletes")
     .select(ATHLETE_SELECT)
     .order("full_name");
   if (error) {
     throw loadError("Could not load athletes.", error);
   }
-  return data;
+  return parseTableRows(athleteRowSchema, athletes, "Could not load athletes.");
 };
 
-export type AthleteRow = Awaited<ReturnType<typeof fetchAthletes>>[number];
+export type { AthleteRow } from "@/lib/supabase/table-rows";
 
 export const athletesQuery = () =>
   queryOptions({ queryFn: fetchAthletes, queryKey: athleteKeys.all });
@@ -71,15 +76,21 @@ const fetchLookups = async () => {
       failed
     );
   }
-  return {
+  const parsed = lookupsSchema.safeParse({
     categories: categories.data ?? [],
     distances: distances.data ?? [],
     events: events.data ?? [],
     targetFaces: targetFaces.data ?? [],
-  };
+  });
+  if (!parsed.success) {
+    throw new Error(
+      "Could not load categories, events, distances and faces. The server sent data in an unexpected shape."
+    );
+  }
+  return parsed.data;
 };
 
-export type Lookups = Awaited<ReturnType<typeof fetchLookups>>;
+export type { Lookups } from "@/lib/supabase/table-rows";
 
 /** Lookups change rarely, so they stay fresh for the whole session. */
 export const lookupsQuery = () =>
@@ -109,7 +120,7 @@ export const useSaveAthlete = () => {
       id,
       input,
     }: {
-      id: string | null;
+      id: string | undefined;
       input: AthleteInput;
     }) => {
       const supabase = createClient();

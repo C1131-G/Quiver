@@ -40,7 +40,10 @@ export default defineConfig({
     ...(core.ignorePatterns ?? []),
     // Vendored shadcn primitives, kept as generated (as in AthleteHub).
     "packages/ui/src/components/**",
+    // Untracked agent worktrees are not part of this repository's checks.
+    "**/.claude/worktrees/**",
   ],
-  jsPlugins: [...jsPlugins.jsPlugins, ...shadcn.jsPlugins],
+  // `shadcn` stays in `extends`; listing it again here registers it twice.
+  jsPlugins: [...jsPlugins.jsPlugins],
   settings: jsPluginSettings,
 });

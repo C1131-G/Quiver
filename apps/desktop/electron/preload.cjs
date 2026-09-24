@@ -12,9 +12,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
       // Returns an unsubscribe function rather than exposing ipcRenderer
       // itself, so the renderer never touches the raw event emitter.
       onChange: (listener) => {
-        const handler = (_event, status) => listener(status);
-        ipcRenderer.on("update.changed", handler);
-        return () => ipcRenderer.removeListener("update.changed", handler);
+        const statusListener = (_event, status) => listener(status);
+        ipcRenderer.on("update.changed", statusListener);
+        return () =>
+          ipcRenderer.removeListener("update.changed", statusListener);
       },
       status: () => ipcRenderer.invoke("update.status"),
     },

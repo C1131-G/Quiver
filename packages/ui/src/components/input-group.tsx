@@ -47,18 +47,14 @@ function InputGroupAddon({
   align = "inline-start",
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof inputGroupAddonVariants>) {
+  // Decorative by design: it carries an icon or hint next to the control,
+  // never an action. Keyboard users reach the input itself, which owns the
+  // label, so this container must not intercept clicks either.
   return (
     <div
-      role="group"
       data-slot="input-group-addon"
       data-align={align}
       className={cn(inputGroupAddonVariants({ align }), className)}
-      onClick={(e) => {
-        if ((e.target as HTMLElement).closest("button")) {
-          return;
-        }
-        e.currentTarget.parentElement?.querySelector("input")?.focus();
-      }}
       {...props}
     />
   );

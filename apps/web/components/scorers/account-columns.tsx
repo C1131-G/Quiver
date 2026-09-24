@@ -12,12 +12,11 @@ import {
 } from "@workspace/ui/components/dropdown-menu";
 
 import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
+import { formatDateTime } from "@/lib/format";
 
 import type { Profile } from "./use-scorers";
 
 export type AccountDialogKind = "edit" | "reset" | "active";
-
-const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
 
 const column = createDataTableColumnHelper<Profile>();
 
@@ -56,9 +55,7 @@ export const buildAccountColumns = (
     }),
     column.accessor("created_at", {
       cell: (cell) => (
-        <span className="tabular-nums">
-          {dateFormat.format(new Date(cell.getValue()))}
-        </span>
+        <span className="tabular-nums">{formatDateTime(cell.getValue())}</span>
       ),
       header: "Created",
       sortFn: "text",

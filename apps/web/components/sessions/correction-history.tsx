@@ -7,6 +7,7 @@ import {
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -63,14 +64,15 @@ export const CorrectionHistory = ({
         </p>
       ) : (
         <div className="tabular-nums">
-          <Table aria-label="Correction history">
+          <Table>
+            <TableCaption className="sr-only">Correction history</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead>When</TableHead>
-                <TableHead>Arrow</TableHead>
-                <TableHead>Change</TableHead>
-                <TableHead>Reason</TableHead>
-                <TableHead>By</TableHead>
+                <TableHead scope="col">When</TableHead>
+                <TableHead scope="col">Arrow</TableHead>
+                <TableHead scope="col">Change</TableHead>
+                <TableHead scope="col">Reason</TableHead>
+                <TableHead scope="col">By</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
