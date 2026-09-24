@@ -198,7 +198,7 @@ set value = case when ar.value = 'M' then '9' else 'M' end
 from public.ends e, public.rounds r
 where ar.end_id = e.id and e.round_id = r.id
   and r.session_id = (select id from my_done)
-  and e.end_no = 1 and ar.arrow_no = 1;
+  and r.round_no = 1 and e.end_no = 1 and ar.arrow_no = 1;
 
 select is(
   (select count(*)::int from public.arrow_corrections

@@ -47,45 +47,66 @@ export interface NewSession {
   scorerId: string;
   sessionDate: string;
   sessionType: SessionType;
+  /** The scheduled session it was started from, if any. */
+  templateId: string | null;
   title: string;
   venue: Venue;
 }
 
-/** Creates a session and its rounds; returns the new session's id. */
-export const startSession = async (db: ScorerDb, draft: NewSession) => {
-  const sessionId = randomUUID();
-  const now = new Date().toISOString();
+const insertSession = (
+  db: ScorerDb,
+  draft: NewSession,
+  sessionId: string,
+  now: string
+) => {
   const title = draft.title.trim();
-  await writeLocally(db, () => {
-    db.sessions.insert({
-      athlete_id: draft.athlete.id,
-      // The athlete's category and event when the session was shot.
-      category_id: draft.athlete.category_id,
-      completed_at: null,
-      event_id: draft.athlete.event_id,
-      id: sessionId,
-      scorer_id: draft.scorerId,
-      session_date: draft.sessionDate,
-      session_type: draft.sessionType,
-      started_at: now,
-      status: "in_progress",
-      title: title === "" ? null : title,
-      updated_at: now,
-      venue: draft.venue,
-    });
-    db.rounds.insert(
-      draft.rounds.map((round, index) => ({
-        arrows_per_end: round.arrowsPerEnd,
-        distance_id: round.distanceId,
-        id: randomUUID(),
-        planned_ends: round.plannedEnds,
-        round_no: index + 1,
-        session_id: sessionId,
-        target_face_id: round.targetFaceId,
-      }))
-    );
+  db.sessions.insert({
+    athlete_id: draft.athlete.id,
+    // The athlete's category and event when the session was shot.
+    category_id: draft.athlete.category_id,
+    completed_at: null,
+    event_id: draft.athlete.event_id,
+    id: sessionId,
+    scorer_id: draft.scorerId,
+    session_date: draft.sessionDate,
+    session_type: draft.sessionType,
+    started_at: now,
+    status: "in_progress",
+    template_id: draft.templateId,
+    title: title === "" ? null : title,
+    updated_at: now,
+    venue: draft.venue,
   });
-  return sessionId;
+  db.rounds.insert(
+    draft.rounds.map((round, index) => ({
+      arrows_per_end: round.arrowsPerEnd,
+      distance_id: round.distanceId,
+      id: randomUUID(),
+      planned_ends: round.plannedEnds,
+      round_no: index + 1,
+      session_id: sessionId,
+      target_face_id: round.targetFaceId,
+    }))
+  );
+};
+
+/**
+ * Creates sessions and their rounds in one transaction, so a scheduled
+ * session starts for every chosen athlete or none. Returns the new ids in
+ * the order given.
+ */
+export const startSessions = async (
+  db: ScorerDb,
+  drafts: readonly NewSession[]
+) => {
+  const now = new Date().toISOString();
+  const started = drafts.map((draft) => ({ draft, id: randomUUID() }));
+  await writeLocally(db, () => {
+    for (const { draft, id } of started) {
+      insertSession(db, draft, id, now);
+    }
+  });
+  return started.map(({ id }) => id);
 };
 
 export interface EndRef {

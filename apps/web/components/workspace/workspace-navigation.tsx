@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  CalendarDotsIcon,
   ChartLineIcon,
   ClipboardTextIcon,
   GaugeIcon,
@@ -22,6 +23,7 @@ interface NavigationItem {
     | "/dashboard"
     | "/compare"
     | "/sessions"
+    | "/schedule"
     | "/athletes"
     | "/scorers"
     | "/settings";
@@ -33,6 +35,7 @@ const items: NavigationItem[] = [
   { href: "/dashboard", icon: GaugeIcon, label: "Performance" },
   { href: "/compare", icon: ChartLineIcon, label: "Compare" },
   { href: "/sessions", icon: ClipboardTextIcon, label: "Sessions" },
+  { href: "/schedule", icon: CalendarDotsIcon, label: "Schedule" },
   { href: "/athletes", icon: UsersThreeIcon, label: "Athletes" },
   { href: "/scorers", icon: UserGearIcon, label: "Scorers" },
   { href: "/settings", icon: GearIcon, label: "Settings" },

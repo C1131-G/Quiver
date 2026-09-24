@@ -2,7 +2,9 @@ import type { Collection } from "@tanstack/react-db";
 import { queryOptions } from "@tanstack/react-query";
 
 import { supabase } from "@/lib/supabase";
+import { today } from "@/lib/today";
 
+import type { SessionTemplate } from "./rows";
 import type { ScorerDb } from "./scorer-db";
 
 /** Athletes and lookups change rarely; check again after this long. */
@@ -11,11 +13,19 @@ const REFERENCE_STALE_MS = 5 * 60 * 1000;
 const ATHLETE_COLUMNS =
   "id, id_no, full_name, category_id, event_id, distance_id, target_face_id";
 
+const TEMPLATE_COLUMNS = `
+  id, session_date, session_type, title, venue,
+  rounds:session_template_rounds(round_no, arrows_per_end, distance_id, planned_ends, target_face_id),
+  athletes:session_template_athletes(athlete_id)
+`;
+
 /** Every column the server sent has the value already stored. */
 const sameRow = <T extends object>(stored: T, fetched: T) => {
   const storedValues = new Map(Object.entries(stored));
+  // Scheduled sessions hold their rounds and athletes as lists.
   return Object.entries(fetched).every(
-    ([column, value]) => storedValues.get(column) === value
+    ([column, value]) =>
+      JSON.stringify(storedValues.get(column)) === JSON.stringify(value)
   );
 };
 
@@ -71,12 +81,29 @@ const orThrow = <T>({
   return data;
 };
 
-/** Fetches every athlete and lookup a scorer may use and stores them. */
+/** The server's nested rows as the phone keeps a scheduled session. */
+const toTemplate = ({
+  athletes,
+  rounds,
+  ...template
+}: {
+  athletes: { athlete_id: string }[];
+  rounds: SessionTemplate["rounds"];
+} & Omit<SessionTemplate, "athlete_ids" | "rounds">): SessionTemplate => ({
+  ...template,
+  athlete_ids: athletes.map((row) => row.athlete_id).toSorted(),
+  rounds: rounds.toSorted((a, b) => a.round_no - b.round_no),
+});
+
+/**
+ * Fetches every athlete, lookup and upcoming scheduled session a scorer may
+ * use and stores them.
+ */
 const refreshReference = async (db: ScorerDb) => {
   if (!supabase) {
     throw new Error("Supabase is not configured");
   }
-  const [athletes, categories, events, distances, targetFaces] =
+  const [athletes, categories, events, distances, targetFaces, templates] =
     await Promise.all([
       supabase
         .from("athletes")
@@ -89,6 +116,11 @@ const refreshReference = async (db: ScorerDb) => {
       supabase
         .from("target_faces")
         .select("id, is_active, lowest_score, name, sort_order"),
+      supabase
+        .from("session_templates")
+        .select(TEMPLATE_COLUMNS)
+        .gte("session_date", today())
+        .order("session_date"),
     ]);
 
   await Promise.all([
@@ -97,6 +129,7 @@ const refreshReference = async (db: ScorerDb) => {
     reconcile(db.events, orThrow(events)),
     reconcile(db.distances, orThrow(distances)),
     reconcile(db.targetFaces, orThrow(targetFaces)),
+    reconcile(db.sessionTemplates, orThrow(templates).map(toTemplate)),
   ]);
   return Date.now();
 };

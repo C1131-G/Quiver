@@ -16,6 +16,7 @@ import type {
   Round,
   SentSession,
   Session,
+  SessionTemplate,
   SyncIssue,
   TargetFace,
 } from "./rows";
@@ -27,7 +28,8 @@ const SCHEMA_VERSION = 1;
 /**
  * Everything a scorer has on the phone, in a SQLite file of their own, so a
  * shared phone never mixes two scorers' work and signing out loses nothing.
- * Athletes and lookups are copies of the server's, refreshed when online;
+ * Athletes, lookups and scheduled sessions are copies of the server's,
+ * refreshed when online;
  * sessions, rounds, ends and arrows are written here first, the outbox
  * holds what the server has not seen yet, and sent_sessions the sessions
  * the server may already have.
@@ -60,6 +62,7 @@ const createScorerDb = (userId: string) => {
     outbox: table<OutboxEntry, string>("outbox"),
     rounds: table<Round, string>("rounds"),
     sentSessions: table<SentSession, string>("sent_sessions"),
+    sessionTemplates: table<SessionTemplate, string>("session_templates"),
     sessions: table<Session, string>("sessions"),
     syncIssues: table<SyncIssue, string>("sync_issues"),
     targetFaces: table<TargetFace, number>("target_faces"),

@@ -45,6 +45,7 @@ export const columnsOf = {
     session_type: row.session_type,
     started_at: row.started_at,
     status: row.status,
+    template_id: row.template_id ?? null,
     title: row.title,
     updated_at: row.updated_at,
     venue: row.venue,

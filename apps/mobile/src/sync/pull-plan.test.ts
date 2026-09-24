@@ -18,6 +18,7 @@ const session: Session = {
   session_type: "training",
   started_at: "2026-09-24T08:00:00+00:00",
   status: "in_progress",
+  template_id: null,
   title: null,
   updated_at: "2026-09-24T08:00:00+00:00",
   venue: "outdoor",

@@ -12,7 +12,8 @@ import { planPull } from "./pull-plan";
 
 const SESSION_TREE = `
   athlete_id, category_id, completed_at, event_id, id, scorer_id,
-  session_date, session_type, started_at, status, title, updated_at, venue,
+  session_date, session_type, started_at, status, template_id, title,
+  updated_at, venue,
   rounds (
     arrows_per_end, distance_id, id, planned_ends, round_no, session_id,
     target_face_id,

@@ -51,7 +51,32 @@ export type Session = Pick<
   | "title"
   | "updated_at"
   | "venue"
->;
+> &
+  // Added once phones already held sessions, so older rows lack it. Stored
+  // rows are kept rather than rebuilt: a schema bump would clear them.
+  Partial<Pick<Row<"sessions">, "template_id">>;
+
+type TemplateRound = Row<"session_template_rounds">;
+
+/**
+ * A session an admin scheduled on Quiver Dashboard, kept as one row with
+ * its rounds and athletes. A round with no distance or face uses each
+ * athlete's own.
+ */
+export type SessionTemplate = Pick<
+  Row<"session_templates">,
+  "id" | "session_date" | "session_type" | "title" | "venue"
+> & {
+  athlete_ids: string[];
+  rounds: Pick<
+    TemplateRound,
+    | "arrows_per_end"
+    | "distance_id"
+    | "planned_ends"
+    | "round_no"
+    | "target_face_id"
+  >[];
+};
 
 export type Round = Pick<
   Row<"rounds">,
