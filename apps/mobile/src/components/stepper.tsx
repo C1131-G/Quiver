@@ -38,7 +38,7 @@ export const Stepper = ({
         aria-label={`${label}: ${value}`}
         aria-live="polite"
         className="w-8 text-center"
-        variant="large"
+        variant="figure"
       >
         {value}
       </Text>

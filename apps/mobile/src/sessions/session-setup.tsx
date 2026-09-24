@@ -9,7 +9,7 @@ import { z } from "zod";
 import type { Choice } from "@/components/choice-group";
 import { ChoiceGroup } from "@/components/choice-group";
 import { Stepper } from "@/components/stepper";
-import { StyledSafeAreaView } from "@/components/styled";
+import { PlusIcon, StyledSafeAreaView } from "@/components/styled";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -212,7 +212,8 @@ const SetupForm = ({
       contentContainerClassName="gap-6 p-4"
       keyboardShouldPersistTaps="handled"
     >
-      <View className="gap-1">
+      <View className="border-foreground/10 bg-card gap-1 border p-4">
+        <Text variant="stat">Athlete</Text>
         <Text variant="h4">{athlete.full_name}</Text>
         <Text variant="muted">{athlete.id_no}</Text>
       </View>
@@ -312,15 +313,20 @@ const SetupForm = ({
         {(roundsField) => (
           <View className="gap-4">
             {roundsField.state.value.map((round, index) => (
-              <View className="border-border gap-4 border p-4" key={round.key}>
-                <View className="flex-row items-center justify-between">
-                  <Text variant="large">Round {index + 1}</Text>
+              <View
+                className="border-foreground/10 bg-card gap-4 border p-4"
+                key={round.key}
+              >
+                <View className="border-border -mx-4 -mt-4 min-h-12 flex-row items-center justify-between border-b py-1 pr-1 pl-4">
+                  <Text aria-level={2} role="heading" variant="large">
+                    Round {index + 1}
+                  </Text>
                   {roundsField.state.value.length > ROUND_LIMITS.rounds.min &&
                   index === roundsField.state.value.length - 1 ? (
                     <Button
                       onPress={() => roundsField.removeValue(index)}
                       size="sm"
-                      variant="ghost"
+                      variant="destructive"
                     >
                       <Text>Remove</Text>
                     </Button>
@@ -401,6 +407,7 @@ const SetupForm = ({
                 }}
                 variant="outline"
               >
+                <PlusIcon colorClassName="accent-foreground" size={18} />
                 <Text>Add round</Text>
               </Button>
             ) : null}

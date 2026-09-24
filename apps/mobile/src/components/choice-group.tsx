@@ -1,5 +1,6 @@
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
+import { PressableScale } from "@/components/pressable-scale";
 import { Text, TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
@@ -31,11 +32,13 @@ export const ChoiceGroup = <T extends number | string>({
     {choices.map((choice) => {
       const selected = choice.value === value;
       return (
-        <Pressable
+        <PressableScale
           aria-checked={selected}
           className={cn(
-            "border-input min-h-11 justify-center border px-3",
-            selected ? "bg-primary border-primary" : "active:bg-accent"
+            "min-h-11 justify-center border px-4",
+            selected
+              ? "bg-primary border-primary"
+              : "border-input bg-background active:bg-muted dark:bg-input/30"
           )}
           key={choice.value}
           onPress={() => onChange(choice.value)}
@@ -46,7 +49,7 @@ export const ChoiceGroup = <T extends number | string>({
           >
             <Text variant="small">{choice.label}</Text>
           </TextClassContext>
-        </Pressable>
+        </PressableScale>
       );
     })}
   </View>

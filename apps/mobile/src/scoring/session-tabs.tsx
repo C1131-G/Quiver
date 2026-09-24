@@ -66,8 +66,10 @@ export const SessionTabs = ({
         <Pressable
           aria-selected={selected}
           className={cn(
-            "border-input min-h-11 max-w-48 justify-center border px-3",
-            selected ? "bg-primary border-primary" : "active:bg-accent"
+            "min-h-11 max-w-48 justify-center border px-3",
+            selected
+              ? "bg-primary border-primary"
+              : "border-input bg-background active:bg-muted dark:bg-input/30"
           )}
           key={tab.id}
           onPress={() => onSelect(tab.id)}

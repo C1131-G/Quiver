@@ -5,6 +5,14 @@ import { Text } from "@/components/ui/text";
 import type { RoundCard } from "./use-scorecard";
 import { arrowProgress } from "./use-scorecard";
 
+/** One headline number, laid out like Quiver Dashboard's StatGrid cards. */
+const Stat = ({ label, value }: { label: string; value: string }) => (
+  <View className="flex-1 gap-0.5">
+    <Text variant="stat">{label}</Text>
+    <Text variant="figure">{value}</Text>
+  </View>
+);
+
 export const Totals = ({ cards }: { cards: RoundCard[] }) => {
   const last = cards.at(-1);
   const { planned, shot } = arrowProgress(cards);
@@ -16,26 +24,15 @@ export const Totals = ({ cards }: { cards: RoundCard[] }) => {
   return (
     <View
       aria-label="Session totals"
-      className="border-border flex-row justify-between border p-3"
+      className="border-foreground/10 bg-card flex-row items-end gap-3 border px-4 py-3"
     >
-      <View>
-        <Text variant="muted">Total</Text>
-        <Text variant="h3">{last?.score.total ?? 0}</Text>
+      <View className="flex-1 gap-0.5">
+        <Text variant="stat">Total</Text>
+        <Text variant="score">{last?.score.total ?? 0}</Text>
       </View>
-      <View className="items-end">
-        <Text variant="muted">10+X</Text>
-        <Text variant="large">{tenPlusX}</Text>
-      </View>
-      <View className="items-end">
-        <Text variant="muted">X</Text>
-        <Text variant="large">{xCount}</Text>
-      </View>
-      <View className="items-end">
-        <Text variant="muted">Arrows</Text>
-        <Text variant="large">
-          {shot}/{planned}
-        </Text>
-      </View>
+      <Stat label="10+X" value={String(tenPlusX)} />
+      <Stat label="X" value={String(xCount)} />
+      <Stat label="Arrows" value={`${shot}/${planned}`} />
     </View>
   );
 };

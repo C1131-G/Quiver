@@ -253,7 +253,7 @@ export const ScoringScreen = ({
       <View className="border-border gap-3 border-t p-4">
         <SyncStatusLine />
         <Totals cards={cards} />
-        <Text aria-live="polite" variant="muted">
+        <Text aria-live="polite" variant="large">
           {prompt}
         </Text>
         <Keypad

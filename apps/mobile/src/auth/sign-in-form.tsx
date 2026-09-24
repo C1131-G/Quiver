@@ -1,12 +1,17 @@
 import { useForm } from "@tanstack/react-form";
 import { useRef, useState } from "react";
 import type { TextInput } from "react-native";
-import { KeyboardAvoidingView, Platform, Pressable, View } from "react-native";
+import { KeyboardAvoidingView, Platform, View } from "react-native";
 import { z } from "zod";
 
 import { EyeIcon, EyeOffIcon, StyledSafeAreaView } from "@/components/styled";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { Text } from "@/components/ui/text";
 import { supabaseEnv } from "@/lib/env";
@@ -49,10 +54,9 @@ const PasswordToggle = ({
   onToggle: () => void;
   visible: boolean;
 }) => (
-  <Pressable
+  <InputGroupButton
     aria-checked={visible}
     aria-label="Show password"
-    className="border-input active:bg-accent h-12 w-12 items-center justify-center border"
     onPress={onToggle}
     role="switch"
   >
@@ -61,7 +65,7 @@ const PasswordToggle = ({
     ) : (
       <EyeIcon colorClassName="accent-muted-foreground" size={20} />
     )}
-  </Pressable>
+  </InputGroupButton>
 );
 
 export const SignInForm = () => {
@@ -133,29 +137,27 @@ export const SignInForm = () => {
             {(field) => (
               <View className="gap-2">
                 <Label nativeID="password-label">Password</Label>
-                <View className="flex-row gap-2">
-                  <View className="flex-1">
-                    <Input
-                      accessibilityLabelledBy="password-label"
-                      autoCapitalize="none"
-                      autoComplete="current-password"
-                      autoCorrect={false}
-                      className="h-12"
-                      onBlur={field.handleBlur}
-                      onChangeText={field.handleChange}
-                      onSubmitEditing={submit}
-                      ref={passwordRef}
-                      returnKeyType="go"
-                      secureTextEntry={!passwordVisible}
-                      textContentType="password"
-                      value={field.state.value}
-                    />
-                  </View>
+                {/* The eye sits inside the field, as in Quiver Dashboard. */}
+                <InputGroup className="h-12">
+                  <InputGroupInput
+                    accessibilityLabelledBy="password-label"
+                    autoCapitalize="none"
+                    autoComplete="current-password"
+                    autoCorrect={false}
+                    onBlur={field.handleBlur}
+                    onChangeText={field.handleChange}
+                    onSubmitEditing={submit}
+                    ref={passwordRef}
+                    returnKeyType="go"
+                    secureTextEntry={!passwordVisible}
+                    textContentType="password"
+                    value={field.state.value}
+                  />
                   <PasswordToggle
                     onToggle={() => setPasswordVisible((visible) => !visible)}
                     visible={passwordVisible}
                   />
-                </View>
+                </InputGroup>
                 <FieldError message={firstError(field.state.meta.errors)} />
               </View>
             )}

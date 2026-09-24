@@ -3,10 +3,12 @@ import { useDebouncedValue } from "@tanstack/react-pacer";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
-import { FlatList, Pressable, View } from "react-native";
+import { FlatList, View } from "react-native";
 
 import type { Choice } from "@/components/choice-group";
 import { ChoiceGroup } from "@/components/choice-group";
+import { EmptyState } from "@/components/empty-state";
+import { ListRow } from "@/components/list-row";
 import { StyledSafeAreaView } from "@/components/styled";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
@@ -92,13 +94,11 @@ export const AthletePicker = () => {
         keyExtractor={(athlete) => athlete.id}
         ListEmptyComponent={
           isLoading ? null : (
-            <View className="py-8">
-              <Text className="text-center" variant="muted">
-                {term === "" && categoryId === ALL
-                  ? "No athletes on this phone yet. Connect to the internet to load them."
-                  : "No athlete matches. Check the spelling or the category."}
-              </Text>
-            </View>
+            <EmptyState>
+              {term === "" && categoryId === ALL
+                ? "No athletes on this phone yet. Connect to the internet to load them."
+                : "No athlete matches. Check the spelling or the category."}
+            </EmptyState>
           )
         }
         ListHeaderComponent={
@@ -124,20 +124,22 @@ export const AthletePicker = () => {
           </View>
         }
         renderItem={({ item }) => (
-          <Pressable
+          <ListRow
             aria-label={`${item.full_name}, ${item.id_no}`}
-            className="border-border active:bg-accent min-h-14 justify-center border px-4 py-2"
             onPress={() =>
               router.push({
                 params: { athleteId: item.id },
                 pathname: "/new-session/[athleteId]",
               })
             }
-            role="button"
           >
-            <Text variant="large">{item.full_name}</Text>
-            <Text variant="muted">{item.id_no}</Text>
-          </Pressable>
+            <View className="flex-1 gap-1">
+              <Text numberOfLines={1} variant="large">
+                {item.full_name}
+              </Text>
+              <Text variant="muted">{item.id_no}</Text>
+            </View>
+          </ListRow>
         )}
       />
     </StyledSafeAreaView>

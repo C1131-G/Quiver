@@ -145,7 +145,12 @@ export const CloseSessionButtons = ({
       >
         <Text>Submit session</Text>
       </Button>
-      <Button disabled={disabled} onPress={confirmAbandon} variant="outline">
+      <Button
+        className="h-12"
+        disabled={disabled}
+        onPress={confirmAbandon}
+        variant="destructive"
+      >
         <Text>{discardable ? "Discard session" : "Cancel session"}</Text>
       </Button>
     </View>

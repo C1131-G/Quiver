@@ -23,8 +23,9 @@ const ArrowCell = ({ value }: { value: string | null }) => {
   return (
     <View
       className={cn(
-        "border-border h-9 w-9 items-center justify-center border",
-        zone.background
+        "h-9 w-9 items-center justify-center",
+        zone.background,
+        zone.edge
       )}
     >
       <TextClassContext value={zone.text}>
@@ -96,7 +97,11 @@ export const ScoreGrid = ({
   const table = useTable({ columns, data: rows, features });
 
   return (
-    <View aria-label="Scorecard" className="border-border border" role="table">
+    <View
+      aria-label="Scorecard"
+      className="border-foreground/10 bg-card border"
+      role="table"
+    >
       {table.getHeaderGroups().map((group) => (
         <View
           className="border-border bg-muted flex-row items-center justify-between gap-1 border-b px-2 py-1"
@@ -109,7 +114,7 @@ export const ScoreGrid = ({
               key={header.id}
               role="columnheader"
             >
-              <Text variant="muted">
+              <Text variant="stat">
                 <table.FlexRender header={header} />
               </Text>
             </View>
@@ -124,8 +129,9 @@ export const ScoreGrid = ({
             aria-label={`End ${endNo}`}
             aria-selected={isTarget}
             className={cn(
-              "border-border flex-row items-center justify-between gap-1 border-b px-2 py-1",
-              isTarget ? "bg-accent" : "active:bg-accent"
+              "border-border flex-row items-center justify-between gap-1 px-2 py-1",
+              row.index < rows.length - 1 && "border-b",
+              isTarget ? "bg-primary/10" : "active:bg-muted"
             )}
             key={row.id}
             onPress={() => onSelectEnd(endNo)}

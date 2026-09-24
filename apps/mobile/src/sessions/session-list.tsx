@@ -3,11 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "@tanstack/react-store";
 import { router } from "expo-router";
 import { useState } from "react";
-import { FlatList, Pressable, View } from "react-native";
+import { FlatList, View } from "react-native";
 import { toast } from "sonner-native";
 
 import { authAtom, signOut } from "@/auth/auth-store";
-import { StyledSafeAreaView } from "@/components/styled";
+import { EmptyState } from "@/components/empty-state";
+import { ListRow } from "@/components/list-row";
+import { PlusIcon, StyledSafeAreaView } from "@/components/styled";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { referenceQuery } from "@/db/reference";
@@ -16,15 +19,11 @@ import { openScoring } from "@/scoring/active-session";
 import { SyncIssuesSummary, SyncStatusLine } from "@/sync/sync-status";
 import { usePendingSync } from "@/sync/use-sync-status";
 
+import { SessionStatusBadge } from "./session-status-badge";
+
 const SESSION_TYPE_LABELS = {
   competition: "Competition",
   training: "Training",
-} as const;
-
-const STATUS_LABELS = {
-  cancelled: "Cancelled",
-  completed: "Submitted",
-  in_progress: "In progress",
 } as const;
 
 const Header = () => {
@@ -43,20 +42,19 @@ const Header = () => {
   };
 
   return (
-    <View className="flex-row items-start justify-between gap-3">
+    <View className="flex-row items-start justify-between gap-3 pt-2">
       <View className="flex-1 gap-1">
-        <Text variant="h3">QuiverScore</Text>
+        <Text variant="title">QuiverScore</Text>
         <Text numberOfLines={1} variant="muted">
           {email}
         </Text>
-        <SyncStatusLine />
       </View>
       <Button
         aria-busy={signingOut}
         disabled={signingOut}
         onPress={handleSignOut}
         size="sm"
-        variant="ghost"
+        variant="outline"
       >
         <Text>{signingOut ? "Signing out…" : "Sign out"}</Text>
       </Button>
@@ -100,54 +98,61 @@ export const SessionList = () => {
         extraData={pending}
         keyExtractor={(session) => session.id}
         ListEmptyComponent={
-          <View className="py-8">
-            <Text className="text-center" variant="muted">
-              No sessions yet. Start one to score an athlete.
-            </Text>
-          </View>
+          <EmptyState>
+            No sessions yet. Start one to score an athlete.
+          </EmptyState>
         }
         ListHeaderComponent={
           <View className="gap-4 pb-2">
             <Header />
+            <SyncStatusLine />
             <Button
               className="h-12"
               onPress={() => router.push("/new-session")}
               size="lg"
             >
+              <PlusIcon colorClassName="accent-primary-foreground" size={18} />
               <Text>New session</Text>
             </Button>
             <SyncIssuesSummary />
+            <Text aria-level={2} role="heading" variant="section">
+              Your sessions
+            </Text>
           </View>
         }
         renderItem={({ item }) => (
-          <Pressable
+          <ListRow
             aria-label={`${item.athleteName ?? "Athlete"}, ${item.sessionDate}`}
-            className="border-border active:bg-accent gap-1 border px-4 py-3"
             onPress={() => openScoring(item.id)}
-            role="button"
           >
-            <View className="flex-row items-center justify-between gap-2">
-              <Text className="flex-1" numberOfLines={1} variant="large">
-                {item.athleteName ?? "Unknown athlete"}
+            <View className="flex-1 gap-1.5">
+              <View className="flex-row items-center justify-between gap-2">
+                <Text className="flex-1" numberOfLines={1} variant="large">
+                  {item.athleteName ?? "Unknown athlete"}
+                </Text>
+                <SessionStatusBadge status={item.status} />
+              </View>
+              <Text numberOfLines={1} variant="muted">
+                {[
+                  item.sessionDate,
+                  SESSION_TYPE_LABELS[item.sessionType],
+                  item.title,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </Text>
-              <Text variant="small">{STATUS_LABELS[item.status]}</Text>
+              {issuesBySession.has(item.id) ? (
+                <Badge className="self-start" variant="destructive">
+                  <Text>Not sent</Text>
+                </Badge>
+              ) : null}
+              {waitingSessions.has(item.id) ? (
+                <Badge className="self-start" variant="outline">
+                  <Text>Waiting to send</Text>
+                </Badge>
+              ) : null}
             </View>
-            <Text variant="muted">
-              {[
-                item.sessionDate,
-                SESSION_TYPE_LABELS[item.sessionType],
-                item.title,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </Text>
-            {issuesBySession.has(item.id) ? (
-              <Text variant="error">Not sent</Text>
-            ) : null}
-            {waitingSessions.has(item.id) ? (
-              <Text variant="muted">Waiting to send</Text>
-            ) : null}
-          </Pressable>
+          </ListRow>
         )}
       />
     </StyledSafeAreaView>

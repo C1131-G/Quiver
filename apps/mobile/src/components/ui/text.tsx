@@ -16,6 +16,7 @@ const textVariants = cva(
     variants: {
       variant: {
         default: "",
+        title: "text-3xl font-semibold tracking-tight",
         h1: cn(
           "text-center text-4xl font-extrabold tracking-tight",
           Platform.select({ web: "scroll-m-20 text-balance" })
@@ -41,6 +42,9 @@ const textVariants = cva(
         large: "text-lg font-semibold",
         small: "text-sm leading-none font-medium",
         muted: "text-muted-foreground text-sm",
+        section: "text-muted-foreground text-sm font-medium",
+        stat: "text-muted-foreground text-xs font-medium",
+        figure: "text-lg font-semibold tabular-nums",
         error: "text-destructive text-sm",
         score: "text-2xl font-bold tabular-nums",
         cell: "text-base font-semibold tabular-nums",
@@ -57,6 +61,7 @@ type TextVariantProps = VariantProps<typeof textVariants>;
 type TextVariant = NonNullable<TextVariantProps["variant"]>;
 
 const ROLE: Partial<Record<TextVariant, Role | undefined>> = {
+  title: "heading",
   h1: "heading",
   h2: "heading",
   h3: "heading",
@@ -66,6 +71,7 @@ const ROLE: Partial<Record<TextVariant, Role | undefined>> = {
 };
 
 const ARIA_LEVEL: Partial<Record<TextVariant, string>> = {
+  title: "1",
   h1: "1",
   h2: "2",
   h3: "3",

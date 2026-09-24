@@ -1,12 +1,13 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { Platform, Pressable } from "react-native";
+import { Platform } from "react-native";
 
+import { PressableScale } from "@/components/pressable-scale";
 import { TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
   cn(
-    "group shrink-0 flex-row items-center justify-center gap-2 rounded-md shadow-none",
+    "group shrink-0 flex-row items-center justify-center gap-2 rounded-md",
     Platform.select({
       web: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive whitespace-nowrap outline-none transition-all focus-visible:ring-[3px] disabled:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
     })
@@ -15,28 +16,28 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: cn(
-          "bg-primary active:bg-primary/90 shadow-sm shadow-black/5",
-          Platform.select({ web: "hover:bg-primary/90" })
+          "bg-primary active:bg-primary/80",
+          Platform.select({ web: "hover:bg-primary/80" })
         ),
         destructive: cn(
-          "bg-destructive active:bg-destructive/90 dark:bg-destructive/60 shadow-sm shadow-black/5",
+          "bg-destructive/10 active:bg-destructive/20 dark:bg-destructive/20 dark:active:bg-destructive/30",
           Platform.select({
-            web: "hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
+            web: "hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
           })
         ),
         outline: cn(
-          "border-border bg-background active:bg-accent dark:bg-input/30 dark:border-input dark:active:bg-input/50 border shadow-sm shadow-black/5",
+          "border-border bg-background active:bg-muted dark:bg-input/30 dark:border-input dark:active:bg-input/50 border",
           Platform.select({
-            web: "hover:bg-accent dark:hover:bg-input/50",
+            web: "hover:bg-muted dark:hover:bg-input/50",
           })
         ),
         secondary: cn(
-          "bg-secondary active:bg-secondary/80 shadow-sm shadow-black/5",
+          "bg-secondary active:bg-secondary/80",
           Platform.select({ web: "hover:bg-secondary/80" })
         ),
         ghost: cn(
-          "active:bg-accent dark:active:bg-accent/50",
-          Platform.select({ web: "hover:bg-accent dark:hover:bg-accent/50" })
+          "active:bg-muted dark:active:bg-muted/50",
+          Platform.select({ web: "hover:bg-muted dark:hover:bg-muted/50" })
         ),
         link: "",
       },
@@ -72,7 +73,7 @@ const buttonTextVariants = cva(
     variants: {
       variant: {
         default: "text-primary-foreground",
-        destructive: "text-white",
+        destructive: "text-destructive",
         outline: cn(
           "group-active:text-accent-foreground",
           Platform.select({ web: "group-hover:text-accent-foreground" })
@@ -100,14 +101,13 @@ const buttonTextVariants = cva(
   }
 );
 
-type ButtonProps = React.ComponentProps<typeof Pressable> &
-  React.RefAttributes<typeof Pressable> &
+type ButtonProps = React.ComponentProps<typeof PressableScale> &
   VariantProps<typeof buttonVariants>;
 
 function Button({ className, variant, size, ...props }: ButtonProps) {
   return (
     <TextClassContext.Provider value={buttonTextVariants({ variant, size })}>
-      <Pressable
+      <PressableScale
         className={cn(
           props.disabled && "opacity-50",
           buttonVariants({ variant, size }),

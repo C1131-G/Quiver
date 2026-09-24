@@ -1,11 +1,17 @@
 import { isScoreOnFace } from "@workspace/shared/arrows";
-import { Pressable, View } from "react-native";
+import { Delete, Trash2 } from "lucide-react-native";
+import { View } from "react-native";
+import { withUniwind } from "uniwind";
 
+import { PressableScale } from "@/components/pressable-scale";
 import { Button } from "@/components/ui/button";
 import { Text, TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
 import { zoneOf } from "./zones";
+
+const BackspaceIcon = withUniwind(Delete);
+const TrashIcon = withUniwind(Trash2);
 
 /** Four keys a row, from the gold to a miss, as on the target. */
 const KEY_ROWS = [
@@ -25,12 +31,13 @@ const ScoreKey = ({
 }) => {
   const zone = zoneOf(value);
   return (
-    <Pressable
+    <PressableScale
       aria-disabled={disabled}
       aria-label={value === "M" ? "Miss" : `Score ${value}`}
       className={cn(
-        "border-border h-16 flex-1 items-center justify-center border active:opacity-70",
+        "h-16 flex-1 items-center justify-center active:opacity-80",
         zone.background,
+        zone.edge,
         disabled && "opacity-25"
       )}
       disabled={disabled}
@@ -40,7 +47,7 @@ const ScoreKey = ({
       <TextClassContext value={zone.text}>
         <Text variant="score">{value}</Text>
       </TextClassContext>
-    </Pressable>
+    </PressableScale>
   );
 };
 
@@ -85,6 +92,7 @@ export const Keypad = ({
         onPress={onDeleteArrow}
         variant="outline"
       >
+        <BackspaceIcon colorClassName="accent-foreground" size={18} />
         <Text>Delete arrow</Text>
       </Button>
       <Button
@@ -93,6 +101,7 @@ export const Keypad = ({
         onPress={onClearEnd}
         variant="outline"
       >
+        <TrashIcon colorClassName="accent-foreground" size={18} />
         <Text>Clear end</Text>
       </Button>
     </View>

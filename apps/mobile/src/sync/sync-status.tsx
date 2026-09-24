@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import type { SyncIssue } from "@/db/rows";
 import { useScorerDb } from "@/db/scorer-db-context";
+import { cn } from "@/lib/utils";
 
 import { syncAtom } from "./engine";
 import { retrySession, usePendingSync } from "./use-sync-status";
@@ -34,10 +35,24 @@ export const SyncStatusLine = () => {
     }
   }
 
+  // The dot repeats what the words say, for a glance from arm's length.
+  const settled = online && waitingSessions.size === 0;
+
   return (
-    <Text aria-live="polite" numberOfLines={1} variant="muted">
-      {label}
-    </Text>
+    <View className="flex-row items-center gap-2">
+      <View
+        aria-hidden
+        className={cn("size-2", settled ? "bg-muted-foreground" : "bg-primary")}
+      />
+      <Text
+        aria-live="polite"
+        className="flex-1"
+        numberOfLines={1}
+        variant="muted"
+      >
+        {label}
+      </Text>
+    </View>
   );
 };
 
@@ -48,7 +63,10 @@ export const SyncIssuesSummary = () => {
     return null;
   }
   return (
-    <View className="border-destructive gap-1 border p-3" role="alert">
+    <View
+      className="border-destructive/30 bg-destructive/10 gap-1 border p-3"
+      role="alert"
+    >
       <Text variant="error">
         {plural(issuesBySession.size, "session")} could not be sent.
       </Text>
@@ -77,7 +95,10 @@ export const SyncIssueNotice = ({ issue }: { issue: SyncIssue }) => {
   };
 
   return (
-    <View className="border-destructive gap-2 border p-3" role="alert">
+    <View
+      className="border-destructive/30 bg-destructive/10 gap-2 border p-3"
+      role="alert"
+    >
       <Text variant="error">These scores were not sent</Text>
       <Text variant="muted">{issue.message}</Text>
       <Text variant="muted">They are kept on this phone.</Text>
