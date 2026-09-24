@@ -37,6 +37,13 @@ Load the skill before writing the code, not after. Two or more rows can apply at
 | Auditing the repo against the skills its stack implies, or checking this setup is applied | `audit-with-skills` |
 | Reading or reviewing a research paper | `read-research-paper` |
 
+## Product names
+
+- **Quiver Dashboard** is the desktop app for admins (`apps/web` inside `apps/desktop`).
+- **QuiverScore** is the mobile app for scorers (`apps/mobile`).
+
+Use these names in every UI string, window title, installer, and doc. Don't write "the mobile app" or "the desktop app" in user-facing text.
+
 ## Architecture decisions
 
 These choices are deliberate. A skill's generic advice does not override them. Change one only after discussing it.
@@ -46,7 +53,7 @@ These choices are deliberate. A skill's generic advice does not override them. C
 - **Shared Edge Function contracts live in `supabase/functions/_shared/`.** The web app imports them as `@contracts/*`. Validate with the same zod schema on both sides, and never duplicate them.
 - **Dialogs keep a snapshot of the row they opened with.** Live updates can refetch the list while a dialog is open, and the form must not change underneath the user.
 - **Roles live in `app_metadata`, and `private.is_admin()` also requires an active profile.** Deactivating an account removes its access right away, without waiting for the token to expire.
-- **Paging uses OFFSET with UUIDv4 keys.** The mobile app generates the IDs, and each list holds hundreds of rows, not millions. Revisit keyset paging only if that changes.
+- **Paging uses OFFSET with UUIDv4 keys.** QuiverScore generates the IDs, and each list holds hundreds of rows, not millions. Revisit keyset paging only if that changes.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

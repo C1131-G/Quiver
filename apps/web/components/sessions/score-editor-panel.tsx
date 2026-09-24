@@ -75,8 +75,8 @@ const firstCell = (rounds: EditorRound[]): Cell | undefined => {
 };
 
 /**
- * Admin editing for every round of a session, modelled on the mobile
- * scorer: pick an arrow, press a score, the selection moves on. Changes are
+ * Admin editing for every round of a session, modelled on
+ * QuiverScore: pick an arrow, press a score, the selection moves on. Changes are
  * drafts until saved together with one reason.
  */
 export const ScoreEditorPanel = ({

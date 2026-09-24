@@ -81,7 +81,7 @@ const UsersEmpty = ({ filtered }: { filtered: boolean }) => (
       <EmptyDescription>
         {filtered
           ? "Try a different search or clear the filters."
-          : "Add a scorer so they can sign in on the mobile app."}
+          : "Add a scorer so they can sign in on QuiverScore."}
       </EmptyDescription>
     </EmptyHeader>
   </Empty>
@@ -127,7 +127,7 @@ export const ScorersPage = () => {
             Add scorer
           </Button>
         }
-        description="Scorers sign in on the mobile app to record scores. Switch the filter to Admins to manage desktop admin accounts."
+        description="Scorers sign in on QuiverScore to record scores. Switch the filter to Admins to manage Quiver Dashboard admin accounts."
         title="Scorers"
       />
 

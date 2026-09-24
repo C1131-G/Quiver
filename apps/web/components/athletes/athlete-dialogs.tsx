@@ -150,8 +150,8 @@ const AthleteForm = ({
       <DialogHeader>
         <DialogTitle>{editing ? "Edit athlete" : "Add athlete"}</DialogTitle>
         <DialogDescription>
-          Scorers pick from active athletes when they start a session on the
-          mobile app.
+          Scorers pick from active athletes when they start a session in
+          QuiverScore.
         </DialogDescription>
       </DialogHeader>
       <FieldGroup>

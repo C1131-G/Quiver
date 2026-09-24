@@ -2,8 +2,8 @@
 -- production. Passwords here are for local use only.
 --
 --   admin   / admin12345   (desktop admin)
---   scorer1 / scorer12345  (mobile scorer)
---   scorer2 / scorer12345  (mobile scorer)
+--   scorer1 / scorer12345  (QuiverScore)
+--   scorer2 / scorer12345  (QuiverScore)
 
 -- ---------------------------------------------------------------------------
 -- Lookups

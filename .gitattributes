@@ -1,0 +1,8 @@
+# Check out with LF everywhere, whatever core.autocrlf says, so Oxfmt sees
+# the same bytes on every machine and in every worktree.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
+*.icns binary
+*.woff2 binary
