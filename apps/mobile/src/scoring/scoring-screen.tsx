@@ -246,7 +246,9 @@ export const ScoringScreen = ({ sessionId }: { sessionId: string }) => {
   };
 
   let prompt = `End ${targetEndNo ?? ""}: arrow ${targetShot + 1} of ${card.round.arrows_per_end}`;
-  if (readOnly) {
+  if (session?.status === "cancelled") {
+    prompt = "This session was cancelled.";
+  } else if (readOnly) {
     prompt = "This session is finished.";
   } else if (targetEndNo === null) {
     prompt = "Round complete.";

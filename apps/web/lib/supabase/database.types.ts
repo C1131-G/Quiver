@@ -731,7 +731,7 @@ export interface Database {
     Enums: {
       app_role: "admin" | "scorer";
       gender: "male" | "female";
-      session_status: "in_progress" | "completed";
+      session_status: "in_progress" | "completed" | "cancelled";
       session_type: "training" | "competition";
       venue: "indoor" | "outdoor";
     };
@@ -866,7 +866,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "scorer"],
       gender: ["male", "female"],
-      session_status: ["in_progress", "completed"],
+      session_status: ["in_progress", "completed", "cancelled"],
       session_type: ["training", "competition"],
       venue: ["indoor", "outdoor"],
     },

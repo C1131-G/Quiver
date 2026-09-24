@@ -18,6 +18,12 @@ const SESSION_TYPE_LABELS = {
   training: "Training",
 } as const;
 
+const STATUS_LABELS = {
+  cancelled: "Cancelled",
+  completed: "Finished",
+  in_progress: "In progress",
+} as const;
+
 const Header = () => {
   const email = useSelector(authAtom, (state) =>
     state.status === "signed-in" ? state.scorer.email : ""
@@ -120,9 +126,7 @@ export const SessionList = () => {
               <Text className="flex-1" numberOfLines={1} variant="large">
                 {item.athleteName ?? "Unknown athlete"}
               </Text>
-              <Text variant="small">
-                {item.status === "in_progress" ? "In progress" : "Finished"}
-              </Text>
+              <Text variant="small">{STATUS_LABELS[item.status]}</Text>
             </View>
             <Text variant="muted">
               {[
