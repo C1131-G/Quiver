@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { referenceQuery } from "@/db/reference";
 import { useScorerDb } from "@/db/scorer-db-context";
+import { ScheduledList } from "@/scheduled/scheduled-list";
 import { openScoring } from "@/scoring/active-session";
 import { SyncIssuesSummary, SyncStatusLine } from "@/sync/sync-status";
 import { usePendingSync } from "@/sync/use-sync-status";
@@ -115,6 +116,7 @@ export const SessionList = () => {
               <Text>New session</Text>
             </Button>
             <SyncIssuesSummary />
+            <ScheduledList />
             <Text aria-level={2} role="heading" variant="section">
               Your sessions
             </Text>

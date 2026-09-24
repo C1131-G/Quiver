@@ -410,6 +410,126 @@ export interface Database {
           },
         ];
       };
+      session_template_athletes: {
+        Row: {
+          athlete_id: string;
+          template_id: string;
+        };
+        Insert: {
+          athlete_id: string;
+          template_id: string;
+        };
+        Update: {
+          athlete_id?: string;
+          template_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "session_template_athletes_athlete_id_fkey";
+            columns: ["athlete_id"];
+            isOneToOne: false;
+            referencedRelation: "athletes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "session_template_athletes_template_id_fkey";
+            columns: ["template_id"];
+            isOneToOne: false;
+            referencedRelation: "session_templates";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      session_template_rounds: {
+        Row: {
+          arrows_per_end: number;
+          distance_id: number | null;
+          planned_ends: number;
+          round_no: number;
+          target_face_id: number | null;
+          template_id: string;
+        };
+        Insert: {
+          arrows_per_end: number;
+          distance_id?: number | null;
+          planned_ends: number;
+          round_no: number;
+          target_face_id?: number | null;
+          template_id: string;
+        };
+        Update: {
+          arrows_per_end?: number;
+          distance_id?: number | null;
+          planned_ends?: number;
+          round_no?: number;
+          target_face_id?: number | null;
+          template_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "session_template_rounds_distance_id_fkey";
+            columns: ["distance_id"];
+            isOneToOne: false;
+            referencedRelation: "distances";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "session_template_rounds_target_face_id_fkey";
+            columns: ["target_face_id"];
+            isOneToOne: false;
+            referencedRelation: "target_faces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "session_template_rounds_template_id_fkey";
+            columns: ["template_id"];
+            isOneToOne: false;
+            referencedRelation: "session_templates";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      session_templates: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          session_date: string;
+          session_type: Database["public"]["Enums"]["session_type"];
+          title: string;
+          updated_at: string;
+          venue: Database["public"]["Enums"]["venue"];
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          session_date: string;
+          session_type: Database["public"]["Enums"]["session_type"];
+          title: string;
+          updated_at?: string;
+          venue: Database["public"]["Enums"]["venue"];
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          session_date?: string;
+          session_type?: Database["public"]["Enums"]["session_type"];
+          title?: string;
+          updated_at?: string;
+          venue?: Database["public"]["Enums"]["venue"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "session_templates_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sessions: {
         Row: {
           athlete_id: string;
@@ -424,6 +544,7 @@ export interface Database {
           session_type: Database["public"]["Enums"]["session_type"];
           started_at: string;
           status: Database["public"]["Enums"]["session_status"];
+          template_id: string | null;
           title: string | null;
           updated_at: string;
           venue: Database["public"]["Enums"]["venue"];
@@ -441,6 +562,7 @@ export interface Database {
           session_type: Database["public"]["Enums"]["session_type"];
           started_at?: string;
           status?: Database["public"]["Enums"]["session_status"];
+          template_id?: string | null;
           title?: string | null;
           updated_at?: string;
           venue: Database["public"]["Enums"]["venue"];
@@ -458,6 +580,7 @@ export interface Database {
           session_type?: Database["public"]["Enums"]["session_type"];
           started_at?: string;
           status?: Database["public"]["Enums"]["session_status"];
+          template_id?: string | null;
           title?: string | null;
           updated_at?: string;
           venue?: Database["public"]["Enums"]["venue"];
@@ -489,6 +612,13 @@ export interface Database {
             columns: ["scorer_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sessions_template_id_fkey";
+            columns: ["template_id"];
+            isOneToOne: false;
+            referencedRelation: "session_templates";
             referencedColumns: ["id"];
           },
         ];
@@ -705,6 +835,18 @@ export interface Database {
           week_start: string;
           x_count: number;
         }[];
+      };
+      save_session_template: {
+        Args: {
+          p_athlete_ids: string[];
+          p_id: string;
+          p_rounds: Json;
+          p_session_date: string;
+          p_session_type: Database["public"]["Enums"]["session_type"];
+          p_title: string;
+          p_venue: Database["public"]["Enums"]["venue"];
+        };
+        Returns: string;
       };
       score_distribution: {
         Args: {

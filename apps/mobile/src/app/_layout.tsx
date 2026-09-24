@@ -76,6 +76,13 @@ const RootLayout = () => {
                     options={{ headerShown: true, title: "New session" }}
                   />
                   <Stack.Screen
+                    name="scheduled/[templateId]/index"
+                    options={{
+                      headerShown: true,
+                      title: "Scheduled session",
+                    }}
+                  />
+                  <Stack.Screen
                     name="scoring/index"
                     options={{ headerShown: true, title: "Scoring" }}
                   />

@@ -22,8 +22,9 @@ import type {
   Venue,
 } from "@/db/rows";
 import { useScorerDb } from "@/db/scorer-db-context";
+import { today } from "@/lib/today";
 import type { RoundDraft } from "@/scoring/actions";
-import { startSession } from "@/scoring/actions";
+import { startSessions } from "@/scoring/actions";
 import { openScoring } from "@/scoring/active-session";
 import type { RoundPreset } from "@/scoring/presets";
 import { ROUND_LIMITS, ROUND_PRESETS } from "@/scoring/presets";
@@ -45,14 +46,6 @@ const HAND_ADDED_ROUND = { arrowsPerEnd: 6, plannedEnds: 6 } as const;
 const INDOOR_MAX_METERS = 25;
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/u;
-
-const pad = (value: number) => String(value).padStart(2, "0");
-
-/** Today on the phone's calendar, as the database stores dates. */
-const today = () => {
-  const now = new Date();
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-};
 
 const setupSchema = z.object({
   presetId: z.string(),
@@ -179,18 +172,23 @@ const SetupForm = ({
     onSubmit: async ({ value }) => {
       setSaveError(null);
       try {
-        const sessionId = await startSession(db, {
-          athlete,
-          rounds: value.rounds,
-          scorerId: userId,
-          sessionDate: value.sessionDate,
-          sessionType: value.sessionType,
-          title: value.title,
-          venue: value.venue,
-        });
+        const [sessionId] = await startSessions(db, [
+          {
+            athlete,
+            rounds: value.rounds,
+            scorerId: userId,
+            sessionDate: value.sessionDate,
+            sessionType: value.sessionType,
+            templateId: null,
+            title: value.title,
+            venue: value.venue,
+          },
+        ]);
         // Back to the list first, so leaving the scoring screen returns there.
         router.dismissTo("/");
-        openScoring(sessionId);
+        if (sessionId) {
+          openScoring(sessionId);
+        }
       } catch {
         setSaveError("Could not save the session on this phone. Try again.");
       }
