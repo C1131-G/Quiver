@@ -12,6 +12,7 @@
     "doctor": "expo-doctor"
   },
   "dependencies": {
+    "@react-native-community/netinfo": "12.0.1",
     "@rn-primitives/label": "1.5.2",
     "@rn-primitives/slot": "1.5.2",
     "@supabase/supabase-js": "2.117.0",

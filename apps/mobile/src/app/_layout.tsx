@@ -13,6 +13,7 @@ import { StyledGestureRoot } from "@/components/styled";
 import { ScorerDbProvider } from "@/db/scorer-db-context";
 import { followAppFocus, queryClient } from "@/lib/query-client";
 import { refreshTokensWhileActive } from "@/lib/supabase";
+import { SyncRunner } from "@/sync/sync-runner";
 
 const Loading = () => (
   <View className="bg-background flex-1 items-center justify-center">
@@ -59,6 +60,7 @@ const RootLayout = () => {
       ) : (
         <QueryClientProvider client={queryClient}>
           <ScorerDbProvider>
+            <SyncRunner />
             {/* The navigator's own background, so dark mode never flashes
                 white between screens; each screen paints bg-background. */}
             <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>

@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { referenceQuery } from "@/db/reference";
 import { useScorerDb } from "@/db/scorer-db-context";
+import { SyncIssuesSummary, SyncStatusLine } from "@/sync/sync-status";
+import { usePendingSync } from "@/sync/use-sync-status";
 
 const SESSION_TYPE_LABELS = {
   competition: "Competition",
@@ -46,6 +48,7 @@ const Header = () => {
         <Text numberOfLines={1} variant="muted">
           {email}
         </Text>
+        <SyncStatusLine />
       </View>
       <Button
         aria-busy={signingOut}
@@ -63,6 +66,8 @@ const Header = () => {
 /** The scorer's sessions on this phone, newest first, and a way to start one. */
 export const SessionList = () => {
   const { db, userId } = useScorerDb();
+  const pending = usePendingSync();
+  const { issuesBySession, waitingSessions } = pending;
   // Refresh athletes and lookups in the background whenever the list opens.
   useQuery(referenceQuery(db, userId));
 
@@ -90,6 +95,8 @@ export const SessionList = () => {
       <FlatList
         contentContainerClassName="gap-2 p-4"
         data={sessions}
+        // Rows show whether each session has reached the server.
+        extraData={pending}
         keyExtractor={(session) => session.id}
         ListEmptyComponent={
           <View className="py-8">
@@ -108,6 +115,7 @@ export const SessionList = () => {
             >
               <Text>New session</Text>
             </Button>
+            <SyncIssuesSummary />
           </View>
         }
         renderItem={({ item }) => (
@@ -137,6 +145,12 @@ export const SessionList = () => {
                 .filter(Boolean)
                 .join(" · ")}
             </Text>
+            {issuesBySession.has(item.id) ? (
+              <Text variant="error">Not sent</Text>
+            ) : null}
+            {waitingSessions.has(item.id) ? (
+              <Text variant="muted">Waiting to send</Text>
+            ) : null}
           </Pressable>
         )}
       />

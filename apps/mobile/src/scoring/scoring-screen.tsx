@@ -13,6 +13,8 @@ import { StyledSafeAreaView } from "@/components/styled";
 import { Text, TextClassContext } from "@/components/ui/text";
 import { useScorerDb } from "@/db/scorer-db-context";
 import { cn } from "@/lib/utils";
+import { SyncIssueNotice, SyncStatusLine } from "@/sync/sync-status";
+import { usePendingSync } from "@/sync/use-sync-status";
 
 import { clearEnd, deleteLastArrow, scoreArrow } from "./actions";
 import { Keypad } from "./keypad";
@@ -139,6 +141,7 @@ const currentRoundIndex = (cards: RoundCard[]) => {
 export const ScoringScreen = ({ sessionId }: { sessionId: string }) => {
   const { db } = useScorerDb();
   const { cards, session } = useScorecard(sessionId);
+  const syncIssue = usePendingSync().issuesBySession.get(sessionId);
   // null follows the scoring: the round and end still to be shot.
   const [chosenRoundIndex, setChosenRoundIndex] = useState<number | null>(null);
   const [chosenEndNo, setChosenEndNo] = useState<number | null>(null);
@@ -260,6 +263,7 @@ export const ScoringScreen = ({ sessionId }: { sessionId: string }) => {
     <StyledSafeAreaView className="bg-background flex-1" edges={["bottom"]}>
       <Stack.Screen options={{ title }} />
       <ScrollView contentContainerClassName="gap-3 p-4">
+        {syncIssue ? <SyncIssueNotice issue={syncIssue} /> : null}
         {cards.length > 1 ? (
           <RoundTabs
             cards={cards}
@@ -275,6 +279,7 @@ export const ScoringScreen = ({ sessionId }: { sessionId: string }) => {
         />
       </ScrollView>
       <View className="border-border gap-3 border-t p-4">
+        <SyncStatusLine />
         <Totals cards={cards} />
         <Text aria-live="polite" variant="muted">
           {prompt}

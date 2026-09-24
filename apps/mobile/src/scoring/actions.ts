@@ -4,15 +4,21 @@ import { randomUUID } from "expo-crypto";
 
 import type { Arrow, Athlete, SessionType, Venue } from "@/db/rows";
 import type { ScorerDb } from "@/db/scorer-db";
+import { queueForServer } from "@/sync/outbox";
 
 /**
- * Every change a scorer makes, written to the phone first. Each action is
- * one transaction across the collections it touches, so a session never
- * exists without its rounds, or an arrow without its end.
+ * Every change a scorer makes, written to the phone first and queued for
+ * the server. Each action is one transaction across the collections it
+ * touches, so a session never exists without its rounds, or an arrow
+ * without its end.
  */
-const writeLocally = (db: ScorerDb, change: () => void) => {
+const writeLocally = async (db: ScorerDb, change: () => void) => {
   const transaction = createTransaction({
+    autoCommit: false,
     mutationFn: async ({ transaction: pending }) => {
+      // The outbox is saved first. If the app dies before the rows are, the
+      // sync finds an entry whose row the phone never kept, and skips it.
+      await db.outbox.utils.acceptMutations(pending);
       await Promise.all([
         db.sessions.utils.acceptMutations(pending),
         db.rounds.utils.acceptMutations(pending),
@@ -22,7 +28,10 @@ const writeLocally = (db: ScorerDb, change: () => void) => {
     },
   });
   transaction.mutate(change);
-  return transaction.isPersisted.promise;
+  const changed = [...transaction.mutations];
+  transaction.mutate(() => queueForServer(db, changed));
+  // Both settle with a failure; awaiting both leaves neither unhandled.
+  await Promise.all([transaction.commit(), transaction.isPersisted.promise]);
 };
 
 export interface RoundDraft {

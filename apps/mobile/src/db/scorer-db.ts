@@ -12,8 +12,10 @@ import type {
   Category,
   Distance,
   End,
+  OutboxEntry,
   Round,
   Session,
+  SyncIssue,
   TargetFace,
 } from "./rows";
 import { toPersistenceDatabase } from "./sqlite";
@@ -25,7 +27,8 @@ const SCHEMA_VERSION = 1;
  * Everything a scorer has on the phone, in a SQLite file of their own, so a
  * shared phone never mixes two scorers' work and signing out loses nothing.
  * Athletes and lookups are copies of the server's, refreshed when online;
- * sessions, rounds, ends and arrows are written here first.
+ * sessions, rounds, ends and arrows are written here first, and the outbox
+ * holds what the server has not seen yet.
  */
 const createScorerDb = (userId: string) => {
   const database = openDatabaseSync(`quiverscore-${userId}.db`);
@@ -52,8 +55,10 @@ const createScorerDb = (userId: string) => {
     distances: table<Distance, number>("distances"),
     ends: table<End, string>("ends"),
     events: table<ArcheryEvent, number>("events"),
+    outbox: table<OutboxEntry, string>("outbox"),
     rounds: table<Round, string>("rounds"),
     sessions: table<Session, string>("sessions"),
+    syncIssues: table<SyncIssue, string>("sync_issues"),
     targetFaces: table<TargetFace, number>("target_faces"),
   };
 };

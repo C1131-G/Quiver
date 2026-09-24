@@ -70,3 +70,41 @@ export type Arrow = Pick<
   Row<"arrows">,
   "arrow_no" | "end_id" | "id" | "updated_at" | "value"
 >;
+
+/** The tables a scorer writes, in the order parents must reach the server. */
+export const SYNCED_TABLES = ["sessions", "rounds", "ends", "arrows"] as const;
+export type SyncedTable = (typeof SYNCED_TABLES)[number];
+
+export interface SyncedRows {
+  arrows: Arrow;
+  ends: End;
+  rounds: Round;
+  sessions: Session;
+}
+
+/**
+ * A row changed on the phone that the server has not seen yet. It names
+ * the row, not the change: when sent, a row still on the phone is upserted
+ * and a missing one deleted, so repeats and retries are harmless.
+ */
+export interface OutboxEntry {
+  /** The end the change belongs to, so pending work can be counted in ends. */
+  end_id: string | null;
+  /** `<table>:<row id>`, so a row changed twice is sent once. */
+  id: string;
+  queued_at: string;
+  /** Changes on every write; an entry is cleared only if it was not rewritten while being sent. */
+  rev: string;
+  row_id: string;
+  session_id: string;
+  table: SyncedTable;
+}
+
+/** A session the server refused. Its changes stay on the phone, unsent. */
+export interface SyncIssue {
+  code: string;
+  failed_at: string;
+  /** The session's id. */
+  id: string;
+  message: string;
+}
