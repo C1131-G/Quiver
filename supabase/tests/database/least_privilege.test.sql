@@ -88,10 +88,13 @@ select is(
     where grantee = 'authenticated'
       and table_schema = 'public'
       and privilege_type = 'DELETE'
-      and table_name not in ('sessions', 'rounds', 'ends', 'arrows')
+      and table_name not in (
+        'sessions', 'rounds', 'ends', 'arrows', 'session_templates',
+        'session_template_rounds', 'session_template_athletes'
+      )
   ),
   0,
-  'authenticated deletes only scoring-hierarchy rows'
+  'authenticated deletes only scoring-hierarchy and template rows'
 );
 select is(
   (
@@ -102,11 +105,12 @@ select is(
       and privilege_type in ('INSERT', 'UPDATE')
       and table_name not in (
         'categories', 'events', 'distances', 'target_faces', 'athletes',
-        'sessions', 'rounds', 'ends', 'arrows'
+        'sessions', 'rounds', 'ends', 'arrows', 'session_templates',
+        'session_template_rounds', 'session_template_athletes'
       )
   ),
   0,
-  'authenticated writes only lookups, athletes, and scoring rows'
+  'authenticated writes only lookups, athletes, scoring, and template rows'
 );
 
 -- Lookup identity sequences remain usable, without sequence updates.

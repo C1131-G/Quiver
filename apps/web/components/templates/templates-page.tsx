@@ -131,7 +131,7 @@ export const TemplatesPage = () => {
       {ready ? (
         <DataTable
           columns={columns}
-          data={rows}
+          rows={rows}
           empty={<TemplatesEmpty filtered={when === UPCOMING} />}
           getRowId={(template) => template.id}
           initialSorting={[{ desc: false, id: "session_date" }]}
