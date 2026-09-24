@@ -28,7 +28,7 @@ const NOT_CONFIGURED =
   "Sign-in is not configured for this build. Contact your administrator.";
 
 const SCORER_ACCOUNT =
-  "This is a scorer account. Scorers use the Quiver mobile app; only admins can sign in here.";
+  "This is a scorer account. Scorers use QuiverScore on their phone; only admins can sign in to Quiver Dashboard.";
 
 /**
  * Supabase answers a bad username or password with one generic error on

@@ -76,7 +76,7 @@ const AthletesEmpty = ({ filtered }: { filtered: boolean }) => (
       <EmptyDescription>
         {filtered
           ? "Try a different search or clear the filters."
-          : "Add an athlete so scorers can select them on the mobile app."}
+          : "Add an athlete so scorers can select them in QuiverScore."}
       </EmptyDescription>
     </EmptyHeader>
   </Empty>

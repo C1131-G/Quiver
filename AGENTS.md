@@ -39,9 +39,17 @@ Load the skill before writing the code, not after. Two or more rows can apply at
 | Supabase auth, RLS, Realtime, or the Supabase CLI | `supabase` |
 | A migration, SQL function, view, index, or policy in `supabase/` | `supabase-postgres-best-practices` |
 | Lint or format errors, or Oxlint config | `ultracite` |
+| Any Expo or React Native code in `apps/mobile` | Read `apps/mobile/AGENTS.md` first |
 | Onboarding a repository, or this table needs updating | `setup-agent-rules` |
 | Auditing the repo against the skills its stack implies, or checking this setup is applied | `audit-with-skills` |
 | Reading or reviewing a research paper | `read-research-paper` |
+
+## Product names
+
+- **Quiver Dashboard** is the desktop app for admins (`apps/web` inside `apps/desktop`).
+- **QuiverScore** is the mobile app for scorers (`apps/mobile`).
+
+Use these names in every UI string, window title, installer, and doc. Don't write "the mobile app" or "the desktop app" in user-facing text.
 
 <important if="you are changing data ownership, feature placement, dialog snapshots, roles, or paging">
 
@@ -54,7 +62,15 @@ These choices are deliberate. A skill's generic advice does not override them. C
 - **Shared Edge Function contracts live in `supabase/functions/_shared/`.** The web app imports them as `@contracts/*`. Validate with the same zod schema on both sides, and never duplicate them.
 - **Dialogs keep a snapshot of the row they opened with.** Live updates can refetch the list while a dialog is open, and the form must not change underneath the user.
 - **Roles live in `app_metadata`, and `private.is_admin()` also requires an active profile.** Deactivating an account removes its access right away, without waiting for the token to expire.
-- **Paging uses OFFSET with UUIDv4 keys.** The mobile app generates the IDs, and each list holds hundreds of rows, not millions. Revisit keyset paging only if that changes.
+- **QuiverScore pins React to what React Native was built with.** The workspace hoists Quiver Dashboard's React, so `apps/mobile` keeps its own copy, and `metro.config.js` and the `paths` in its `tsconfig.json` point every `react` import there. expo-doctor reports the two copies as duplicates; the exported bundle holds only one. Remove the redirect only once both apps use the same React version.
+- **QuiverScore keeps the Supabase session in SecureStore, split into chunks.** SecureStore rejects values over 2048 bytes (`apps/mobile/src/lib/secure-storage.ts`). Offline, an expired session still counts as signed in, so scorers are never locked out at the range.
+- **QuiverScore reads only from the phone.** Each scorer has their own SQLite file (`apps/mobile/src/db/scorer-db.ts`), so a shared phone never mixes two scorers' work. Every screen reads through TanStack DB live queries on local-only persisted collections. Athletes and lookups are copied in by a TanStack Query refresh (`src/db/reference.ts`), not a query-backed collection, because that goes into an error state when its first fetch fails offline. Scores are written by the actions in `src/scoring/actions.ts`, one transaction per action, which also queues the changed rows for the server.
+- **QuiverScore syncs through its own outbox, not `@tanstack/offline-transactions`.** That library keeps unsent changes only as optimistic state and rolls them back when the server refuses them; scores must never be lost that way. The outbox (`src/sync/`) is a table in the scorer's SQLite file that names each changed row. When sent, a row still on the phone is upserted and a missing one deleted, so retries are harmless. Each session goes open first, then deletes (children first) and upserts (parents first), and a finished status is always the last write. A refusal (RLS, a submitted session) is recorded in `sync_issues`, and that session's changes stay queued until the scorer taps Try again. Pulls bring in the scorer's open sessions, and a row with unsent changes keeps the phone's version.
+- **QuiverScore discards only what the server never had.** Every session in progress on the phone is a tab on the scoring screen, and the tab on screen lives in a TanStack Store atom (`src/scoring/active-session.ts`), not the route. Submit and Cancel are writes queued like any score. Discard deletes the session from the phone and sends nothing, so it is allowed only while the session's creation is still queued and `sent_sessions` has no mark for it. The sync writes that mark before a session's first send, so a send whose reply was lost still counts as sent. Otherwise stopping a session cancels it.
+- **A cancelled session keeps its arrows but counts nowhere.** `session_summaries`, `arrow_details` and `private.filtered_arrows` (so every analytics call) leave out `status = 'cancelled'`; add the same filter to any new statistic. A scorer can cancel only their own session while it is in progress, and only an admin can change a session's athlete, scorer, category or event (`private.guard_session_owner`).
+- **The audit log holds corrections, not scoring.** `arrow_corrections` records an admin's changes, plus any value changed after a session is submitted. A scorer fixing an arrow before submitting is not logged.
+- **Code both apps need lives in `packages/shared`** (`@workspace/shared/*`): the `Database` types, arrow rules, and account helpers. `bun run db:types` writes the types there and copies them to `apps/web/lib/supabase/database.types.ts` until the dashboard imports them from the package.
+- **Paging uses OFFSET with UUIDv4 keys.** QuiverScore generates the IDs, and each list holds hundreds of rows, not millions. Revisit keyset paging only if that changes.
 
 </important>
 <!-- BEGIN:nextjs-agent-rules -->

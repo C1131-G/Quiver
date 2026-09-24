@@ -109,7 +109,7 @@ const subscribeToScores = (
 };
 
 /**
- * Keeps every score view current while scorers work on the mobile app.
+ * Keeps every score view current while scorers work in QuiverScore.
  * Supabase Realtime applies the same RLS as queries, so this sees exactly
  * the rows the admin can read.
  */

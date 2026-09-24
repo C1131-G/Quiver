@@ -31,8 +31,8 @@ import { readText, useAccountForm } from "./use-account-form";
 import type { AppRole } from "./use-scorers";
 
 const ROLE_ITEMS: { label: string; value: AppRole }[] = [
-  { label: "Scorer (mobile app)", value: "scorer" },
-  { label: "Admin (desktop app)", value: "admin" },
+  { label: "Scorer (QuiverScore)", value: "scorer" },
+  { label: "Admin (Quiver Dashboard)", value: "admin" },
 ];
 
 const toCreateRequest = (form: FormData) => ({
@@ -78,8 +78,8 @@ const CreateUserForm = ({ onSaved }: { onSaved: () => void }) => {
       <DialogHeader>
         <DialogTitle>Add scorer</DialogTitle>
         <DialogDescription>
-          Scorers sign in on the mobile app only. Share the login ID and
-          password with them directly.
+          Scorers sign in on QuiverScore only. Share the login ID and password
+          with them directly.
         </DialogDescription>
       </DialogHeader>
       <FieldGroup>

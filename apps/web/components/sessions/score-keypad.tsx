@@ -8,7 +8,7 @@ import { valuesForFace } from "./arrow-values";
 
 /**
  * The scorer's keypad, in ring colours: X to the face's lowest ring, then
- * a miss. Below it, clearing an arrow or a whole end, as on the mobile app.
+ * a miss. Below it, clearing an arrow or a whole end, as in QuiverScore.
  */
 export const ScoreKeypad = ({
   disabled,

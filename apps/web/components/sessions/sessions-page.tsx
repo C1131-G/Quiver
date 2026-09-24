@@ -182,7 +182,7 @@ const SessionsEmpty = ({ filtered }: { filtered: boolean }) => (
       <EmptyDescription>
         {filtered
           ? "Widen the date range or clear a filter."
-          : "Sessions appear here once scorers start scoring on the mobile app."}
+          : "Sessions appear here once scorers start scoring in QuiverScore."}
       </EmptyDescription>
     </EmptyHeader>
   </Empty>

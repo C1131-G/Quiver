@@ -173,7 +173,7 @@ const cellsOf = (rounds: EditorRound[]) =>
 
 /**
  * The cell a key or keypad press moves to. Next and previous run through
- * every arrow in order, across ends and rounds, like the mobile scorer;
+ * every arrow in order, across ends and rounds, like QuiverScore;
  * the arrow keys move within the grid of one round.
  */
 export const moveFrom = (
