@@ -706,26 +706,6 @@ export interface Database {
           x_count: number;
         }[];
       };
-      correct_arrow: {
-        Args: { p_arrow_id: string; p_reason: string; p_value: string };
-        Returns: {
-          arrow_no: number;
-          created_at: string;
-          end_id: string;
-          id: string;
-          is_ten_plus_x: boolean | null;
-          is_x: boolean | null;
-          points: number | null;
-          updated_at: string;
-          value: string;
-        };
-        SetofOptions: {
-          from: "*";
-          to: "arrows";
-          isOneToOne: true;
-          isSetofReturn: false;
-        };
-      };
       score_distribution: {
         Args: {
           p_athlete_ids?: string[];

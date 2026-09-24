@@ -42,6 +42,8 @@ const textVariants = cva(
         small: "text-sm leading-none font-medium",
         muted: "text-muted-foreground text-sm",
         error: "text-destructive text-sm",
+        score: "text-2xl font-bold tabular-nums",
+        cell: "text-base font-semibold tabular-nums",
       },
     },
     defaultVariants: {

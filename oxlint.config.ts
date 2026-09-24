@@ -52,6 +52,12 @@ export default defineConfig({
       files: ["apps/mobile/metro.config.js"],
       rules: { "unicorn/prefer-module": "off" },
     },
+    {
+      // React Native has no HTML elements; roles are how a View becomes a
+      // button, row or radio for screen readers.
+      files: ["apps/mobile/**"],
+      rules: { "jsx-a11y/prefer-tag-over-role": "off" },
+    },
   ],
   settings: jsPluginSettings,
 });

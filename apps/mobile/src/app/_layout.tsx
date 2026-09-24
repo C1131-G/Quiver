@@ -1,4 +1,5 @@
 import "@/global.css";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { useSelector } from "@tanstack/react-store";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -9,6 +10,8 @@ import { useUniwind } from "uniwind";
 
 import { authAtom, restoreSession } from "@/auth/auth-store";
 import { StyledGestureRoot } from "@/components/styled";
+import { ScorerDbProvider } from "@/db/scorer-db-context";
+import { followAppFocus, queryClient } from "@/lib/query-client";
 import { refreshTokensWhileActive } from "@/lib/supabase";
 
 const Loading = () => (
@@ -37,6 +40,14 @@ const RootLayout = () => {
     []
   );
 
+  useEffect(
+    // oxlint-disable-next-line prefer-arrow-callback -- named for stack traces and the effects skill
+    function refetchOnForeground() {
+      return followAppFocus();
+    },
+    []
+  );
+
   const signedIn = status === "signed-in";
 
   return (
@@ -46,18 +57,34 @@ const RootLayout = () => {
       {status === "loading" ? (
         <Loading />
       ) : (
-        // The navigator's own background, so dark mode never flashes white
-        // between screens; each screen paints bg-background over it.
-        <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Protected guard={signedIn}>
-              <Stack.Screen name="index" />
-            </Stack.Protected>
-            <Stack.Protected guard={!signedIn}>
-              <Stack.Screen name="sign-in" />
-            </Stack.Protected>
-          </Stack>
-        </ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <ScorerDbProvider>
+            {/* The navigator's own background, so dark mode never flashes
+                white between screens; each screen paints bg-background. */}
+            <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Protected guard={signedIn}>
+                  <Stack.Screen name="index" />
+                  <Stack.Screen
+                    name="new-session/index"
+                    options={{ headerShown: true, title: "Choose athlete" }}
+                  />
+                  <Stack.Screen
+                    name="new-session/[athleteId]/index"
+                    options={{ headerShown: true, title: "New session" }}
+                  />
+                  <Stack.Screen
+                    name="sessions/[sessionId]/index"
+                    options={{ headerShown: true, title: "Scoring" }}
+                  />
+                </Stack.Protected>
+                <Stack.Protected guard={!signedIn}>
+                  <Stack.Screen name="sign-in" />
+                </Stack.Protected>
+              </Stack>
+            </ThemeProvider>
+          </ScorerDbProvider>
+        </QueryClientProvider>
       )}
       <Toaster position="bottom-center" richColors theme="system" />
     </StyledGestureRoot>
