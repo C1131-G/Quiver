@@ -18,6 +18,15 @@ export interface RoundCard {
 
 const EMPTY: never[] = [];
 
+/** Arrows scored so far and planned, across every round of the session. */
+export const arrowProgress = (cards: readonly RoundCard[]) => ({
+  planned: cards.reduce(
+    (sum, card) => sum + card.round.planned_ends * card.round.arrows_per_end,
+    0
+  ),
+  shot: cards.reduce((sum, card) => sum + card.score.shot, 0),
+});
+
 /** Arrows grouped under their end, per round, as the scorecard needs them. */
 const groupByRound = (ends: readonly End[], arrows: readonly Arrow[]) => {
   const arrowsByEnd = new Map<string, Arrow[]>();

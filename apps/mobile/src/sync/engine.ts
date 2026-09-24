@@ -99,8 +99,25 @@ export const startSync = (db: ScorerDb, userId: string) => {
     return data.session?.user.id === userId;
   };
 
+  /**
+   * Notes that the server may have the session from now on, so it can no
+   * longer be discarded. Saved before the send: a reply lost on the way
+   * back still leaves the session on the server.
+   */
+  const markSent = async (sessionId: string) => {
+    if (db.sentSessions.has(sessionId) || !db.sessions.has(sessionId)) {
+      return;
+    }
+    const mark = db.sentSessions.insert({
+      id: sessionId,
+      sent_at: new Date().toISOString(),
+    });
+    await mark.isPersisted.promise;
+  };
+
   /** Sends one session. A refusal is recorded against it, not thrown. */
   const sendSession = async (sessionId: string, sent: OutboxEntry[]) => {
+    await markSent(sessionId);
     try {
       await pushSession(planSessionPush(sessionId, sent, local), remote);
     } catch (error) {
@@ -137,6 +154,7 @@ export const startSync = (db: ScorerDb, userId: string) => {
   const ready = () =>
     Promise.all([
       db.outbox.preload(),
+      db.sentSessions.preload(),
       db.syncIssues.preload(),
       db.sessions.preload(),
       db.rounds.preload(),

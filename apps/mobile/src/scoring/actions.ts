@@ -12,7 +12,7 @@ import { queueForServer } from "@/sync/outbox";
  * touches, so a session never exists without its rounds, or an arrow
  * without its end.
  */
-const writeLocally = async (db: ScorerDb, change: () => void) => {
+export const writeLocally = async (db: ScorerDb, change: () => void) => {
   const transaction = createTransaction({
     autoCommit: false,
     mutationFn: async ({ transaction: pending }) => {

@@ -14,6 +14,7 @@ import type {
   End,
   OutboxEntry,
   Round,
+  SentSession,
   Session,
   SyncIssue,
   TargetFace,
@@ -27,8 +28,9 @@ const SCHEMA_VERSION = 1;
  * Everything a scorer has on the phone, in a SQLite file of their own, so a
  * shared phone never mixes two scorers' work and signing out loses nothing.
  * Athletes and lookups are copies of the server's, refreshed when online;
- * sessions, rounds, ends and arrows are written here first, and the outbox
- * holds what the server has not seen yet.
+ * sessions, rounds, ends and arrows are written here first, the outbox
+ * holds what the server has not seen yet, and sent_sessions the sessions
+ * the server may already have.
  */
 const createScorerDb = (userId: string) => {
   const database = openDatabaseSync(`quiverscore-${userId}.db`);
@@ -57,6 +59,7 @@ const createScorerDb = (userId: string) => {
     events: table<ArcheryEvent, number>("events"),
     outbox: table<OutboxEntry, string>("outbox"),
     rounds: table<Round, string>("rounds"),
+    sentSessions: table<SentSession, string>("sent_sessions"),
     sessions: table<Session, string>("sessions"),
     syncIssues: table<SyncIssue, string>("sync_issues"),
     targetFaces: table<TargetFace, number>("target_faces"),

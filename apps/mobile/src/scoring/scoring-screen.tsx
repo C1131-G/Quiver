@@ -6,19 +6,24 @@ import {
 } from "expo-haptics";
 import { Stack } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { Alert, ScrollView, View } from "react-native";
 import { toast } from "sonner-native";
 
 import { StyledSafeAreaView } from "@/components/styled";
-import { Text, TextClassContext } from "@/components/ui/text";
+import { Text } from "@/components/ui/text";
+import type { Session } from "@/db/rows";
 import { useScorerDb } from "@/db/scorer-db-context";
-import { cn } from "@/lib/utils";
 import { SyncIssueNotice, SyncStatusLine } from "@/sync/sync-status";
 import { usePendingSync } from "@/sync/use-sync-status";
 
 import { clearEnd, deleteLastArrow, scoreArrow } from "./actions";
+import { CloseSessionButtons } from "./close-session-buttons";
 import { Keypad } from "./keypad";
+import { RoundTabs } from "./round-tabs";
 import { ScoreGrid } from "./score-grid";
+import type { SessionTab } from "./session-tabs";
+import { SessionTabs } from "./session-tabs";
+import { Totals } from "./totals";
 import type { RoundCard } from "./use-scorecard";
 import { useScorecard } from "./use-scorecard";
 
@@ -49,87 +54,31 @@ const editableEndOf = (card: RoundCard, chosenEndNo: number | null) => {
   return lastShotEnd;
 };
 
-const RoundTabs = ({
-  cards,
-  onSelect,
-  selectedIndex,
+/** What the scorer is asked for next, or why nothing can be scored. */
+const promptFor = ({
+  arrowsPerEnd,
+  status,
+  targetEndNo,
+  targetShot,
 }: {
-  cards: RoundCard[];
-  onSelect: (index: number) => void;
-  selectedIndex: number;
-}) => (
-  <View aria-label="Rounds" className="flex-row gap-2" role="tablist">
-    {cards.map((card, index) => {
-      const selected = index === selectedIndex;
-      const complete = card.nextEndNo === null;
-      return (
-        <Pressable
-          aria-selected={selected}
-          className={cn(
-            "border-input min-h-11 flex-1 justify-center border px-2",
-            selected ? "bg-primary border-primary" : "active:bg-accent"
-          )}
-          key={card.round.id}
-          onPress={() => onSelect(index)}
-          role="tab"
-        >
-          <TextClassContext
-            value={selected ? "text-primary-foreground" : "text-foreground"}
-          >
-            <Text className="text-center" variant="small">
-              Round {card.round.round_no}
-              {complete ? " ✓" : ""}
-            </Text>
-            <Text className="text-center" variant="small">
-              {card.distanceMeters === null
-                ? ""
-                : `${card.distanceMeters} m · `}
-              {card.faceName}
-            </Text>
-          </TextClassContext>
-        </Pressable>
-      );
-    })}
-  </View>
-);
-
-const Totals = ({ cards }: { cards: RoundCard[] }) => {
-  const last = cards.at(-1);
-  const shot = cards.reduce((sum, card) => sum + card.score.shot, 0);
-  const planned = cards.reduce(
-    (sum, card) => sum + card.round.planned_ends * card.round.arrows_per_end,
-    0
-  );
-  const tenPlusX = cards.reduce(
-    (sum, card) => sum + card.score.tenPlusXCount,
-    0
-  );
-  const xCount = cards.reduce((sum, card) => sum + card.score.xCount, 0);
-  return (
-    <View
-      aria-label="Session totals"
-      className="border-border flex-row justify-between border p-3"
-    >
-      <View>
-        <Text variant="muted">Total</Text>
-        <Text variant="h3">{last?.score.total ?? 0}</Text>
-      </View>
-      <View className="items-end">
-        <Text variant="muted">10+X</Text>
-        <Text variant="large">{tenPlusX}</Text>
-      </View>
-      <View className="items-end">
-        <Text variant="muted">X</Text>
-        <Text variant="large">{xCount}</Text>
-      </View>
-      <View className="items-end">
-        <Text variant="muted">Arrows</Text>
-        <Text variant="large">
-          {shot}/{planned}
-        </Text>
-      </View>
-    </View>
-  );
+  arrowsPerEnd: number;
+  status: Session["status"] | undefined;
+  targetEndNo: number | null;
+  targetShot: number;
+}) => {
+  if (status === "cancelled") {
+    return "This session was cancelled.";
+  }
+  if (status !== "in_progress") {
+    return "This session is submitted. Only an admin can change it now.";
+  }
+  if (targetEndNo === null) {
+    return "Round complete.";
+  }
+  if (targetShot >= arrowsPerEnd) {
+    return `End ${targetEndNo} is full. Delete an arrow to change it.`;
+  }
+  return `End ${targetEndNo}: arrow ${targetShot + 1} of ${arrowsPerEnd}`;
 };
 
 /** First round with an end left to shoot; the last round once all are done. */
@@ -138,7 +87,18 @@ const currentRoundIndex = (cards: RoundCard[]) => {
   return open === -1 ? Math.max(cards.length - 1, 0) : open;
 };
 
-export const ScoringScreen = ({ sessionId }: { sessionId: string }) => {
+export const ScoringScreen = ({
+  onDiscarded,
+  onSelectTab,
+  sessionId,
+  tabs,
+}: {
+  /** Called once the session on screen was deleted from the phone. */
+  onDiscarded: () => void;
+  onSelectTab: (sessionId: string) => void;
+  sessionId: string;
+  tabs: readonly SessionTab[];
+}) => {
   const { db } = useScorerDb();
   const { cards, session } = useScorecard(sessionId);
   const syncIssue = usePendingSync().issuesBySession.get(sessionId);
@@ -149,12 +109,19 @@ export const ScoringScreen = ({ sessionId }: { sessionId: string }) => {
   const roundIndex = chosenRoundIndex ?? currentRoundIndex(cards);
   const card = cards[roundIndex];
   const title = session?.athleteName ?? "Scoring";
+  const athleteTabs =
+    tabs.length > 1 ? (
+      <SessionTabs activeId={sessionId} onSelect={onSelectTab} tabs={tabs} />
+    ) : null;
 
   if (!card) {
     return (
-      <StyledSafeAreaView className="bg-background flex-1 p-6">
+      <StyledSafeAreaView className="bg-background flex-1">
         <Stack.Screen options={{ title }} />
-        <Text variant="muted">This session has no rounds.</Text>
+        {athleteTabs}
+        <View className="p-6">
+          <Text variant="muted">This session has no rounds.</Text>
+        </View>
       </StyledSafeAreaView>
     );
   }
@@ -248,20 +215,17 @@ export const ScoringScreen = ({ sessionId }: { sessionId: string }) => {
     );
   };
 
-  let prompt = `End ${targetEndNo ?? ""}: arrow ${targetShot + 1} of ${card.round.arrows_per_end}`;
-  if (session?.status === "cancelled") {
-    prompt = "This session was cancelled.";
-  } else if (readOnly) {
-    prompt = "This session is finished.";
-  } else if (targetEndNo === null) {
-    prompt = "Round complete.";
-  } else if (targetFull) {
-    prompt = `End ${targetEndNo} is full. Delete an arrow to change it.`;
-  }
+  const prompt = promptFor({
+    arrowsPerEnd: card.round.arrows_per_end,
+    status: session?.status,
+    targetEndNo,
+    targetShot,
+  });
 
   return (
     <StyledSafeAreaView className="bg-background flex-1" edges={["bottom"]}>
       <Stack.Screen options={{ title }} />
+      {athleteTabs}
       <ScrollView contentContainerClassName="gap-3 p-4">
         {syncIssue ? <SyncIssueNotice issue={syncIssue} /> : null}
         {cards.length > 1 ? (
@@ -277,6 +241,14 @@ export const ScoringScreen = ({ sessionId }: { sessionId: string }) => {
           rows={card.score.rows}
           targetEndNo={targetEndNo}
         />
+        {readOnly ? null : (
+          <CloseSessionButtons
+            cards={cards}
+            onDiscarded={onDiscarded}
+            sendBlocked={syncIssue !== undefined}
+            sessionId={sessionId}
+          />
+        )}
       </ScrollView>
       <View className="border-border gap-3 border-t p-4">
         <SyncStatusLine />

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { referenceQuery } from "@/db/reference";
 import { useScorerDb } from "@/db/scorer-db-context";
+import { openScoring } from "@/scoring/active-session";
 import { SyncIssuesSummary, SyncStatusLine } from "@/sync/sync-status";
 import { usePendingSync } from "@/sync/use-sync-status";
 
@@ -22,7 +23,7 @@ const SESSION_TYPE_LABELS = {
 
 const STATUS_LABELS = {
   cancelled: "Cancelled",
-  completed: "Finished",
+  completed: "Submitted",
   in_progress: "In progress",
 } as const;
 
@@ -122,12 +123,7 @@ export const SessionList = () => {
           <Pressable
             aria-label={`${item.athleteName ?? "Athlete"}, ${item.sessionDate}`}
             className="border-border active:bg-accent gap-1 border px-4 py-3"
-            onPress={() =>
-              router.push({
-                params: { sessionId: item.id },
-                pathname: "/sessions/[sessionId]",
-              })
-            }
+            onPress={() => openScoring(item.id)}
             role="button"
           >
             <View className="flex-row items-center justify-between gap-2">

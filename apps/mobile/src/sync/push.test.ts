@@ -162,6 +162,28 @@ describe("pushSession", () => {
     ]);
   });
 
+  test("sends a cancel with no new scores as the status alone", async () => {
+    const cancelled = session({ status: "cancelled" });
+    const entries = [entry("sessions", SESSION_ID)];
+    const local = phone({ sessions: [cancelled] });
+    const { calls, remote } = fakeServer();
+    await pushSession(planSessionPush(SESSION_ID, entries, local), remote);
+    expect(calls).toEqual(["finish cancelled"]);
+  });
+
+  test("sends scores made offline before the cancel that follows them", async () => {
+    const cancelled = session({ status: "cancelled" });
+    const entries = [entry("arrows", "x1"), entry("sessions", SESSION_ID)];
+    const local = phone({ arrows: [arrow("x1", 1)], sessions: [cancelled] });
+    const { calls, remote } = fakeServer();
+    await pushSession(planSessionPush(SESSION_ID, entries, local), remote);
+    expect(calls).toEqual([
+      "upsert sessions in_progress",
+      "upsert arrows x1",
+      "finish cancelled",
+    ]);
+  });
+
   test("treats a finished session the server already has as sent", async () => {
     const done = session({
       completed_at: "2026-09-24T09:00:00.000Z",

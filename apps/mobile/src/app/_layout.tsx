@@ -76,7 +76,7 @@ const RootLayout = () => {
                     options={{ headerShown: true, title: "New session" }}
                   />
                   <Stack.Screen
-                    name="sessions/[sessionId]/index"
+                    name="scoring/index"
                     options={{ headerShown: true, title: "Scoring" }}
                   />
                 </Stack.Protected>

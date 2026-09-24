@@ -100,6 +100,16 @@ export interface OutboxEntry {
   table: SyncedTable;
 }
 
+/**
+ * A session this phone has started sending. Marked before the first try,
+ * so a send whose reply was lost still counts: the server may have it.
+ */
+export interface SentSession {
+  /** The session's id. */
+  id: string;
+  sent_at: string;
+}
+
 /** A session the server refused. Its changes stay on the phone, unsent. */
 export interface SyncIssue {
   code: string;

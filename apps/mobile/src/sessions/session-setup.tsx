@@ -24,6 +24,7 @@ import type {
 import { useScorerDb } from "@/db/scorer-db-context";
 import type { RoundDraft } from "@/scoring/actions";
 import { startSession } from "@/scoring/actions";
+import { openScoring } from "@/scoring/active-session";
 import type { RoundPreset } from "@/scoring/presets";
 import { ROUND_LIMITS, ROUND_PRESETS } from "@/scoring/presets";
 
@@ -187,11 +188,9 @@ const SetupForm = ({
           title: value.title,
           venue: value.venue,
         });
+        // Back to the list first, so leaving the scoring screen returns there.
         router.dismissTo("/");
-        router.push({
-          params: { sessionId },
-          pathname: "/sessions/[sessionId]",
-        });
+        openScoring(sessionId);
       } catch {
         setSaveError("Could not save the session on this phone. Try again.");
       }
