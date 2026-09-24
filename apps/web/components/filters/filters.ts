@@ -144,28 +144,54 @@ export const resolveDateRange = (
   if (filters.range === "year") {
     return { from: `${today.slice(0, 4)}-01-01`, to: today };
   }
-  const preset = RANGE_PRESETS.find((item) => item.value === filters.range);
+  const preset = RANGE_PRESETS.find(({ value }) => value === filters.range);
   return { from: addDays(today, 1 - (preset?.days ?? 1)), to: today };
 };
 
-const pickId = (value: string) => (value === ALL ? undefined : [Number(value)]);
+/** The filter arguments shared by every arrow-level analytics function. */
+export type ArrowFilterArgs =
+  Database["public"]["Functions"]["score_distribution"]["Args"];
 
-/** Arguments every arrow-level analytics function takes. */
-export const toArrowFilterArgs = (filters: Filters) => {
+/**
+ * Unset filters are left out, so the function's own default (no
+ * restriction) applies.
+ */
+export const toArrowFilterArgs = (filters: Filters): ArrowFilterArgs => {
   const { from, to } = resolveDateRange(filters);
-  const { athlete, gender, type, venue } = filters;
-  return {
-    p_athlete_ids: athlete === ALL ? undefined : [athlete],
-    p_category_ids: pickId(filters.category),
-    p_distance_ids: pickId(filters.distance),
-    p_event_ids: pickId(filters.event),
-    p_from: from ?? undefined,
-    p_genders: gender === ALL ? undefined : [gender],
-    p_session_types: type === ALL ? undefined : [type],
-    p_target_face_ids: pickId(filters.face),
-    p_to: to ?? undefined,
-    p_venues: venue === ALL ? undefined : [venue],
-  };
+  const { athlete, category, distance, event, face, gender, type, venue } =
+    filters;
+  const args: ArrowFilterArgs = {};
+  if (athlete !== ALL) {
+    args.p_athlete_ids = [athlete];
+  }
+  if (category !== ALL) {
+    args.p_category_ids = [Number(category)];
+  }
+  if (distance !== ALL) {
+    args.p_distance_ids = [Number(distance)];
+  }
+  if (event !== ALL) {
+    args.p_event_ids = [Number(event)];
+  }
+  if (face !== ALL) {
+    args.p_target_face_ids = [Number(face)];
+  }
+  if (from) {
+    args.p_from = from;
+  }
+  if (to) {
+    args.p_to = to;
+  }
+  if (gender !== ALL) {
+    args.p_genders = [gender];
+  }
+  if (type !== ALL) {
+    args.p_session_types = [type];
+  }
+  if (venue !== ALL) {
+    args.p_venues = [venue];
+  }
+  return args;
 };
 
 export const toPerformanceArgs = (filters: Filters, byWeek: boolean) => ({

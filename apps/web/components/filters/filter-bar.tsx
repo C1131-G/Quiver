@@ -3,6 +3,7 @@
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import { useMemo } from "react";
 
 import type { AthleteRow, Lookups } from "@/components/athletes/use-athletes";
@@ -200,3 +201,16 @@ export const FilterBar = ({
     </div>
   );
 };
+
+const FILTER_PLACEHOLDERS = 7;
+
+/** The filter row's footprint while the page's data loads. */
+export const FilterBarSkeleton = () => (
+  <div aria-hidden="true" className="mb-6 flex flex-wrap items-center gap-2">
+    {Array.from({ length: FILTER_PLACEHOLDERS }, (_, index) => (
+      // Identical placeholders; the index is their only identity.
+      // oxlint-disable-next-line react/no-array-index-key
+      <Skeleton className="h-8 w-36" key={index} />
+    ))}
+  </div>
+);

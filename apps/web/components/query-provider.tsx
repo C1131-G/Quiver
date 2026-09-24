@@ -7,12 +7,13 @@ import {
 } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
-const STALE_TIME_MS = 30_000;
+import { STALE_TIME_MS } from "@/lib/query-defaults";
+import { shouldRetry } from "@/lib/supabase/load-error";
 
 const makeQueryClient = () =>
   new QueryClient({
     defaultOptions: {
-      queries: { retry: 1, staleTime: STALE_TIME_MS },
+      queries: { retry: shouldRetry, staleTime: STALE_TIME_MS },
     },
   });
 
@@ -20,9 +21,10 @@ let browserQueryClient: QueryClient | undefined;
 
 /**
  * A fresh client per server render (never shared between requests) and one
- * per browser, so the cache survives navigation. The desktop app always
- * talks to a live backend: data refetches on focus and counts as fresh for
- * 30 seconds between visits.
+ * per browser, so the cache survives navigation. Data counts as fresh for 30
+ * seconds between visits and refetches on focus; while live updates are
+ * connected, score data is pushed instead (see workspace/live-updates).
+ * Only failures a retry could fix (a dropped connection) are retried.
  */
 const getQueryClient = () => {
   if (isServer) {

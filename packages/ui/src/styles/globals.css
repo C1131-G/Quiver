@@ -188,14 +188,34 @@
   }
 }
 
-/* Page change in the workspace (apps/web/components/workspace/route-transition.tsx). */
+/* Page change in the workspace (apps/web/components/workspace/route-transition.tsx).
+ * Forward moves content up; "nav-back" reverses it. A strong ease-out so the
+ * new page lands fast and settles. */
 @layer base {
+  ::view-transition-old(.nav-exit),
+  ::view-transition-old(.nav-back-exit) {
+    animation: 160ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+
+  ::view-transition-new(.nav-enter),
+  ::view-transition-new(.nav-back-enter) {
+    animation: 180ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+
   ::view-transition-old(.nav-exit) {
-    animation: nav-exit 160ms ease-out both;
+    animation-name: nav-exit;
   }
 
   ::view-transition-new(.nav-enter) {
-    animation: nav-enter 180ms ease-out both;
+    animation-name: nav-enter;
+  }
+
+  ::view-transition-old(.nav-back-exit) {
+    animation-name: nav-back-exit;
+  }
+
+  ::view-transition-new(.nav-back-enter) {
+    animation-name: nav-back-enter;
   }
 
   @keyframes nav-enter {
@@ -203,26 +223,34 @@
       opacity: 0;
       transform: translateY(8px);
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 
   @keyframes nav-exit {
-    from {
-      opacity: 1;
-      transform: translateY(0);
-    }
     to {
       opacity: 0;
       transform: translateY(-4px);
     }
   }
 
+  @keyframes nav-back-enter {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+
+  @keyframes nav-back-exit {
+    to {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     ::view-transition-old(.nav-exit),
-    ::view-transition-new(.nav-enter) {
+    ::view-transition-new(.nav-enter),
+    ::view-transition-old(.nav-back-exit),
+    ::view-transition-new(.nav-back-enter) {
       animation: none;
     }
   }

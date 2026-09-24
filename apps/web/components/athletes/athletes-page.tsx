@@ -1,20 +1,11 @@
 "use client";
 
 import {
-  DotsThreeIcon,
   MagnifyingGlassIcon,
   PlusIcon,
   TargetIcon,
 } from "@phosphor-icons/react";
-import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
 import {
   Empty,
   EmptyDescription,
@@ -31,15 +22,15 @@ import { Skeleton } from "@workspace/ui/components/skeleton";
 import { useMemo, useState } from "react";
 
 import { DataTable } from "@/components/data-table/data-table";
-import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
 import { FilterSelect } from "@/components/filters/filter-select";
 import { PageHeader } from "@/components/page-header";
 
-import { AthleteActiveDialog, AthleteFormDialog } from "./athlete-dialogs";
+import { AthleteActiveDialog } from "./athlete-active-dialog";
+import type { AthleteDialogKind } from "./athlete-columns";
+import { buildAthleteColumns } from "./athlete-columns";
+import { AthleteFormDialog } from "./athlete-dialogs";
 import type { AthleteRow } from "./use-athletes";
 import { useAthletes, useLookups } from "./use-athletes";
-
-type DialogKind = "form" | "active";
 
 const ALL = "all";
 const STATUS_FILTERS = [
@@ -47,107 +38,6 @@ const STATUS_FILTERS = [
   { label: "Active", value: "active" },
   { label: "Deactivated", value: "inactive" },
 ];
-
-const helper = createDataTableColumnHelper<AthleteRow>();
-
-const buildColumns = (
-  openDialog: (kind: DialogKind, athlete: AthleteRow) => void
-) =>
-  helper.columns([
-    helper.accessor("id_no", {
-      cell: (cell) => <span className="font-mono">{cell.getValue()}</span>,
-      header: "ID No.",
-      sortFn: "alphanumeric",
-    }),
-    helper.accessor("full_name", {
-      cell: (cell) => <span className="font-medium">{cell.getValue()}</span>,
-      header: "Name",
-      sortFn: "text",
-    }),
-    helper.accessor((row) => row.aai_no ?? "", {
-      cell: (cell) =>
-        cell.getValue() ? (
-          <span className="font-mono">{cell.getValue()}</span>
-        ) : (
-          <span className="text-muted-foreground">—</span>
-        ),
-      header: "AAI No.",
-      id: "aai_no",
-      sortFn: "alphanumeric",
-    }),
-    helper.accessor("gender", {
-      cell: (cell) => (cell.getValue() === "female" ? "Female" : "Male"),
-      header: "Gender",
-      sortFn: "text",
-    }),
-    helper.accessor((row) => row.category?.name ?? "", {
-      header: "Category",
-      id: "category",
-      sortFn: "text",
-    }),
-    helper.accessor((row) => row.event?.name ?? "", {
-      header: "Event",
-      id: "event",
-      sortFn: "text",
-    }),
-    helper.accessor((row) => row.distance?.meters ?? 0, {
-      cell: (cell) => <span className="tabular-nums">{cell.getValue()} m</span>,
-      header: "Distance",
-      id: "distance",
-      sortFn: "basic",
-    }),
-    helper.accessor((row) => row.target_face?.name ?? "", {
-      header: "Target face",
-      id: "target_face",
-      sortFn: "text",
-    }),
-    helper.accessor("is_active", {
-      cell: (cell) =>
-        cell.getValue() ? (
-          <Badge variant="outline">Active</Badge>
-        ) : (
-          <Badge variant="destructive">Deactivated</Badge>
-        ),
-      header: "Status",
-      sortFn: "basic",
-    }),
-    helper.display({
-      cell: ({ row }) => (
-        <div className="flex justify-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  aria-label={`Actions for ${row.original.full_name}`}
-                  size="icon-sm"
-                  variant="ghost"
-                />
-              }
-            >
-              <DotsThreeIcon aria-hidden="true" weight="bold" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => openDialog("form", row.original)}
-              >
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => openDialog("active", row.original)}
-                variant={row.original.is_active ? "destructive" : "default"}
-              >
-                {row.original.is_active ? "Deactivate" : "Reactivate"}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
-      enableSorting: false,
-      header: () => <span className="sr-only">Actions</span>,
-      id: "actions",
-    }),
-  ]);
 
 interface Filters {
   categoryId: string;
@@ -202,12 +92,12 @@ export const AthletesPage = () => {
     status: ALL,
   });
   // The athlete outlives the open state so a closing dialog keeps its text.
-  const [dialogKind, setDialogKind] = useState<DialogKind | null>(null);
+  const [dialogKind, setDialogKind] = useState<AthleteDialogKind | null>(null);
   const [dialogAthlete, setDialogAthlete] = useState<AthleteRow | null>(null);
 
   const columns = useMemo(
     () =>
-      buildColumns((kind, athlete) => {
+      buildAthleteColumns((kind, athlete) => {
         setDialogAthlete(athlete);
         setDialogKind(kind);
       }),

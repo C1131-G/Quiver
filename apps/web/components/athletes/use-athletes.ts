@@ -1,9 +1,15 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/database.types";
+import { loadError } from "@/lib/supabase/load-error";
 
 type Tables = Database["public"]["Tables"];
 export type Gender = Database["public"]["Enums"]["gender"];
@@ -19,8 +25,13 @@ export type AthleteInput = Pick<
   | "target_face_id"
 >;
 
-const ATHLETES_KEY = ["athletes"] as const;
-const LOOKUPS_KEY = ["lookups"] as const;
+export const athleteKeys = {
+  all: ["athletes"] as const,
+};
+
+export const lookupKeys = {
+  all: ["lookups"] as const,
+};
 
 const ATHLETE_SELECT =
   "*, category:categories(name), event:events(name), distance:distances(meters), target_face:target_faces(name)";
@@ -31,15 +42,17 @@ const fetchAthletes = async () => {
     .select(ATHLETE_SELECT)
     .order("full_name");
   if (error) {
-    throw new Error("Could not load athletes.");
+    throw loadError("Could not load athletes.", error);
   }
   return data;
 };
 
 export type AthleteRow = Awaited<ReturnType<typeof fetchAthletes>>[number];
 
-export const useAthletes = () =>
-  useQuery({ queryFn: fetchAthletes, queryKey: ATHLETES_KEY });
+export const athletesQuery = () =>
+  queryOptions({ queryFn: fetchAthletes, queryKey: athleteKeys.all });
+
+export const useAthletes = () => useQuery(athletesQuery());
 
 const fetchLookups = async () => {
   const supabase = createClient();
@@ -49,11 +62,14 @@ const fetchLookups = async () => {
     supabase.from("distances").select("*").order("meters"),
     supabase.from("target_faces").select("*").order("sort_order"),
   ]);
-  const failed = [categories, events, distances, targetFaces].some(
+  const failed = [categories, events, distances, targetFaces].find(
     (result) => result.error
-  );
+  )?.error;
   if (failed) {
-    throw new Error("Could not load categories, events, distances and faces.");
+    throw loadError(
+      "Could not load categories, events, distances and faces.",
+      failed
+    );
   }
   return {
     categories: categories.data ?? [],
@@ -66,12 +82,14 @@ const fetchLookups = async () => {
 export type Lookups = Awaited<ReturnType<typeof fetchLookups>>;
 
 /** Lookups change rarely, so they stay fresh for the whole session. */
-export const useLookups = () =>
-  useQuery({
+export const lookupsQuery = () =>
+  queryOptions({
     queryFn: fetchLookups,
-    queryKey: LOOKUPS_KEY,
+    queryKey: lookupKeys.all,
     staleTime: Number.POSITIVE_INFINITY,
   });
+
+export const useLookups = () => useQuery(lookupsQuery());
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -102,7 +120,8 @@ export const useSaveAthlete = () => {
         throw new Error(saveError(error));
       }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ATHLETES_KEY }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: athleteKeys.all }),
   });
 };
 
@@ -118,6 +137,7 @@ export const useSetAthleteActive = () => {
         throw new Error("Could not update the athlete.");
       }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ATHLETES_KEY }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: athleteKeys.all }),
   });
 };

@@ -1,21 +1,29 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 
 import type { Filters } from "@/components/filters/filters";
 import { toPerformanceArgs } from "@/components/filters/filters";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllRows } from "@/lib/supabase/fetch-all";
+import { parseRows, performanceRowSchema } from "@/lib/supabase/rpc-rows";
 
-export const PERFORMANCE_KEY = ["performance"] as const;
+export const performanceKeys = {
+  all: ["performance"] as const,
+  rows: (filters: Filters, byWeek: boolean) =>
+    [...performanceKeys.all, filters, byWeek] as const,
+};
 
-export const fetchPerformance = (filters: Filters, byWeek: boolean) => {
+const parsePerformanceRows = parseRows(performanceRowSchema);
+
+export const fetchPerformance = async (filters: Filters, byWeek: boolean) => {
   const supabase = createClient();
-  return fetchAllRows((start, end) =>
+  const rows = await fetchAllRows((start, end) =>
     supabase
       .rpc("athlete_performance", toPerformanceArgs(filters, byWeek))
       .range(start, end)
   );
+  return parsePerformanceRows(rows);
 };
 
 export type PerformanceRow = Awaited<
@@ -27,13 +35,16 @@ export type PerformanceRow = Awaited<
  * The previous result stays on screen while a new filter loads, but only
  * within the same view: summary rows cannot stand in for weekly ones.
  */
-export const usePerformance = (filters: Filters, byWeek: boolean) =>
-  useQuery({
+export const performanceQuery = (filters: Filters, byWeek: boolean) =>
+  queryOptions({
     placeholderData: (previous, previousQuery) =>
       previousQuery?.queryKey[2] === byWeek ? previous : undefined,
     queryFn: () => fetchPerformance(filters, byWeek),
-    queryKey: [...PERFORMANCE_KEY, filters, byWeek] as const,
+    queryKey: performanceKeys.rows(filters, byWeek),
   });
+
+export const usePerformance = (filters: Filters, byWeek: boolean) =>
+  useQuery(performanceQuery(filters, byWeek));
 
 /** Identifies one athlete on one round format. */
 export const formatKey = (row: PerformanceRow) =>

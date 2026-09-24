@@ -98,8 +98,18 @@ select is(
 
 -- Admin corrections are applied and audited with the reason.
 select lives_ok(
-  $$ select public.correct_arrow(
-       (select a.id from public.arrows a where a.value = '7' limit 1), '8', 'pgTAP check') $$,
+  (select format(
+     $$ select public.admin_save_scores(%L, %L::jsonb, 'pgTAP check') $$,
+     r.session_id,
+     json_build_array(json_build_object(
+       'round_id', r.id, 'end_no', e.end_no, 'arrow_no', a.arrow_no, 'value', '8'
+     ))
+   )
+   from public.arrows a
+   join public.ends e on e.id = a.end_id
+   join public.rounds r on r.id = e.round_id
+   where a.value = '7'
+   limit 1),
   'admin can correct an arrow'
 );
 select is(
@@ -134,10 +144,12 @@ select is(
   'a scorer cannot see correction counts'
 );
 select throws_ok(
-  $$ select public.correct_arrow(
-       (select a.id from public.arrows a limit 1), 'X', 'not allowed') $$,
+  format(
+    $$ select public.admin_save_scores(%L, '[]'::jsonb, 'not allowed') $$,
+    (select id from public.sessions limit 1)
+  ),
   '42501',
-  'Only an admin can correct scores',
+  'Only an admin can edit scores',
   'a scorer cannot correct arrows'
 );
 reset role;

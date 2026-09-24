@@ -27,7 +27,6 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea";
 import type { KeyboardEvent } from "react";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 
 import { formatRoundFormat } from "@/lib/format";
 
@@ -70,9 +69,9 @@ const focusCell = (cell: Cell) =>
     .querySelector<HTMLButtonElement>(`[data-cell="${cellKey(cell)}"]`)
     ?.focus();
 
-const firstCell = (rounds: EditorRound[]): Cell | null => {
+const firstCell = (rounds: EditorRound[]): Cell | undefined => {
   const [round] = rounds;
-  return round ? { arrowNo: 1, endNo: 1, roundId: round.id } : null;
+  return round ? { arrowNo: 1, endNo: 1, roundId: round.id } : undefined;
 };
 
 /**
@@ -90,9 +89,11 @@ export const ScoreEditorPanel = ({
   const rounds = useMemo(() => toEditorRounds(session), [session]);
   const saved = useMemo(() => savedValues(rounds), [rounds]);
   const [draft, setDraft] = useState<Draft>(new Map());
-  const [selected, setSelected] = useState<Cell | null>(() =>
+  const [selected, setSelected] = useState<Cell | undefined>(() =>
     firstCell(rounds)
   );
+  // An off-face key press is explained inline, next to the selection.
+  const [notice, setNotice] = useState<string>();
   const [reason, setReason] = useState("");
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const mutation = useSaveScores(session.id);
@@ -109,9 +110,10 @@ export const ScoreEditorPanel = ({
 
   const score = (cell: Cell, value: string) => {
     if (!isScoreOnFace(value, lowestOf(cell.roundId))) {
-      toast.error(`${value} is not a score on this target face.`);
+      setNotice(`${value} is not a score on this target face.`);
       return false;
     }
+    setNotice(undefined);
     setCell(cell, value);
     return true;
   };
@@ -123,7 +125,7 @@ export const ScoreEditorPanel = ({
   };
 
   const clearEnd = () => {
-    const round = rounds.find((item) => item.id === selected?.roundId);
+    const round = rounds.find(({ id }) => id === selected?.roundId);
     if (!(round && selected)) {
       return;
     }
@@ -157,18 +159,16 @@ export const ScoreEditorPanel = ({
     }
   };
 
-  const save = () =>
+  const save = () => {
+    if (mutation.isPending) {
+      return;
+    }
     mutation.mutate(
       { changes: toChanges(draft), reason: reason.trim() },
-      {
-        onSuccess: () => {
-          toast.success(
-            `Saved ${draft.size} ${draft.size === 1 ? "change" : "changes"}.`
-          );
-          onDone();
-        },
-      }
+      // The editor closes onto the updated scorecard: that is the feedback.
+      { onSuccess: onDone }
     );
+  };
 
   const changedKeys = new Set(draft.keys());
   const grids = scoreRounds(rounds, saved, draft);
@@ -202,6 +202,11 @@ export const ScoreEditorPanel = ({
               ? `Round ${selectedRound.round_no}, end ${selected.endNo}, arrow ${selected.arrowNo}`
               : "Select an arrow to edit"}
           </CardDescription>
+          {notice ? (
+            <p className="text-destructive text-xs" role="alert">
+              {notice}
+            </p>
+          ) : null}
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-6">

@@ -122,17 +122,10 @@ test("toPerformanceArgs sends only the filters that are set", () => {
     },
     true
   );
-  expect(args).toEqual({
-    p_athlete_ids: undefined,
+  // toStrictEqual: an unset filter must be absent, not sent as undefined.
+  expect(args).toStrictEqual({
     p_by_week: true,
-    p_category_ids: undefined,
     p_distance_ids: [8],
-    p_event_ids: undefined,
-    p_from: undefined,
     p_genders: ["male"],
-    p_session_types: undefined,
-    p_target_face_ids: undefined,
-    p_to: undefined,
-    p_venues: undefined,
   });
 });

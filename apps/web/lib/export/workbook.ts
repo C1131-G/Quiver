@@ -56,12 +56,15 @@ const addSheet = <T>(workbook: Workbook, spec: SheetSpec<T>) => {
   }
 };
 
-// Each sheet has its own row type.
-// oxlint-disable-next-line typescript/no-explicit-any
-type AnySheet = SheetSpec<any>;
+/** One sheet per row type, each checked against its own columns. */
+type Sheets<Rows extends readonly unknown[]> = {
+  [Index in keyof Rows]: SheetSpec<Rows[Index]>;
+};
 
 /** The .xlsx file's bytes. ExcelJS loads only when something is exported. */
-export const buildWorkbook = async (sheets: AnySheet[]) => {
+export const buildWorkbook = async <Rows extends readonly unknown[]>(
+  sheets: Sheets<Rows>
+) => {
   const { Workbook: ExcelWorkbook } = await import("exceljs");
   const workbook = new ExcelWorkbook();
   workbook.creator = "Quiver Dashboard";
@@ -76,9 +79,9 @@ export const buildWorkbook = async (sheets: AnySheet[]) => {
  * Builds the workbook and hands it to the browser as a download. In the
  * desktop app Electron shows its save dialog for it.
  */
-export const downloadWorkbook = async (
+export const downloadWorkbook = async <Rows extends readonly unknown[]>(
   filename: string,
-  sheets: AnySheet[]
+  sheets: Sheets<Rows>
 ) => {
   const buffer = await buildWorkbook(sheets);
   const url = URL.createObjectURL(

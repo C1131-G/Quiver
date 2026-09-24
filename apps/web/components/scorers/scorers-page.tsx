@@ -1,20 +1,11 @@
 "use client";
 
 import {
-  DotsThreeIcon,
   MagnifyingGlassIcon,
   UserPlusIcon,
   UsersIcon,
 } from "@phosphor-icons/react";
-import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
 import {
   Empty,
   EmptyDescription,
@@ -38,19 +29,15 @@ import { Skeleton } from "@workspace/ui/components/skeleton";
 import { useMemo, useState } from "react";
 
 import { DataTable } from "@/components/data-table/data-table";
-import { createDataTableColumnHelper } from "@/components/data-table/data-table-features";
 import { PageHeader } from "@/components/page-header";
 
-import {
-  CreateUserDialog,
-  EditUserDialog,
-  ResetPasswordDialog,
-  SetActiveDialog,
-} from "./scorer-dialogs";
+import type { AccountDialogKind } from "./account-columns";
+import { buildAccountColumns } from "./account-columns";
+import { EditUserDialog, ResetPasswordDialog } from "./account-dialogs";
+import { CreateUserDialog } from "./create-user-dialog";
+import { SetActiveDialog } from "./set-active-dialog";
 import type { Profile } from "./use-scorers";
 import { useAccounts } from "./use-scorers";
-
-type DialogKind = "edit" | "reset" | "active";
 
 // Scorers first: that is what this page is for. Admin accounts are one
 // filter away, since admins are provisioned here too.
@@ -64,93 +51,6 @@ const STATUS_FILTERS = [
   { label: "Active", value: "active" },
   { label: "Deactivated", value: "inactive" },
 ];
-
-const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
-
-const helper = createDataTableColumnHelper<Profile>();
-
-const buildColumns = (openDialog: (kind: DialogKind, user: Profile) => void) =>
-  helper.columns([
-    helper.accessor("full_name", {
-      cell: (cell) => <span className="font-medium">{cell.getValue()}</span>,
-      header: "Name",
-      sortFn: "text",
-    }),
-    helper.accessor("login_id", {
-      cell: (cell) => <span className="font-mono">{cell.getValue()}</span>,
-      header: "Login ID",
-      sortFn: "text",
-    }),
-    helper.accessor("role", {
-      cell: (cell) => (
-        <Badge variant={cell.getValue() === "admin" ? "default" : "secondary"}>
-          {cell.getValue() === "admin" ? "Admin" : "Scorer"}
-        </Badge>
-      ),
-      header: "Role",
-      sortFn: "text",
-    }),
-    helper.accessor("is_active", {
-      cell: (cell) =>
-        cell.getValue() ? (
-          <Badge variant="outline">Active</Badge>
-        ) : (
-          <Badge variant="destructive">Deactivated</Badge>
-        ),
-      header: "Status",
-      sortFn: "basic",
-    }),
-    helper.accessor("created_at", {
-      cell: (cell) => (
-        <span className="tabular-nums">
-          {dateFormat.format(new Date(cell.getValue()))}
-        </span>
-      ),
-      header: "Created",
-      sortFn: "text",
-    }),
-    helper.display({
-      cell: ({ row }) => (
-        <div className="flex justify-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  aria-label={`Actions for ${row.original.full_name}`}
-                  size="icon-sm"
-                  variant="ghost"
-                />
-              }
-            >
-              <DotsThreeIcon aria-hidden="true" weight="bold" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => openDialog("edit", row.original)}
-              >
-                Edit name
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => openDialog("reset", row.original)}
-              >
-                Reset password
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => openDialog("active", row.original)}
-                variant={row.original.is_active ? "destructive" : "default"}
-              >
-                {row.original.is_active ? "Deactivate" : "Reactivate"}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
-      enableSorting: false,
-      header: () => <span className="sr-only">Actions</span>,
-      id: "actions",
-    }),
-  ]);
 
 const matchesFilters = (
   user: Profile,
@@ -194,12 +94,12 @@ export const ScorersPage = () => {
   const [status, setStatus] = useState("all");
   const [creating, setCreating] = useState(false);
   // The user outlives the open state so a closing dialog keeps its text.
-  const [dialogKind, setDialogKind] = useState<DialogKind | null>(null);
+  const [dialogKind, setDialogKind] = useState<AccountDialogKind | null>(null);
   const [dialogUser, setDialogUser] = useState<Profile | null>(null);
 
   const columns = useMemo(
     () =>
-      buildColumns((kind, user) => {
+      buildAccountColumns((kind, user) => {
         setDialogUser(user);
         setDialogKind(kind);
       }),
@@ -252,9 +152,9 @@ export const ScorersPage = () => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {ROLE_FILTERS.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
+            {ROLE_FILTERS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -268,9 +168,9 @@ export const ScorersPage = () => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {STATUS_FILTERS.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
+            {STATUS_FILTERS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
               </SelectItem>
             ))}
           </SelectContent>

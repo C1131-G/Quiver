@@ -152,7 +152,7 @@ test("keys map to scores: X, M, 1 to 9, and 0 for 10", () => {
   expect(scoreForKey("m")).toBe("M");
   expect(scoreForKey("7")).toBe("7");
   expect(scoreForKey("0")).toBe("10");
-  expect(scoreForKey("a")).toBeNull();
+  expect(scoreForKey("a")).toBeUndefined();
 });
 
 test("ends read from the highest arrow to the lowest", () => {
@@ -169,7 +169,7 @@ test("ends read from the highest arrow to the lowest", () => {
 test("arrow keys move the selection; other keys do not", () => {
   expect(directionForKey("ArrowUp")).toBe("up");
   expect(directionForKey("ArrowRight")).toBe("right");
-  expect(directionForKey("Enter")).toBeNull();
+  expect(directionForKey("Enter")).toBeUndefined();
 });
 
 test("session totals carry from one round into the next", () => {

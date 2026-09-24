@@ -1,27 +1,38 @@
-import { Skeleton } from "@workspace/ui/components/skeleton";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { PerformancePage } from "@/components/performance/performance-page";
+import { ExportButtonSkeleton } from "@/components/export/export-button";
+import { FilteredExportButton } from "@/components/export/filtered-export-button";
+import { PageHeader } from "@/components/page-header";
+import {
+  PerformancePage,
+  PerformancePageSkeleton,
+} from "@/components/performance/performance-page";
+import { SectionErrorBoundary } from "@/components/section-error-boundary";
 
 export const metadata: Metadata = {
   title: "Performance",
 };
 
-const PerformanceSkeleton = () => (
-  <div aria-busy="true" className="flex flex-col gap-6">
-    <Skeleton className="h-16 w-80" />
-    <Skeleton className="h-8 w-full" />
-    <Skeleton className="h-24 w-full" />
-    <Skeleton className="h-96 w-full" />
+// The title paints in the static shell; filters live in the query string,
+// which only resolves per request, so the body and export wait inside Suspense.
+const Page = () => (
+  <div>
+    <PageHeader
+      action={
+        <Suspense fallback={<ExportButtonSkeleton />}>
+          <FilteredExportButton filename="quiver-performance" />
+        </Suspense>
+      }
+      description="Scores per athlete and round format. Select a name or a week to see its sessions."
+      title="Performance"
+    />
+    <SectionErrorBoundary title="Performance could not be shown">
+      <Suspense fallback={<PerformancePageSkeleton />}>
+        <PerformancePage />
+      </Suspense>
+    </SectionErrorBoundary>
   </div>
 );
 
-// Filters live in the query string, which a prerendered shell cannot read.
-const DashboardPage = () => (
-  <Suspense fallback={<PerformanceSkeleton />}>
-    <PerformancePage />
-  </Suspense>
-);
-
-export default DashboardPage;
+export default Page;

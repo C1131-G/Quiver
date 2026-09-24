@@ -34,7 +34,9 @@ type TrendPoint = Record<string, number | string | null>;
 
 /** One point per week, one key per compared athlete. */
 const toPoints = (rows: PerformanceRow[], series: Series[]) => {
-  const keyOf = new Map(series.map((item) => [item.athleteId, item.key]));
+  const keyOf = new Map(
+    series.map((athleteSeries) => [athleteSeries.athleteId, athleteSeries.key])
+  );
   const weeks = new Map<string, TrendPoint>();
   for (const row of rows) {
     const key = keyOf.get(row.athlete_id);
@@ -68,11 +70,14 @@ export const TrendChart = ({
   const config = useMemo(
     () =>
       Object.fromEntries(
-        series.map((item) => [
-          item.key,
+        series.map((athleteSeries) => [
+          athleteSeries.key,
           {
-            label: item.name,
-            theme: { dark: item.color.dark, light: item.color.light },
+            label: athleteSeries.name,
+            theme: {
+              dark: athleteSeries.color.dark,
+              light: athleteSeries.color.light,
+            },
           },
         ])
       ) satisfies ChartConfig,
@@ -122,34 +127,34 @@ export const TrendChart = ({
             }
           />
           <ChartLegend content={<ChartLegendContent />} />
-          {series.map((item) => {
-            const last = lastPointIndex(points, item.key);
+          {series.map((athleteSeries) => {
+            const last = lastPointIndex(points, athleteSeries.key);
             return (
               <Line
                 activeDot={{ r: 5 }}
-                dataKey={item.key}
+                dataKey={athleteSeries.key}
                 dot={{
-                  fill: `var(--color-${item.key})`,
+                  fill: `var(--color-${athleteSeries.key})`,
                   r: 4,
                   stroke: "var(--card)",
                   strokeWidth: 2,
                 }}
                 isAnimationActive={false}
-                key={item.key}
-                name={item.key}
-                stroke={`var(--color-${item.key})`}
+                key={athleteSeries.key}
+                name={athleteSeries.key}
+                stroke={`var(--color-${athleteSeries.key})`}
                 strokeWidth={2}
                 type="linear"
               >
                 {directLabels ? (
                   <LabelList
                     className="fill-foreground"
-                    dataKey={item.key}
+                    dataKey={athleteSeries.key}
                     offset={10}
                     position="right"
                     // Only the last week each athlete shot carries its name.
                     valueAccessor={(_entry, index) =>
-                      index === last ? item.name : null
+                      index === last ? athleteSeries.name : null
                     }
                   />
                 ) : null}

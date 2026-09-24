@@ -4,8 +4,6 @@ import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
 import { useEffect } from "react";
 import type { ComponentProps } from "react";
 
-import { runThemeTransition } from "@/lib/theme-transition";
-
 const isTypingTarget = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) {
     return false;
@@ -48,9 +46,9 @@ const ThemeHotkey = () => {
 
         event.preventDefault();
 
-        runThemeTransition(() =>
-          setTheme(resolvedTheme === "dark" ? "light" : "dark")
-        );
+        // A keyboard shortcut is used repeatedly; it switches instantly. The
+        // wipe stays on the theme button, where it confirms the click.
+        setTheme(resolvedTheme === "dark" ? "light" : "dark");
       };
 
       window.addEventListener("keydown", onKeyDown);

@@ -29,18 +29,20 @@ const distributionSheet = (
   return {
     columns: [
       { header: "Ring", value: (row) => row.value, width: 8 },
-      ...series.flatMap((item) => [
+      ...series.flatMap((athleteSeries) => [
         {
-          header: `${item.name} arrows`,
-          value: (row: RingRow) => row.counts.get(item.athleteId) ?? 0,
+          header: `${athleteSeries.name} arrows`,
+          value: (row: RingRow) => row.counts.get(athleteSeries.athleteId) ?? 0,
           width: 20,
         },
         {
-          header: `${item.name} share`,
+          header: `${athleteSeries.name} share`,
           numFmt: PERCENT_FORMAT,
           value: (row: RingRow) => {
-            const total = totals.get(item.athleteId) ?? 0;
-            return total ? (row.counts.get(item.athleteId) ?? 0) / total : null;
+            const total = totals.get(athleteSeries.athleteId) ?? 0;
+            return total
+              ? (row.counts.get(athleteSeries.athleteId) ?? 0) / total
+              : null;
           },
           width: 20,
         },

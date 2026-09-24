@@ -87,13 +87,15 @@ export const AthletePicker = ({
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
-      {series.map((item) => (
-        <Badge key={item.key} variant="outline">
-          <SeriesKey color={item.color} />
-          {item.name}
+      {series.map((athleteSeries) => (
+        <Badge key={athleteSeries.key} variant="outline">
+          <SeriesKey color={athleteSeries.color} />
+          {athleteSeries.name}
           <Button
-            aria-label={`Remove ${item.name} from the comparison`}
-            onClick={() => saveSlots(removeFromSlots(slots, item.athleteId))}
+            aria-label={`Remove ${athleteSeries.name} from the comparison`}
+            onClick={() =>
+              saveSlots(removeFromSlots(slots, athleteSeries.athleteId))
+            }
             size="icon-xs"
             variant="ghost"
           >

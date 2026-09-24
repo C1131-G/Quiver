@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { SectionErrorBoundary } from "@/components/section-error-boundary";
 import {
   SessionDetail,
   SessionDetailSkeleton,
@@ -17,12 +18,14 @@ const SessionContent = async ({ params }: { params: Params }) => {
   return <SessionDetail sessionId={sessionId} />;
 };
 
-// The id is only known per request, so it resolves inside Suspense and the
-// rest of the page stays in the static shell.
+// The heading is the athlete's name, which is data, so the whole detail waits
+// inside the boundary; the id only resolves per request.
 const Page = ({ params }: PageProps<"/sessions/[sessionId]">) => (
-  <Suspense fallback={<SessionDetailSkeleton />}>
-    <SessionContent params={params} />
-  </Suspense>
+  <SectionErrorBoundary title="This session could not be shown">
+    <Suspense fallback={<SessionDetailSkeleton />}>
+      <SessionContent params={params} />
+    </Suspense>
+  </SectionErrorBoundary>
 );
 
 export default Page;

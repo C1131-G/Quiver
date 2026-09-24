@@ -41,7 +41,7 @@ test("the format most athletes shot comes first, then by arrows", () => {
     row("b", 3, 2, 72),
     row("c", 5, 1, 900),
   ]);
-  expect(formats.map((item) => item.label)).toEqual([
+  expect(formats.map((format) => format.label)).toEqual([
     "30 m · 2",
     "50 m · 1",
     "70 m · 1",

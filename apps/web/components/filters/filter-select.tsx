@@ -35,9 +35,9 @@ export const FilterSelect = ({
       <SelectValue />
     </SelectTrigger>
     <SelectContent>
-      {items.map((item) => (
-        <SelectItem key={item.value} value={item.value}>
-          {item.label}
+      {items.map((option) => (
+        <SelectItem key={option.value} value={option.value}>
+          {option.label}
         </SelectItem>
       ))}
     </SelectContent>

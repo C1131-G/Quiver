@@ -1,3 +1,5 @@
+import { loadError } from "./load-error";
+
 /** PostgREST returns at most this many rows per request (config.toml). */
 const MAX_ROWS = 1000;
 
@@ -9,7 +11,7 @@ export const fetchAllRows = async <T>(
   fetchPage: (
     start: number,
     end: number
-  ) => PromiseLike<{ data: T[] | null; error: unknown }>
+  ) => PromiseLike<{ data: T[] | null; error: { code?: string } | null }>
 ) => {
   const rows: T[] = [];
   for (let start = 0; ; start += MAX_ROWS) {
@@ -17,8 +19,9 @@ export const fetchAllRows = async <T>(
     // oxlint-disable-next-line no-await-in-loop
     const { data, error } = await fetchPage(start, start + MAX_ROWS - 1);
     if (error || !data) {
-      throw new Error(
-        "Could not load the data. Check your connection and try again."
+      throw loadError(
+        "Could not load the data. Check your connection and try again.",
+        error ?? {}
       );
     }
     rows.push(...data);

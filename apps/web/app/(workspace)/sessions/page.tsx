@@ -1,26 +1,38 @@
-import { Skeleton } from "@workspace/ui/components/skeleton";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { SessionsPage } from "@/components/sessions/sessions-page";
+import { ExportButtonSkeleton } from "@/components/export/export-button";
+import { FilteredExportButton } from "@/components/export/filtered-export-button";
+import { PageHeader } from "@/components/page-header";
+import { SectionErrorBoundary } from "@/components/section-error-boundary";
+import {
+  SessionsPage,
+  SessionsPageSkeleton,
+} from "@/components/sessions/sessions-page";
 
 export const metadata: Metadata = {
   title: "Sessions",
 };
 
-const SessionsSkeleton = () => (
-  <div aria-busy="true" className="flex flex-col gap-6">
-    <Skeleton className="h-16 w-80" />
-    <Skeleton className="h-8 w-full" />
-    <Skeleton className="h-96 w-full" />
-  </div>
-);
-
-// Filters live in the query string, which a prerendered shell cannot read.
+// The title paints in the static shell; filters live in the query string,
+// which only resolves per request, so the body and export wait inside Suspense.
 const Page = () => (
-  <Suspense fallback={<SessionsSkeleton />}>
-    <SessionsPage />
-  </Suspense>
+  <div>
+    <PageHeader
+      action={
+        <Suspense fallback={<ExportButtonSkeleton />}>
+          <FilteredExportButton filename="quiver-sessions" />
+        </Suspense>
+      }
+      description="Every scored session, newest first. Open one to see its scorecard and correct arrows."
+      title="Sessions"
+    />
+    <SectionErrorBoundary title="Sessions could not be shown">
+      <Suspense fallback={<SessionsPageSkeleton />}>
+        <SessionsPage />
+      </Suspense>
+    </SectionErrorBoundary>
+  </div>
 );
 
 export default Page;

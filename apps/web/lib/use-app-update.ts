@@ -28,25 +28,29 @@ export const useAppUpdate = () => {
   );
   const [status, setStatus] = useState<UpdateStatus>(IDLE_STATUS);
 
-  useEffect(() => {
-    const bridge = getBridge();
-    if (!bridge) {
-      return;
-    }
-    let active = true;
-    const loadInitialStatus = async () => {
-      const initial = await bridge.status();
-      if (active) {
-        setStatus(initial);
+  useEffect(
+    // oxlint-disable-next-line prefer-arrow-callback -- named for stack traces and the effects skill
+    function followUpdaterStatus() {
+      const bridge = getBridge();
+      if (!bridge) {
+        return;
       }
-    };
-    loadInitialStatus();
-    const unsubscribe = bridge.onChange(setStatus);
-    return () => {
-      active = false;
-      unsubscribe();
-    };
-  }, []);
+      let active = true;
+      const loadInitialStatus = async () => {
+        const initial = await bridge.status();
+        if (active) {
+          setStatus(initial);
+        }
+      };
+      loadInitialStatus();
+      const unsubscribe = bridge.onChange(setStatus);
+      return function stopFollowingUpdaterStatus() {
+        active = false;
+        unsubscribe();
+      };
+    },
+    []
+  );
 
   return {
     available,

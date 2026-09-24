@@ -19,15 +19,15 @@ import { PerformanceEmpty } from "./performance-empty";
 import type { PerformanceRow } from "./use-performance";
 import { formatKey } from "./use-performance";
 
-const helper = createDataTableColumnHelper<PerformanceRow>();
+const column = createDataTableColumnHelper<PerformanceRow>();
 
 const numeric = (value: string) => (
   <span className="tabular-nums">{value}</span>
 );
 
 const buildColumns = (filters: Filters) =>
-  helper.columns([
-    helper.accessor("athlete_name", {
+  column.columns([
+    column.accessor("athlete_name", {
       cell: ({ row }) => (
         <div className="flex flex-col">
           <Link
@@ -48,28 +48,28 @@ const buildColumns = (filters: Filters) =>
       header: "Athlete",
       sortFn: "text",
     }),
-    helper.accessor((row) => `${row.category_name} · ${row.event_name}`, {
+    column.accessor((row) => `${row.category_name} · ${row.event_name}`, {
       header: "Category",
       id: "category",
       sortFn: "text",
     }),
-    helper.accessor("meters", {
+    column.accessor("meters", {
       cell: ({ row }) =>
         formatRoundFormat(row.original.meters, row.original.target_face_name),
       header: "Format",
       sortFn: "basic",
     }),
-    helper.accessor("sessions", {
+    column.accessor("sessions", {
       cell: (cell) => numeric(formatInteger(cell.getValue())),
       header: "Sessions",
       sortFn: "basic",
     }),
-    helper.accessor("arrows", {
+    column.accessor("arrows", {
       cell: (cell) => numeric(formatInteger(cell.getValue())),
       header: "Arrows",
       sortFn: "basic",
     }),
-    helper.accessor("avg_arrow", {
+    column.accessor("avg_arrow", {
       cell: (cell) => (
         <span className="font-semibold tabular-nums">
           {formatAverage(cell.getValue())}
@@ -78,12 +78,12 @@ const buildColumns = (filters: Filters) =>
       header: "Avg / arrow",
       sortFn: "basic",
     }),
-    helper.accessor("best_session_avg", {
+    column.accessor("best_session_avg", {
       cell: (cell) => numeric(formatAverage(cell.getValue())),
       header: "Best session",
       sortFn: "basic",
     }),
-    helper.accessor((row) => row.ten_plus_x_count / row.arrows, {
+    column.accessor((row) => row.ten_plus_x_count / row.arrows, {
       cell: ({ row }) =>
         numeric(
           formatPercent(row.original.ten_plus_x_count, row.original.arrows)
@@ -92,19 +92,19 @@ const buildColumns = (filters: Filters) =>
       id: "ten_plus_x",
       sortFn: "basic",
     }),
-    helper.accessor((row) => row.x_count / row.arrows, {
+    column.accessor((row) => row.x_count / row.arrows, {
       cell: ({ row }) =>
         numeric(formatPercent(row.original.x_count, row.original.arrows)),
       header: "X",
       id: "x",
       sortFn: "basic",
     }),
-    helper.accessor("miss_count", {
+    column.accessor("miss_count", {
       cell: (cell) => numeric(formatInteger(cell.getValue())),
       header: "Misses",
       sortFn: "basic",
     }),
-    helper.accessor("last_session_date", {
+    column.accessor("last_session_date", {
       cell: (cell) => formatDate(cell.getValue()),
       header: "Last shot",
       sortFn: "text",

@@ -43,9 +43,7 @@ const SortIcon = ({ direction }: { direction: false | "asc" | "desc" }) => (
 );
 
 interface DataTableProps<TData extends RowData> {
-  // Column value types differ per column, so the list is heterogeneous.
-  // oxlint-disable-next-line typescript/no-explicit-any
-  columns: ColumnDef<DataTableFeatures, TData, any>[];
+  columns: ColumnDef<DataTableFeatures, TData, unknown>[];
   data: TData[];
   empty: ReactNode;
   getRowId: (row: TData) => string;

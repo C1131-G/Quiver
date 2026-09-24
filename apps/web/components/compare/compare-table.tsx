@@ -85,7 +85,9 @@ export const CompareTable = ({
   series: Series[];
 }) => {
   const rowOf = new Map(rows.map((row) => [row.athlete_id, row]));
-  const compared = new Set(series.map((item) => item.athleteId));
+  const compared = new Set(
+    series.map((athleteSeries) => athleteSeries.athleteId)
+  );
   const shooting = rows.filter((row) => compared.has(row.athlete_id));
   return (
     <div className="border tabular-nums">
@@ -93,11 +95,11 @@ export const CompareTable = ({
         <TableHeader>
           <TableRow>
             <TableHead>Metric</TableHead>
-            {series.map((item) => (
-              <TableHead key={item.key}>
+            {series.map((athleteSeries) => (
+              <TableHead key={athleteSeries.key}>
                 <span className="flex items-center gap-2">
-                  <SeriesKey color={item.color} />
-                  {item.name}
+                  <SeriesKey color={athleteSeries.color} />
+                  {athleteSeries.name}
                 </span>
               </TableHead>
             ))}
@@ -109,18 +111,18 @@ export const CompareTable = ({
             return (
               <TableRow key={metric.label}>
                 <TableCell>{metric.label}</TableCell>
-                {series.map((item) => {
-                  const row = rowOf.get(item.athleteId);
+                {series.map((athleteSeries) => {
+                  const row = rowOf.get(athleteSeries.athleteId);
                   if (!row) {
                     return (
-                      <TableCell key={item.key}>
+                      <TableCell key={athleteSeries.key}>
                         <span className="text-muted-foreground">No arrows</span>
                       </TableCell>
                     );
                   }
-                  const isBest = best.has(item.athleteId);
+                  const isBest = best.has(athleteSeries.athleteId);
                   return (
-                    <TableCell key={item.key}>
+                    <TableCell key={athleteSeries.key}>
                       <span className="flex items-center gap-2">
                         <span className={isBest ? "font-semibold" : undefined}>
                           {metric.format(row)}

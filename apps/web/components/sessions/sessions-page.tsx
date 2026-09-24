@@ -1,6 +1,7 @@
 "use client";
 
 import { ClipboardTextIcon } from "@phosphor-icons/react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -22,9 +23,7 @@ import {
 import Link from "next/link";
 
 import { useAthletes, useLookups } from "@/components/athletes/use-athletes";
-import { ExportButton } from "@/components/export/export-button";
-import { exportFilteredWorkbook } from "@/components/export/export-filtered";
-import { FilterBar } from "@/components/filters/filter-bar";
+import { FilterBar, FilterBarSkeleton } from "@/components/filters/filter-bar";
 import { DEFAULT_RANGE, isFiltered } from "@/components/filters/filters";
 import {
   resetFilters,
@@ -32,14 +31,13 @@ import {
   updateSearchParams,
   useFilters,
 } from "@/components/filters/use-filters";
-import { PageHeader } from "@/components/page-header";
 import { formatAverage, formatDate, formatInteger } from "@/lib/format";
 
 import { SESSION_TYPE_LABELS, VENUE_LABELS } from "./session-labels";
 import { SessionStatusBadge } from "./session-status-badge";
 import { sessionHref } from "./sessions-href";
 import type { SessionSummary } from "./use-sessions";
-import { SESSIONS_PAGE_SIZE, useSessions } from "./use-sessions";
+import { SESSIONS_PAGE_SIZE, sessionQuery, useSessions } from "./use-sessions";
 
 const PAGE_PATTERN = /^[1-9]\d{0,5}$/u;
 
@@ -47,17 +45,31 @@ const PAGE_PATTERN = /^[1-9]\d{0,5}$/u;
 const readPage = (value: string | null) =>
   value && PAGE_PATTERN.test(value) ? Number(value) - 1 : 0;
 
+const RowsSkeleton = () => (
+  <div aria-busy="true" className="flex flex-col gap-2">
+    <Skeleton className="h-10 w-full" />
+    <Skeleton className="h-10 w-full" />
+    <Skeleton className="h-10 w-full" />
+  </div>
+);
+
 const SessionRow = ({ session }: { session: SessionSummary }) => {
+  const queryClient = useQueryClient();
   if (!session.id || !session.session_date) {
     return null;
   }
   const corrections = session.correction_count ?? 0;
+  const { id } = session;
+  // Start loading the scorecard as soon as the admin reaches for the link.
+  const prefetch = () => queryClient.prefetchQuery(sessionQuery(id));
   return (
     <TableRow>
       <TableCell>
         <Link
           className="font-medium underline-offset-4 hover:underline"
-          href={sessionHref(session.id)}
+          href={sessionHref(id)}
+          onFocus={prefetch}
+          onMouseEnter={prefetch}
         >
           {formatDate(session.session_date)}
         </Link>
@@ -210,22 +222,6 @@ export const SessionsPage = () => {
 
   return (
     <div>
-      <PageHeader
-        action={
-          <ExportButton
-            onExport={() =>
-              exportFilteredWorkbook({
-                athletes: athletes.data,
-                filename: "quiver-sessions",
-                filters,
-                lookups: lookups.data,
-              })
-            }
-          />
-        }
-        description="Every scored session, newest first. Open one to see its scorecard and correct arrows."
-        title="Sessions"
-      />
       <FilterBar
         athletes={athletes.data}
         filters={filters}
@@ -238,13 +234,7 @@ export const SessionsPage = () => {
           {sessions.error.message}
         </p>
       ) : null}
-      {sessions.isPending ? (
-        <div aria-busy="true" className="flex flex-col gap-2">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-      ) : null}
+      {sessions.isPending ? <RowsSkeleton /> : null}
       {sessions.data && sessions.data.rows.length === 0 ? (
         <SessionsEmpty
           filtered={
@@ -262,3 +252,11 @@ export const SessionsPage = () => {
     </div>
   );
 };
+
+/** The page body while the URL's filters resolve; the header is static. */
+export const SessionsPageSkeleton = () => (
+  <div aria-busy="true">
+    <FilterBarSkeleton />
+    <RowsSkeleton />
+  </div>
+);

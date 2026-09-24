@@ -37,11 +37,11 @@ export const DistributionTable = ({
         <TableHeader>
           <TableRow>
             <TableHead>Ring</TableHead>
-            {series.map((item) => (
-              <TableHead key={item.key}>
+            {series.map((athleteSeries) => (
+              <TableHead key={athleteSeries.key}>
                 <span className="flex items-center gap-2">
-                  <SeriesKey color={item.color} />
-                  {item.name}
+                  <SeriesKey color={athleteSeries.color} />
+                  {athleteSeries.name}
                 </span>
               </TableHead>
             ))}
@@ -54,11 +54,12 @@ export const DistributionTable = ({
                 <ArrowValue className="size-6" value={value} />
                 {value === "M" ? <span className="sr-only">Miss</span> : null}
               </TableCell>
-              {series.map((item) => {
-                const count = counts.get(`${item.athleteId}:${value}`) ?? 0;
-                const total = totals.get(item.athleteId) ?? 0;
+              {series.map((athleteSeries) => {
+                const count =
+                  counts.get(`${athleteSeries.athleteId}:${value}`) ?? 0;
+                const total = totals.get(athleteSeries.athleteId) ?? 0;
                 return (
-                  <TableCell key={item.key}>
+                  <TableCell key={athleteSeries.key}>
                     {formatPercent(count, total)}
                     <span className="text-muted-foreground"> · {count}</span>
                   </TableCell>

@@ -4,7 +4,7 @@ import { fetchPerformance } from "@/components/performance/use-performance";
 import {
   arrowDetailsQuery,
   sessionSummariesQuery,
-} from "@/components/sessions/session-queries";
+} from "@/components/sessions/session-list-query";
 import { downloadWorkbook } from "@/lib/export/workbook";
 import { toIsoDate } from "@/lib/format";
 import { fetchAllRows } from "@/lib/supabase/fetch-all";

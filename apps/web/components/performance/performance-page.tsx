@@ -9,16 +9,14 @@ import {
 } from "@workspace/ui/components/tabs";
 
 import { useAthletes, useLookups } from "@/components/athletes/use-athletes";
-import { ExportButton } from "@/components/export/export-button";
-import { exportFilteredWorkbook } from "@/components/export/export-filtered";
-import { FilterBar } from "@/components/filters/filter-bar";
+import { FilterBar, FilterBarSkeleton } from "@/components/filters/filter-bar";
 import {
   resetFilters,
   setFilters,
   updateSearchParams,
   useFilters,
 } from "@/components/filters/use-filters";
-import { PageHeader } from "@/components/page-header";
+import { StatGrid } from "@/components/stat-grid";
 
 import { PerformanceStats } from "./performance-stats";
 import { SummaryTable } from "./summary-table";
@@ -46,22 +44,6 @@ export const PerformancePage = () => {
 
   return (
     <div>
-      <PageHeader
-        action={
-          <ExportButton
-            onExport={() =>
-              exportFilteredWorkbook({
-                athletes: athletes.data,
-                filename: "quiver-performance",
-                filters,
-                lookups: lookups.data,
-              })
-            }
-          />
-        }
-        description="Scores per athlete and round format. Select a name or a week to see its sessions."
-        title="Performance"
-      />
       <FilterBar
         athletes={athletes.data}
         filters={filters}
@@ -103,3 +85,13 @@ export const PerformancePage = () => {
     </div>
   );
 };
+
+/** The page body while the URL's filters resolve; the header is static. */
+export const PerformancePageSkeleton = () => (
+  <div aria-busy="true">
+    <FilterBarSkeleton />
+    <StatGrid stats={null} />
+    <Skeleton className="mb-2 h-8 w-40" />
+    <TableSkeleton />
+  </div>
+);

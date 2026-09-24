@@ -18,15 +18,21 @@ export interface Cell {
   roundId: string;
 }
 
-/** Changed cells; null clears an arrow. */
-export type Draft = ReadonlyMap<string, string | null>;
+/** round id : end no : arrow no, e.g. "3f2a…:4:2". */
+export type CellKey = `${string}:${number}:${number}`;
 
-export const cellKey = (cell: Cell) =>
+/**
+ * Changed cells. null clears an arrow: it is what admin_save_scores takes
+ * to mean "delete this arrow".
+ */
+export type Draft = ReadonlyMap<CellKey, string | null>;
+
+export const cellKey = (cell: Cell): CellKey =>
   `${cell.roundId}:${cell.endNo}:${cell.arrowNo}`;
 
 /** Saved values by cell key. */
 export const savedValues = (rounds: EditorRound[]) => {
-  const saved = new Map<string, string>();
+  const saved = new Map<CellKey, string>();
   for (const round of rounds) {
     for (const end of round.ends) {
       for (const arrow of end.arrows) {
@@ -45,7 +51,7 @@ export const savedValues = (rounds: EditorRound[]) => {
 };
 
 export const valueAt = (
-  saved: ReadonlyMap<string, string>,
+  saved: ReadonlyMap<CellKey, string>,
   draft: Draft,
   cell: Cell
 ) => {
@@ -55,7 +61,7 @@ export const valueAt = (
 
 /** Sets a cell, dropping it from the draft when it matches what is saved. */
 export const withValue = (
-  saved: ReadonlyMap<string, string>,
+  saved: ReadonlyMap<CellKey, string>,
   draft: Draft,
   cell: Cell,
   value: string | null
@@ -99,7 +105,7 @@ export interface GridRow {
 /** Every planned end of a round, with totals from the draft applied. */
 export const scoreGrid = (
   round: EditorRound,
-  saved: ReadonlyMap<string, string>,
+  saved: ReadonlyMap<CellKey, string>,
   draft: Draft,
   totalBefore: number
 ): GridRow[] => {
@@ -175,13 +181,15 @@ export const moveFrom = (
   cell: Cell,
   direction: Direction
 ): Cell => {
-  const round = rounds.find((item) => item.id === cell.roundId);
+  const round = rounds.find(({ id }) => id === cell.roundId);
   if (!round) {
     return cell;
   }
   if (direction === "next" || direction === "previous") {
     const cells = cellsOf(rounds);
-    const index = cells.findIndex((item) => cellKey(item) === cellKey(cell));
+    const index = cells.findIndex(
+      (candidate) => cellKey(candidate) === cellKey(cell)
+    );
     const step = direction === "next" ? 1 : -1;
     return cells[index + step] ?? cell;
   }
@@ -194,7 +202,9 @@ export const moveFrom = (
   return moves[direction];
 };
 
-/** The score a key press means, or null when the key is not a score. */
+/** The score a key press means, or undefined when the key is not a score. */
+const DIGIT = /^[1-9]$/u;
+
 export const scoreForKey = (key: string) => {
   const upper = key.toUpperCase();
   if (upper === "X" || upper === "M") {
@@ -203,11 +213,11 @@ export const scoreForKey = (key: string) => {
   if (key === "0") {
     return "10";
   }
-  return /^[1-9]$/u.test(key) ? key : null;
+  return DIGIT.test(key) ? key : undefined;
 };
 
-/** Where an arrow key moves the selection, or null for any other key. */
-export const directionForKey = (key: string): Direction | null => {
+/** Where an arrow key moves the selection, or undefined for any other key. */
+export const directionForKey = (key: string): Direction | undefined => {
   switch (key) {
     case "ArrowDown": {
       return "down";
@@ -222,7 +232,7 @@ export const directionForKey = (key: string): Direction | null => {
       return "up";
     }
     default: {
-      return null;
+      return undefined;
     }
   }
 };
@@ -230,7 +240,7 @@ export const directionForKey = (key: string): Direction | null => {
 /** Every round's grid, with the session total carried from round to round. */
 export const scoreRounds = (
   rounds: EditorRound[],
-  saved: ReadonlyMap<string, string>,
+  saved: ReadonlyMap<CellKey, string>,
   draft: Draft
 ) => {
   const grids: GridRow[][] = [];

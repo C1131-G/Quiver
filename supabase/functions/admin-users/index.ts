@@ -5,8 +5,16 @@
 // function with the admin's session instead; it verifies the caller is an
 // admin, then uses the admin client here on the server.
 
-import { withSupabase } from "npm:@supabase/server@1.8.0";
-import { z } from "npm:zod@4.5.4";
+import { withSupabase } from "@supabase/server";
+import { z } from "zod";
+
+import { adminUsersRequestSchema as requestSchema } from "../_shared/admin-users-contract.ts";
+import type {
+  createSchema,
+  resetPasswordSchema,
+  setActiveSchema,
+  updateSchema,
+} from "../_shared/admin-users-contract.ts";
 
 // Must match NEXT_PUBLIC_LOGIN_USERNAME_DOMAIN in the apps.
 const LOGIN_EMAIL_DOMAIN =
@@ -14,50 +22,6 @@ const LOGIN_EMAIL_DOMAIN =
 
 // Banned users cannot sign in or refresh a session; "none" lifts the ban.
 const DEACTIVATED_BAN = "876000h";
-
-const loginId = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .regex(
-    /^[a-z0-9][a-z0-9._-]{2,31}$/u,
-    "Login ID must be 3–32 characters: letters, numbers, dot, dash or underscore."
-  );
-const password = z
-  .string()
-  .min(8, "Password must be at least 8 characters.")
-  .max(72, "Password must be at most 72 characters.");
-const fullName = z.string().trim().min(1, "Name is required.").max(120);
-const userId = z.uuid();
-
-const createSchema = z.object({
-  action: z.literal("create"),
-  fullName,
-  loginId,
-  password,
-  role: z.enum(["admin", "scorer"]),
-});
-const updateSchema = z.object({
-  action: z.literal("update"),
-  fullName,
-  userId,
-});
-const setActiveSchema = z.object({
-  action: z.literal("setActive"),
-  isActive: z.boolean(),
-  userId,
-});
-const resetPasswordSchema = z.object({
-  action: z.literal("resetPassword"),
-  password,
-  userId,
-});
-const requestSchema = z.discriminatedUnion("action", [
-  createSchema,
-  updateSchema,
-  setActiveSchema,
-  resetPasswordSchema,
-]);
 
 // app_metadata is only writable by the service role, so the role in a
 // verified JWT is trustworthy. user_metadata never is.
@@ -155,6 +119,21 @@ const resetAccountPassword = async (
   return error ? fail(404, "Account not found.") : Response.json({ ok: true });
 };
 
+const isActiveProfile = async (
+  admin: AdminClient,
+  userId: string | undefined
+) => {
+  if (!userId) {
+    return false;
+  }
+  const { data } = await admin
+    .from("profiles")
+    .select("is_active")
+    .eq("id", userId)
+    .maybeSingle();
+  return data?.is_active === true;
+};
+
 const readRequest = async (req: Request) => {
   try {
     return requestSchema.safeParse(await req.json());
@@ -167,6 +146,11 @@ export default {
   fetch: withSupabase({ auth: "user" }, async (req, ctx) => {
     const claims = callerClaimsSchema.safeParse(ctx.jwtClaims);
     if (!claims.success || claims.data.app_metadata?.role !== "admin") {
+      return fail(403, "Only an admin can manage accounts.");
+    }
+    // A deactivated admin's token stays valid until it expires; the profile
+    // is the live source of truth.
+    if (!(await isActiveProfile(ctx.supabaseAdmin, ctx.userClaims?.id))) {
       return fail(403, "Only an admin can manage accounts.");
     }
 
@@ -194,7 +178,9 @@ export default {
         return resetAccountPassword(admin, input);
       }
       default: {
-        return fail(400, "Unknown action.");
+        // A new action fails to compile here until it is handled above.
+        const unhandled: never = input;
+        return fail(400, `Unknown action: ${JSON.stringify(unhandled)}`);
       }
     }
   }),

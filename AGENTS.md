@@ -1,9 +1,61 @@
+<!-- intent-skills:start -->
+
+## Skill Loading
+
+Before editing files for a substantial task:
+
+- Run `bunx @tanstack/intent@latest list` from the workspace root to see available local skills.
+- If a listed skill matches the task, run `bunx @tanstack/intent@latest load <package>#<skill>` before changing files.
+- Use the loaded `SKILL.md` guidance while making the change.
+- Monorepos: when working across packages, run the skill check from the workspace root and prefer the local skill for the package being changed.
+- Multiple matches: prefer the most specific local skill for the package or concern you are changing; load additional skills only when the task spans multiple packages or concerns.
+
+<!-- intent-skills:end -->
+
+## Which skill to load
+
+Load the skill before writing the code, not after. Two or more rows can apply at once — load all of them.
+
+| When | Load |
+| --- | --- |
+| Any code change, in any language | `enforce-code-quality` |
+| Editing a `.ts` or `.tsx` file | `enforce-typescript-strict` |
+| Parsing untrusted data — search params, JSON, RPC results, form input | `type-safety-validation` |
+| About to write or edit a `useEffect` | `audit-react-effects` |
+| An interaction that waits on the server — submit, save, load, spinner placement | `apply-react-async-ui` |
+| The file imports `useQuery`, `useMutation`, `useSuspenseQuery`, or `queryClient` | `use-tanstack-query` |
+| The file imports `@tanstack/react-table` | `bunx @tanstack/intent@latest load @tanstack/react-table#getting-started` (and `#table-state`) |
+| The file has `createFileRoute`, a route loader, or reads TanStack search params | `use-tanstack-router` |
+| Showing the user a toast (`sonner`) | `ask-sonner` |
+| A route, layout, page, or server/client boundary in `apps/web/app` | `nextjs-app-architecture`, `nextjs-react-typescript` |
+| `"use cache"`, `cacheLife`, Suspense boundaries, or prefetching | `next-cache-components-optimizer`, `next-partial-prefetching-adoption` |
+| A Next.js layout shell, sidebar, or streaming boundary | `apply-next-shell-nav` |
+| Supabase auth, RLS, Realtime, or the Supabase CLI | `supabase` |
+| A migration, SQL function, view, index, or policy in `supabase/` | `supabase-postgres-best-practices` |
+| Lint or format errors, or Oxlint config | `ultracite` |
+| Onboarding a repository, or this table needs updating | `setup-agent-rules` |
+| Auditing the repo against the skills its stack implies, or checking this setup is applied | `audit-with-skills` |
+| Reading or reviewing a research paper | `read-research-paper` |
+
+## Architecture decisions
+
+These choices are deliberate. A skill's generic advice does not override them. Change one only after discussing it.
+
+- **Data is read in the browser, not in Server Components.** The dashboard runs inside Electron against Supabase. Reads use the RLS-scoped browser client through TanStack Query. That keeps Realtime live updates and cache invalidation in one place. Pages stay synchronous and only compose Suspense and error boundaries.
+- **Feature code lives in `apps/web/components/<domain>/`, not `features/`.** Each domain folder owns its query keys and `queryOptions` (`use-*.ts`), its components, and a skeleton at the end of the feature file.
+- **Shared Edge Function contracts live in `supabase/functions/_shared/`.** The web app imports them as `@contracts/*`. Validate with the same zod schema on both sides, and never duplicate them.
+- **Dialogs keep a snapshot of the row they opened with.** Live updates can refetch the list while a dialog is open, and the form must not change underneath the user.
+- **Roles live in `app_metadata`, and `private.is_admin()` also requires an active profile.** Deactivating an account removes its access right away, without waiting for the token to expire.
+- **Paging uses OFFSET with UUIDv4 keys.** The mobile app generates the IDs, and each list holds hundreds of rows, not millions. Revisit keyset paging only if that changes.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
+
+<important if="you are writing, editing, or reviewing TypeScript, JavaScript, or JSX code">
 
 # Ultracite Code Standards
 
@@ -131,3 +183,5 @@ Oxlint + Oxfmt's linter will catch most issues automatically. Focus your attenti
 ---
 
 Most formatting and common issues are automatically fixed by Oxlint + Oxfmt. Run `bun x ultracite fix` before committing to ensure compliance.
+
+</important>

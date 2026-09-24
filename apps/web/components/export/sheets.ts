@@ -179,7 +179,7 @@ const nameOf = <T extends { id: number }>(
   if (id === ALL) {
     return "All";
   }
-  const row = rows?.find((item) => String(item.id) === id);
+  const row = rows?.find((candidate) => String(candidate.id) === id);
   return row ? label(row) : id;
 };
 

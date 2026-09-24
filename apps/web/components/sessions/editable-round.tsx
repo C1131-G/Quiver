@@ -50,9 +50,9 @@ export const EditableRound = ({
   roundId: string;
   roundNo: number;
   rows: GridRow[];
-  selected: Cell | null;
+  selected: Cell | undefined;
 }) => {
-  const selectedKey = selected ? cellKey(selected) : null;
+  const selectedKey = selected ? cellKey(selected) : undefined;
   return (
     <Card>
       <CardHeader>
