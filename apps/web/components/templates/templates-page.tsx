@@ -48,6 +48,20 @@ const TemplatesEmpty = ({ filtered }: { filtered: boolean }) => (
   </Empty>
 );
 
+export const TemplatesPageSkeleton = () => (
+  <div>
+    <PageHeader
+      description="Sessions planned ahead. Scorers start them in QuiverScore, one per athlete, with the rounds filled in."
+      title="Schedule"
+    />
+    <div aria-busy="true" className="flex flex-col gap-2">
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+    </div>
+  </div>
+);
+
 export const TemplatesPage = () => {
   const templates = useTemplates();
   const athletes = useAthletes();
@@ -70,8 +84,6 @@ export const TemplatesPage = () => {
     [lookups.data]
   );
   const rows = useMemo(() => {
-    // Templates load in the browser, so this returns before the prerender
-    // would read the clock.
     if (!templates.data) {
       return [];
     }
