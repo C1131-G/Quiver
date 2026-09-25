@@ -6,29 +6,39 @@ import {
   SidebarMenuItem,
 } from "@workspace/ui/components/sidebar";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 
 export const WorkspaceLogout = () => {
   const router = useRouter();
   const [error, setError] = useState<string>();
+  const [isPending, startTransition] = useTransition();
 
-  const logout = async () => {
-    const { error: signOutError } = await createClient().auth.signOut();
-    if (signOutError) {
-      setError("Could not log out. Your session is still active.");
+  const logout = () => {
+    if (isPending) {
       return;
     }
-    router.replace("/login");
-    router.refresh();
+    startTransition(async () => {
+      const { error: signOutError } = await createClient().auth.signOut();
+      if (signOutError) {
+        setError("Could not log out. Your session is still active.");
+        return;
+      }
+      router.replace("/login");
+      router.refresh();
+    });
   };
 
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton onClick={logout} tooltip="Log out">
+      <SidebarMenuButton
+        disabled={isPending}
+        onClick={logout}
+        tooltip="Log out"
+      >
         <SignOutIcon aria-hidden="true" />
-        <span>Log out</span>
+        <span>{isPending ? "Logging out…" : "Log out"}</span>
       </SidebarMenuButton>
       {error ? (
         <p className="text-destructive px-2 text-xs" role="alert">
