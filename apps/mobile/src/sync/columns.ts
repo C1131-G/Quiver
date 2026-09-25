@@ -50,4 +50,6 @@ export const columnsOf = {
     updated_at: row.updated_at,
     venue: row.venue,
   }),
-} satisfies { [T in SyncedTable]: (row: SyncedRows[T]) => SyncedRows[T] };
+} satisfies {
+  [TTable in SyncedTable]: (row: SyncedRows[TTable]) => SyncedRows[TTable];
+};

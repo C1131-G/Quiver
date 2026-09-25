@@ -43,9 +43,9 @@ interface Option {
 }
 
 /** Inactive options stay selectable only when the athlete already uses them. */
-const toOptions = <T extends { id: number; is_active: boolean }>(
-  rows: T[],
-  label: (row: T) => string,
+const toOptions = <TRow extends { id: number; is_active: boolean }>(
+  rows: TRow[],
+  label: (row: TRow) => string,
   currentId: number | undefined
 ): Option[] => {
   const options: Option[] = [];

@@ -64,8 +64,8 @@ export const useScorecard = (sessionId: string) => {
   const { db } = useScorerDb();
 
   const { data: header } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ session: db.sessions })
         .leftJoin({ athlete: db.athletes }, ({ athlete, session }) =>
           eq(athlete.id, session.athlete_id)
@@ -83,8 +83,8 @@ export const useScorecard = (sessionId: string) => {
   });
 
   const { data: rounds } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ round: db.rounds })
         .where(({ round }) => eq(round.session_id, sessionId))
         .orderBy(({ round }) => round.round_no, "asc"),
@@ -92,8 +92,8 @@ export const useScorecard = (sessionId: string) => {
   });
 
   const { data: ends } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ end: db.ends })
         .innerJoin({ round: db.rounds }, ({ end, round }) =>
           eq(end.round_id, round.id)
@@ -104,8 +104,8 @@ export const useScorecard = (sessionId: string) => {
   });
 
   const { data: arrows } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ arrow: db.arrows })
         .innerJoin({ end: db.ends }, ({ arrow, end }) =>
           eq(arrow.end_id, end.id)
@@ -119,18 +119,20 @@ export const useScorecard = (sessionId: string) => {
   });
 
   const { data: distances } = useLiveQuery({
-    query: (q) => q.from({ distance: db.distances }),
+    query: (query) => query.from({ distance: db.distances }),
     queryKey: ["lookups", "distances"],
   });
   const { data: faces } = useLiveQuery({
-    query: (q) => q.from({ face: db.targetFaces }),
+    query: (query) => query.from({ face: db.targetFaces }),
     queryKey: ["lookups", "target-faces"],
   });
 
   const cards = useMemo(() => {
     const byRound = groupByRound(ends ?? EMPTY, arrows ?? EMPTY);
-    const meters = new Map((distances ?? EMPTY).map((d) => [d.id, d.meters]));
-    const faceById = new Map((faces ?? EMPTY).map((f) => [f.id, f]));
+    const meters = new Map(
+      (distances ?? EMPTY).map((distance) => [distance.id, distance.meters])
+    );
+    const faceById = new Map((faces ?? EMPTY).map((face) => [face.id, face]));
     const result: RoundCard[] = [];
     let totalBefore = 0;
     for (const round of rounds ?? EMPTY) {

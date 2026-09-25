@@ -47,5 +47,9 @@ export const pointsOf = (value: string | null) => {
 const RANK: readonly string[] = ARROW_VALUES.toReversed();
 
 /** Scorecards list each end's arrows from highest to lowest. */
-export const highToLow = <T extends { value: string }>(arrows: readonly T[]) =>
-  arrows.toSorted((a, b) => RANK.indexOf(b.value) - RANK.indexOf(a.value));
+export const highToLow = <TArrow extends { value: string }>(
+  arrows: readonly TArrow[]
+) =>
+  arrows.toSorted(
+    (arrowA, arrowB) => RANK.indexOf(arrowB.value) - RANK.indexOf(arrowA.value)
+  );

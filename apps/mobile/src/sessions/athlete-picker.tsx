@@ -80,8 +80,8 @@ export const AthletePicker = () => {
   const term = debouncedSearch.trim();
 
   const { data: categories } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ category: db.categories })
         .where(({ category }) => eq(category.is_active, true))
         .orderBy(({ category }) => category.sort_order, "asc"),
@@ -89,8 +89,8 @@ export const AthletePicker = () => {
   });
 
   const { data: athletes, isLoading } = useLiveQuery({
-    query: (q) => {
-      let query = q
+    query: (builder) => {
+      let query = builder
         .from({ athlete: db.athletes })
         .orderBy(({ athlete }) => athlete.full_name, "asc");
       if (term !== "") {

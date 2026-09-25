@@ -160,12 +160,14 @@ export const formatsOf = (rows: PerformanceRow[]): FormatOption[] => {
     options.set(key, option);
   }
   return [...options.values()].toSorted(
-    (a, b) => b.athletes - a.athletes || b.arrows - a.arrows
+    (optionA, optionB) =>
+      optionB.athletes - optionA.athletes || optionB.arrows - optionA.arrows
   );
 };
 
-const sameFormat = (a: RoundFormat, b: RoundFormat | null) =>
-  a.distanceId === b?.distanceId && a.faceId === b.faceId;
+const sameFormat = (formatA: RoundFormat, formatB: RoundFormat | null) =>
+  formatA.distanceId === formatB?.distanceId &&
+  formatA.faceId === formatB.faceId;
 
 export type Comparison = ReturnType<typeof useComparison>;
 

@@ -54,7 +54,9 @@ export const upsertAccountProfile = (
   const merged = previous.some((row) => row.id === profile.id)
     ? previous.map((row) => (row.id === profile.id ? profile : row))
     : [...previous, profile];
-  return merged.toSorted((a, b) => a.full_name.localeCompare(b.full_name));
+  return merged.toSorted((rowA, rowB) =>
+    rowA.full_name.localeCompare(rowB.full_name)
+  );
 };
 
 export const useAdminUsersMutation = () => {

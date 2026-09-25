@@ -107,15 +107,15 @@ const StartForm = ({ template }: { template: SessionTemplate }) => {
   const [startError, setStartError] = useState<string | null>(null);
 
   const { data: athletes } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ athlete: db.athletes })
         .orderBy(({ athlete }) => athlete.full_name, "asc"),
     queryKey: ["athletes", "by-name"],
   });
   const { data: fromTemplate } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ session: db.sessions })
         .where(({ session }) => eq(session.template_id, template.id))
         .select(({ session }) => ({
@@ -126,7 +126,7 @@ const StartForm = ({ template }: { template: SessionTemplate }) => {
     queryKey: ["sessions", "from-template", template.id],
   });
   const { data: distances } = useLiveQuery({
-    query: (q) => q.from({ distance: db.distances }),
+    query: (query) => query.from({ distance: db.distances }),
     queryKey: ["lookups", "distances"],
   });
 
@@ -259,8 +259,8 @@ const StartForm = ({ template }: { template: SessionTemplate }) => {
 export const ScheduledStart = ({ templateId }: { templateId: string }) => {
   const { db } = useScorerDb();
   const { data: found, isLoading } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ template: db.sessionTemplates })
         .where(({ template }) => eq(template.id, templateId))
         .findOne(),

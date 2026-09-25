@@ -14,9 +14,11 @@ const EMPTY: never[] = [];
  */
 export const usePendingSync = () => {
   const { db } = useScorerDb();
-  const { data: entries } = useLiveQuery((q) => q.from({ entry: db.outbox }));
-  const { data: issues } = useLiveQuery((q) =>
-    q.from({ issue: db.syncIssues })
+  const { data: entries } = useLiveQuery((query) =>
+    query.from({ entry: db.outbox })
+  );
+  const { data: issues } = useLiveQuery((query) =>
+    query.from({ issue: db.syncIssues })
   );
 
   return useMemo(() => {

@@ -4,25 +4,25 @@ import { PressableScale } from "@/components/pressable-scale";
 import { Text, TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
-export interface Choice<T extends number | string> {
+export interface Choice<TValue extends number | string> {
   label: string;
-  value: T;
+  value: TValue;
 }
 
 /**
  * A row of options where exactly one is chosen, like radio buttons. Wraps
  * onto more lines when the options do not fit.
  */
-export const ChoiceGroup = <T extends number | string>({
+export const ChoiceGroup = <TValue extends number | string>({
   choices,
   label,
   onChange,
   value,
 }: {
-  choices: readonly Choice<T>[];
+  choices: readonly Choice<TValue>[];
   label: string;
-  onChange: (value: T) => void;
-  value: T | null;
+  onChange: (value: TValue) => void;
+  value: TValue | null;
 }) => (
   <View
     aria-label={label}

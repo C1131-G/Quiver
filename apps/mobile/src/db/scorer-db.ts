@@ -40,11 +40,11 @@ const createScorerDb = (userId: string) => {
     database: toPersistenceDatabase(database),
   });
 
-  const table = <T extends { id: TKey }, TKey extends number | string>(
+  const table = <TRow extends { id: TKey }, TKey extends number | string>(
     id: string
   ) =>
     createCollection(
-      persistedCollectionOptions<T, TKey>({
+      persistedCollectionOptions<TRow, TKey>({
         getKey: (row) => row.id,
         id,
         persistence,

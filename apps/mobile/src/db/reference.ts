@@ -20,7 +20,7 @@ const TEMPLATE_COLUMNS = `
 `;
 
 /** Every column the server sent has the value already stored. */
-const sameRow = <T extends object>(stored: T, fetched: T) => {
+const sameRow = <TRow extends object>(stored: TRow, fetched: TRow) => {
   const storedValues = new Map(Object.entries(stored));
   // Scheduled sessions hold their rounds and athletes as lists.
   return Object.entries(fetched).every(
@@ -34,13 +34,16 @@ const sameRow = <T extends object>(stored: T, fetched: T) => {
  * updated, rows the server no longer returns removed. Resolves once the
  * copy is saved to SQLite.
  */
-const reconcile = async <T extends { id: TKey }, TKey extends number | string>(
-  collection: Collection<T, TKey>,
-  fetched: readonly T[]
+const reconcile = async <
+  TRow extends { id: TKey },
+  TKey extends number | string,
+>(
+  collection: Collection<TRow, TKey>,
+  fetched: readonly TRow[]
 ) => {
   const fetchedIds = new Set(fetched.map((row) => row.id));
-  const toInsert: T[] = [];
-  const toUpdate: T[] = [];
+  const toInsert: TRow[] = [];
+  const toUpdate: TRow[] = [];
   for (const row of fetched) {
     const stored = collection.get(row.id);
     if (!stored) {
@@ -68,11 +71,11 @@ const reconcile = async <T extends { id: TKey }, TKey extends number | string>(
   await Promise.all(writes.map((write) => write.isPersisted.promise));
 };
 
-const orThrow = <T>({
+const orThrow = <TData>({
   data,
   error,
 }: {
-  data: T | null;
+  data: TData | null;
   error: Error | null;
 }) => {
   if (error || data === null) {
@@ -92,7 +95,9 @@ const toTemplate = ({
 } & Omit<SessionTemplate, "athlete_ids" | "rounds">): SessionTemplate => ({
   ...template,
   athlete_ids: athletes.map((row) => row.athlete_id).toSorted(),
-  rounds: rounds.toSorted((a, b) => a.round_no - b.round_no),
+  rounds: rounds.toSorted(
+    (roundA, roundB) => roundA.round_no - roundB.round_no
+  ),
 });
 
 /**

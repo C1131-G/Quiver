@@ -21,8 +21,8 @@ const STATUS_MARKS = {
 export const useSessionTabs = (activeId: string | undefined) => {
   const { db } = useScorerDb();
   const { data } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ session: db.sessions })
         .leftJoin({ athlete: db.athletes }, ({ athlete, session }) =>
           eq(athlete.id, session.athlete_id)

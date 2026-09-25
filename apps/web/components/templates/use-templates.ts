@@ -52,7 +52,9 @@ const fetchTemplates = async () => {
   }
   return data.map((template) => ({
     ...template,
-    rounds: template.rounds.toSorted((a, b) => a.round_no - b.round_no),
+    rounds: template.rounds.toSorted(
+      (roundA, roundB) => roundA.round_no - roundB.round_no
+    ),
   }));
 };
 

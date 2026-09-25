@@ -7,13 +7,13 @@ const MAX_ROWS = 1000;
  * Reads a whole ordered result a page at a time, so the row cap never
  * silently truncates a table or an export.
  */
-export const fetchAllRows = async <T>(
+export const fetchAllRows = async <TRow>(
   fetchPage: (
     start: number,
     end: number
-  ) => PromiseLike<{ data: T[] | null; error: { code?: string } | null }>
+  ) => PromiseLike<{ data: TRow[] | null; error: { code?: string } | null }>
 ) => {
-  const rows: T[] = [];
+  const rows: TRow[] = [];
   for (let start = 0; ; start += MAX_ROWS) {
     // Pages must load in order; each one decides whether another follows.
     // oxlint-disable-next-line no-await-in-loop

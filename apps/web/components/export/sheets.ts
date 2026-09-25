@@ -169,10 +169,10 @@ interface FilterLine {
   value: string;
 }
 
-const nameOf = <T extends { id: number }>(
-  rows: T[] | undefined,
+const nameOf = <TRow extends { id: number }>(
+  rows: TRow[] | undefined,
   id: string,
-  label: (row: T) => string
+  label: (row: TRow) => string
 ) => {
   if (id === ALL) {
     return "All";

@@ -37,8 +37,8 @@ type ExpoQueryable = Pick<
 
 const toQueryable = (database: ExpoQueryable): ExpoSQLiteQueryable => ({
   execAsync: (sql) => database.execAsync(sql),
-  getAllAsync: <T>(sql: string, params?: ExpoSQLiteBindParams) =>
-    database.getAllAsync<T>(sql, toBindParams(params)),
+  getAllAsync: <TRow>(sql: string, params?: ExpoSQLiteBindParams) =>
+    database.getAllAsync<TRow>(sql, toBindParams(params)),
   runAsync: async (sql, params) => {
     const { changes, lastInsertRowId } = await database.runAsync(
       sql,
@@ -49,8 +49,8 @@ const toQueryable = (database: ExpoQueryable): ExpoSQLiteQueryable => ({
 });
 
 /** Carries a transaction's result out of expo-sqlite, which returns none. */
-interface TransactionResult<T> {
-  settled?: { value: T };
+interface TransactionResult<TValue> {
+  settled?: { value: TValue };
 }
 
 export const toPersistenceDatabase = (
@@ -58,10 +58,10 @@ export const toPersistenceDatabase = (
 ): ExpoSQLiteDatabaseLike => ({
   ...toQueryable(database),
   closeAsync: () => database.closeAsync(),
-  withExclusiveTransactionAsync: async <T>(
-    task: (transaction: ExpoSQLiteQueryable) => Promise<T>
+  withExclusiveTransactionAsync: async <TValue>(
+    task: (transaction: ExpoSQLiteQueryable) => Promise<TValue>
   ) => {
-    const result: TransactionResult<T> = {};
+    const result: TransactionResult<TValue> = {};
     await database.withExclusiveTransactionAsync(async (transaction) => {
       result.settled = { value: await task(toQueryable(transaction)) };
     });

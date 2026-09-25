@@ -29,12 +29,12 @@ const sessionStatusSchema = z.enum([
 ] satisfies Enums["session_status"][]);
 
 /** Fail loudly when a table or view returns an unexpected shape. */
-export const parseTableRows = <T>(
-  schema: z.ZodType<T>,
+export const parseTableRows = <TRow>(
+  schema: z.ZodType<TRow>,
   // oxlint-disable-next-line anti-slop/no-unknown-parameters -- boundary parser: unknown in, schema-validated rows out (type-safety-validation)
   rows: unknown,
   message: string
-): T[] => {
+): TRow[] => {
   const parsed = z.array(schema).safeParse(rows ?? []);
   if (!parsed.success) {
     throw new Error(

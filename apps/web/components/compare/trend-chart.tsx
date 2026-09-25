@@ -50,8 +50,8 @@ const toPoints = (rows: PerformanceRow[], series: Series[]) => {
     point[key] = row.avg_arrow;
     weeks.set(row.week_start, point);
   }
-  return [...weeks.values()].toSorted((a, b) =>
-    String(a.week).localeCompare(String(b.week))
+  return [...weeks.values()].toSorted((pointA, pointB) =>
+    String(pointA.week).localeCompare(String(pointB.week))
   );
 };
 

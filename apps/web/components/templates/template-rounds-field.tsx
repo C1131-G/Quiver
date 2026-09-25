@@ -14,9 +14,9 @@ import type { RoundDraft } from "./template-form";
 import { ATHLETE_OWN, newRound, ROUND_LIMITS } from "./template-form";
 
 /** Active options, plus the one a saved round still uses. */
-const optionsOf = <T extends { id: number; is_active: boolean }>(
-  rows: T[],
-  label: (row: T) => string,
+const optionsOf = <TRow extends { id: number; is_active: boolean }>(
+  rows: TRow[],
+  label: (row: TRow) => string,
   ownLabel: string,
   inUse: ReadonlySet<string>
 ): FilterOption[] => [

@@ -12,7 +12,7 @@ import { columnsOf } from "./columns";
 
 /** Reads a row as the phone has it now, or undefined once deleted. */
 export type LocalRows = {
-  [T in SyncedTable]: (id: string) => SyncedRows[T] | undefined;
+  [TTable in SyncedTable]: (id: string) => SyncedRows[TTable] | undefined;
 };
 
 interface ChildChanges {

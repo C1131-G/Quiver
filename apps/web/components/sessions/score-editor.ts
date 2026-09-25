@@ -86,8 +86,10 @@ export const pointsOf = (value: string | null) => {
 const RANK = ["M", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "X"];
 
 /** Scorecards list each end's arrows from highest to lowest. */
-export const highToLow = <T extends { value: string }>(arrows: T[]) =>
-  arrows.toSorted((a, b) => RANK.indexOf(b.value) - RANK.indexOf(a.value));
+export const highToLow = <TArrow extends { value: string }>(arrows: TArrow[]) =>
+  arrows.toSorted(
+    (arrowA, arrowB) => RANK.indexOf(arrowB.value) - RANK.indexOf(arrowA.value)
+  );
 
 export interface GridRow {
   /** Running total for this round (the scorecard's "Dist" column). */
@@ -149,10 +151,10 @@ export const toChanges = (draft: Draft) =>
       };
     })
     .toSorted(
-      (a, b) =>
-        a.round_id.localeCompare(b.round_id) ||
-        a.end_no - b.end_no ||
-        a.arrow_no - b.arrow_no
+      (changeA, changeB) =>
+        changeA.round_id.localeCompare(changeB.round_id) ||
+        changeA.end_no - changeB.end_no ||
+        changeA.arrow_no - changeB.arrow_no
     );
 
 /** Keeps a 1-based position inside 1..max. */

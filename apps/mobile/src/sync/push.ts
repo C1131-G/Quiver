@@ -4,7 +4,7 @@ import { NOT_FOUND, NOT_OPEN, SyncRejectedError, rejection } from "./errors";
 import type { SessionPush } from "./push-plan";
 
 export type UpsertBatch = {
-  [T in SyncedTable]: { rows: SyncedRows[T][]; table: T };
+  [TTable in SyncedTable]: { rows: SyncedRows[TTable][]; table: TTable };
 }[SyncedTable];
 
 /**

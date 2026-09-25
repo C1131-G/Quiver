@@ -17,16 +17,16 @@ const SAVE_FAILED = "Could not save on this phone. Try again.";
 const useCanDiscard = (sessionId: string) => {
   const { db } = useScorerDb();
   const { data: queued } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ entry: db.outbox })
         .where(({ entry }) => eq(entry.id, `sessions:${sessionId}`))
         .findOne(),
     queryKey: ["scoring", "session-queued", sessionId],
   });
   const { data: sent } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ sent: db.sentSessions })
         .where(({ sent: row }) => eq(row.id, sessionId))
         .findOne(),

@@ -108,11 +108,13 @@ const fetchSession = async (sessionId: string) => {
       ends: round.ends
         .map((end) => ({
           ...end,
-          arrows: end.arrows.toSorted((a, b) => a.arrow_no - b.arrow_no),
+          arrows: end.arrows.toSorted(
+            (arrowA, arrowB) => arrowA.arrow_no - arrowB.arrow_no
+          ),
         }))
-        .toSorted((a, b) => a.end_no - b.end_no),
+        .toSorted((endA, endB) => endA.end_no - endB.end_no),
     }))
-    .toSorted((a, b) => a.round_no - b.round_no);
+    .toSorted((roundA, roundB) => roundA.round_no - roundB.round_no);
   return { ...session, rounds };
 };
 

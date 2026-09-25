@@ -35,16 +35,16 @@ import { TemplateRoundsField } from "./template-rounds-field";
 import type { TemplateRow } from "./use-templates";
 import { useSaveTemplate } from "./use-templates";
 
-const optionsOf = <T extends string>(labels: Record<T, string>) =>
+const optionsOf = <TKey extends string>(labels: Record<TKey, string>) =>
   Object.entries<string>(labels).map(([value, label]) => ({ label, value }));
 
 const SESSION_TYPES = optionsOf(SESSION_TYPE_LABELS);
 const VENUES = optionsOf(VENUE_LABELS);
 
-const isKeyOf = <T extends string>(
-  labels: Record<T, string>,
+const isKeyOf = <TKey extends string>(
+  labels: Record<TKey, string>,
   value: string
-): value is T => Object.hasOwn(labels, value);
+): value is TKey => Object.hasOwn(labels, value);
 
 /** The form itself; it mounts with the dialog, so every open starts clean. */
 const TemplateForm = ({
@@ -63,9 +63,9 @@ const TemplateForm = ({
     draftOf(template, toIsoDate(new Date()))
   );
   const [formError, setFormError] = useState<string | undefined>();
-  const set = <K extends keyof TemplateDraft>(
-    key: K,
-    value: TemplateDraft[K]
+  const set = <TKey extends keyof TemplateDraft>(
+    key: TKey,
+    value: TemplateDraft[TKey]
   ) => setDraft((current) => ({ ...current, [key]: value }));
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {

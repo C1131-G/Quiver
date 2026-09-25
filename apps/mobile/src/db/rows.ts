@@ -6,7 +6,7 @@ import type { Database } from "@workspace/shared/database.types";
  */
 
 type Tables = Database["public"]["Tables"];
-type Row<T extends keyof Tables> = Tables[T]["Row"];
+type Row<TTable extends keyof Tables> = Tables[TTable]["Row"];
 
 export type SessionType = Database["public"]["Enums"]["session_type"];
 export type Venue = Database["public"]["Enums"]["venue"];

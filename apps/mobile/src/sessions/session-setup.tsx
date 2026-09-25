@@ -111,10 +111,10 @@ const defaultPreset = (meters: number | undefined) => {
 };
 
 /** Active options, plus the one in use even if it has since been retired. */
-const choicesOf = <T extends { id: number; is_active: boolean }>(
-  rows: readonly T[],
+const choicesOf = <TRow extends { id: number; is_active: boolean }>(
+  rows: readonly TRow[],
   inUse: number,
-  label: (row: T) => string
+  label: (row: TRow) => string
 ): Choice<number>[] => {
   const choices: Choice<number>[] = [];
   for (const row of rows) {
@@ -154,7 +154,7 @@ const SetupForm = ({
   const { db, userId } = useScorerDb();
   const [saveError, setSaveError] = useState<string | null>(null);
   const athleteMeters = distances.find(
-    (d) => d.id === athlete.distance_id
+    (distance) => distance.id === athlete.distance_id
   )?.meters;
   const preset = defaultPreset(athleteMeters);
 
@@ -338,7 +338,7 @@ const SetupForm = ({
                         choices={choicesOf(
                           distances,
                           round.distanceId,
-                          (d) => `${d.meters} m`
+                          (distance) => `${distance.meters} m`
                         )}
                         label={`Round ${index + 1} distance`}
                         onChange={field.handleChange}
@@ -355,7 +355,7 @@ const SetupForm = ({
                         choices={choicesOf(
                           faces,
                           round.targetFaceId,
-                          (f) => f.name
+                          (face) => face.name
                         )}
                         label={`Round ${index + 1} target face`}
                         onChange={field.handleChange}
@@ -441,23 +441,23 @@ export const SessionSetup = ({ athleteId }: { athleteId: string }) => {
   const { db } = useScorerDb();
 
   const { data: found, isLoading } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ athlete: db.athletes })
         .where(({ athlete }) => eq(athlete.id, athleteId))
         .findOne(),
     queryKey: ["athletes", "one", athleteId],
   });
   const { data: distances } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ distance: db.distances })
         .orderBy(({ distance }) => distance.meters, "asc"),
     queryKey: ["lookups", "distances", "by-meters"],
   });
   const { data: faces } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ face: db.targetFaces })
         .orderBy(({ face }) => face.sort_order, "asc"),
     queryKey: ["lookups", "target-faces", "sorted"],

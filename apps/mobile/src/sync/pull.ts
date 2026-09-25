@@ -22,9 +22,9 @@ const SESSION_TREE = `
 `;
 
 /** Inserts rows the phone lacks and overwrites the ones it has. */
-const putAll = <T extends { id: string }>(
-  collection: Collection<T, string>,
-  rows: readonly T[]
+const putAll = <TRow extends { id: string }>(
+  collection: Collection<TRow, string>,
+  rows: readonly TRow[]
 ) => {
   for (const row of rows) {
     if (collection.has(row.id)) {

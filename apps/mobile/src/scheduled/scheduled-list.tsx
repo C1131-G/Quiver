@@ -21,8 +21,8 @@ export const ScheduledList = () => {
   const { db } = useScorerDb();
   const from = today();
   const { data: templates } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ template: db.sessionTemplates })
         .where(({ template }) => gte(template.session_date, from))
         .orderBy(({ template }) => template.session_date, "asc")

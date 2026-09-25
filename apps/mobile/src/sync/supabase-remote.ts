@@ -11,7 +11,7 @@ interface Response {
   status: number;
 }
 
-const orThrow = <T extends Response>(response: T) => {
+const orThrow = <TResponse extends Response>(response: TResponse) => {
   if (response.error) {
     throw toSyncError(response.status, response.error);
   }

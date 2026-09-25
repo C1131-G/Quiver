@@ -1,18 +1,18 @@
 import type { Workbook } from "exceljs";
 import { z } from "zod";
 
-export interface SheetColumn<T> {
+export interface SheetColumn<TRow> {
   header: string;
   /** Excel number format, e.g. "0.00" or "0.0%". */
   numFmt?: string;
-  value: (row: T) => Date | number | string | null;
+  value: (row: TRow) => Date | number | string | null;
   width?: number;
 }
 
-export interface SheetSpec<T> {
-  columns: SheetColumn<T>[];
+export interface SheetSpec<TRow> {
+  columns: SheetColumn<TRow>[];
   name: string;
-  rows: T[];
+  rows: TRow[];
 }
 
 export const DATE_FORMAT = "yyyy-mm-dd";
@@ -36,7 +36,7 @@ export const excelDate = (value: string | null) => {
   return new Date(Date.UTC(year ?? 1970, (month ?? 1) - 1, day ?? 1));
 };
 
-const addSheet = <T>(workbook: Workbook, spec: SheetSpec<T>) => {
+const addSheet = <TRow>(workbook: Workbook, spec: SheetSpec<TRow>) => {
   const sheet = workbook.addWorksheet(spec.name, {
     views: [{ state: "frozen", ySplit: HEADER_ROW }],
   });

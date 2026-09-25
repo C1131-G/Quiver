@@ -46,7 +46,8 @@ export interface RoundScore {
 
 const isTenPlusX = (value: string) => value === "X" || value === "10";
 
-const byArrowNo = (a: ScoredArrow, b: ScoredArrow) => a.arrowNo - b.arrowNo;
+const byArrowNo = (arrowA: ScoredArrow, arrowB: ScoredArrow) =>
+  arrowA.arrowNo - arrowB.arrowNo;
 
 /** Entry order while an end is being shot; highest first once it is full. */
 export const endDisplayOrder = (
@@ -142,5 +143,6 @@ export const nextArrowNo = (
 };
 
 /** The arrow shot last in an end: the one "Delete arrow" removes. */
-export const lastShot = <T extends ScoredArrow>(arrows: readonly T[]) =>
-  arrows.toSorted(byArrowNo).at(-1) ?? null;
+export const lastShot = <TArrow extends ScoredArrow>(
+  arrows: readonly TArrow[]
+) => arrows.toSorted(byArrowNo).at(-1) ?? null;

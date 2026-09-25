@@ -80,10 +80,10 @@ export const FILTER_KEYS = [
   "venue",
 ] as const satisfies readonly (keyof Filters)[];
 
-const parseOr = <T, F>(
-  schema: z.ZodType<T>,
+const parseOr = <TValue, TFallback>(
+  schema: z.ZodType<TValue>,
   value: string | null,
-  fallback: F
+  fallback: TFallback
 ) => {
   const result = schema.safeParse(value);
   return result.success ? result.data : fallback;

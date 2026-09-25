@@ -49,8 +49,8 @@ export const distributionRowSchema = z.object({
 
 /** Parses a page of rows; one malformed row fails the load loudly. */
 export const parseRows =
-  <T>(schema: z.ZodType<T>) =>
-  (rows: unknown[]): T[] => {
+  <TRow>(schema: z.ZodType<TRow>) =>
+  (rows: unknown[]): TRow[] => {
     const parsed = z.array(schema).safeParse(rows);
     if (!parsed.success) {
       throw new Error(

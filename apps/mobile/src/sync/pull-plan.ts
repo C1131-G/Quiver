@@ -24,8 +24,8 @@ export interface LocalSnapshot {
   rounds: readonly Round[];
 }
 
-interface TableChanges<T> {
-  put: T[];
+interface TableChanges<TRow> {
+  put: TRow[];
   remove: string[];
 }
 
@@ -72,16 +72,16 @@ export const planPull = (
 ): PullChanges => {
   const server = flatten(trees);
 
-  const changed = <T extends SyncedRow>(table: SyncedTable, rows: T[]) =>
+  const changed = <TRow extends SyncedRow>(table: SyncedTable, rows: TRow[]) =>
     rows.filter(
       (row) =>
         !(isPending(table, row.id) || sameRow(local.get(table, row.id), row))
     );
 
-  const gone = <T extends { id: string }>(
+  const gone = <TRow extends { id: string }>(
     table: SyncedTable,
-    stored: readonly T[],
-    under: (row: T) => boolean,
+    stored: readonly TRow[],
+    under: (row: TRow) => boolean,
     kept: readonly { id: string }[]
   ) => {
     const keptIds = new Set(kept.map((row) => row.id));

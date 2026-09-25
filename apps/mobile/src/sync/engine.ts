@@ -33,8 +33,8 @@ const LAST_RETRY_DELAY_MS = 60_000;
 /** Pending entries by session, oldest session first. */
 const groupBySession = (entries: readonly OutboxEntry[]) => {
   const bySession = new Map<string, OutboxEntry[]>();
-  const sorted = entries.toSorted((a, b) =>
-    a.queued_at.localeCompare(b.queued_at)
+  const sorted = entries.toSorted((entryA, entryB) =>
+    entryA.queued_at.localeCompare(entryB.queued_at)
   );
   for (const entry of sorted) {
     const group = bySession.get(entry.session_id) ?? [];

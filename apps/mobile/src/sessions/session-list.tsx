@@ -169,8 +169,8 @@ export const SessionList = () => {
   useQuery(referenceQuery(db, userId));
 
   const { data: sessions } = useLiveQuery({
-    query: (q) =>
-      q
+    query: (query) =>
+      query
         .from({ session: db.sessions })
         .leftJoin({ athlete: db.athletes }, ({ athlete, session }) =>
           eq(athlete.id, session.athlete_id)
