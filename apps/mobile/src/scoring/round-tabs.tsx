@@ -1,5 +1,6 @@
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
+import { PressableScale } from "@/components/pressable-scale";
 import { CheckIcon } from "@/components/styled";
 import { Text, TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
@@ -22,7 +23,7 @@ export const RoundTabs = ({
       const distance =
         card.distanceMeters === null ? "" : `${card.distanceMeters} m, `;
       return (
-        <Pressable
+        <PressableScale
           aria-label={`Round ${card.round.round_no}, ${distance}${card.faceName}${complete ? ", complete" : ""}`}
           aria-selected={selected}
           className={cn(
@@ -57,7 +58,7 @@ export const RoundTabs = ({
               {card.faceName}
             </Text>
           </TextClassContext>
-        </Pressable>
+        </PressableScale>
       );
     })}
   </View>
