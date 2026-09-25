@@ -1,5 +1,5 @@
 import type { LegendListRenderItemProps } from "@legendapp/list/react-native";
-import { LegendList, useRecyclingState } from "@legendapp/list/react-native";
+import { LegendList } from "@legendapp/list/react-native";
 import { AnimatePresence, Motion } from "@legendapp/motion";
 import { eq, useLiveQuery } from "@tanstack/react-db";
 import { useQuery } from "@tanstack/react-query";
@@ -19,6 +19,7 @@ import { Text } from "@/components/ui/text";
 import { referenceQuery } from "@/db/reference";
 import type { Session } from "@/db/rows";
 import { useScorerDb } from "@/db/scorer-db-context";
+import { useRecycleMountId } from "@/lib/use-recycle-mount-id";
 import { ScheduledList } from "@/scheduled/scheduled-list";
 import { openScoring } from "@/scoring/active-session";
 import { SyncIssuesSummary, SyncStatusLine } from "@/sync/sync-status";
@@ -40,15 +41,6 @@ interface SessionListItem {
   title: string | null;
 }
 
-// A fresh mount id per recycle, so a recycled row shows its badges'
-// steady state instead of animating a transition that belongs to the
-// row it used to be.
-let mountSeq = 0;
-const nextMountId = () => {
-  mountSeq += 1;
-  return mountSeq;
-};
-
 const SessionRow = memo(
   // oxlint-disable-next-line prefer-arrow-callback -- named so React DevTools shows it
   function SessionRow({
@@ -66,7 +58,7 @@ const SessionRow = memo(
       () => onPress(session.id),
       [onPress, session.id]
     );
-    const [mountId] = useRecyclingState(nextMountId);
+    const mountId = useRecycleMountId();
     return (
       <ListRow
         aria-label={`${session.athleteName ?? "Athlete"}, ${session.sessionDate}`}

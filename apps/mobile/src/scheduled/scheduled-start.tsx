@@ -1,5 +1,5 @@
 import type { LegendListRenderItemProps } from "@legendapp/list/react-native";
-import { LegendList, useRecyclingState } from "@legendapp/list/react-native";
+import { LegendList } from "@legendapp/list/react-native";
 import { AnimatePresence, Motion } from "@legendapp/motion";
 import { eq, useLiveQuery } from "@tanstack/react-db";
 import { router, Stack } from "expo-router";
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import type { Athlete, Distance, SessionTemplate } from "@/db/rows";
 import { useScorerDb } from "@/db/scorer-db-context";
+import { useRecycleMountId } from "@/lib/use-recycle-mount-id";
 import { cn } from "@/lib/utils";
 import { startSessions } from "@/scoring/actions";
 import { openScoring } from "@/scoring/active-session";
@@ -26,15 +27,6 @@ const describeRound = (
   const meters = distances.find((row) => row.id === round.distance_id)?.meters;
   const distance = meters === undefined ? "own distance" : `${meters} m`;
   return `${round.planned_ends} ends of ${round.arrows_per_end} · ${distance}`;
-};
-
-// A fresh mount id per recycle, so a recycled row shows its checkbox's
-// steady state instead of animating a transition that belongs to the
-// row it used to be.
-let mountSeq = 0;
-const nextMountId = () => {
-  mountSeq += 1;
-  return mountSeq;
 };
 
 const AthleteRow = memo(
@@ -54,7 +46,7 @@ const AthleteRow = memo(
       () => onToggle(athlete.id),
       [athlete.id, onToggle]
     );
-    const [mountId] = useRecyclingState(nextMountId);
+    const mountId = useRecycleMountId();
     return (
       <ListRow
         aria-checked={checked}
