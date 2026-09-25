@@ -1,6 +1,7 @@
 import { eq, useLiveQuery } from "@tanstack/react-db";
 import { router, Stack } from "expo-router";
-import { useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
+import type { ListRenderItemInfo } from "react-native";
 import { FlatList, View } from "react-native";
 
 import { ListRow } from "@/components/list-row";
@@ -25,49 +26,58 @@ const describeRound = (
   return `${round.planned_ends} ends of ${round.arrows_per_end} · ${distance}`;
 };
 
-const AthleteRow = ({
-  athlete,
-  checked,
-  onToggle,
-  started,
-}: {
-  athlete: Athlete;
-  checked: boolean;
-  onToggle: () => void;
-  started: boolean;
-}) => (
-  <ListRow
-    aria-checked={checked}
-    aria-disabled={started}
-    aria-label={`${athlete.full_name}, ${athlete.id_no}${started ? ", started" : ""}`}
-    className={cn(checked && "border-primary", started && "opacity-60")}
-    disabled={started}
-    onPress={onToggle}
-    opens={false}
-    role="checkbox"
-  >
-    <View
-      className={cn(
-        "border-input size-6 items-center justify-center border",
-        checked && "bg-primary border-primary"
-      )}
-    >
-      {checked ? (
-        <CheckIcon colorClassName="accent-primary-foreground" size={16} />
-      ) : null}
-    </View>
-    <View className="flex-1 gap-1">
-      <Text numberOfLines={1} variant="large">
-        {athlete.full_name}
-      </Text>
-      <Text variant="muted">{athlete.id_no}</Text>
-    </View>
-    {started ? (
-      <Badge variant="outline">
-        <Text>Started</Text>
-      </Badge>
-    ) : null}
-  </ListRow>
+const AthleteRow = memo(
+  // oxlint-disable-next-line prefer-arrow-callback -- named so React DevTools shows it
+  function AthleteRow({
+    athlete,
+    checked,
+    onToggle,
+    started,
+  }: {
+    athlete: Athlete;
+    checked: boolean;
+    onToggle: (athleteId: string) => void;
+    started: boolean;
+  }) {
+    const handleToggle = useCallback(
+      () => onToggle(athlete.id),
+      [athlete.id, onToggle]
+    );
+    return (
+      <ListRow
+        aria-checked={checked}
+        aria-disabled={started}
+        aria-label={`${athlete.full_name}, ${athlete.id_no}${started ? ", started" : ""}`}
+        className={cn(checked && "border-primary", started && "opacity-60")}
+        disabled={started}
+        onPress={handleToggle}
+        opens={false}
+        role="checkbox"
+      >
+        <View
+          className={cn(
+            "border-input size-6 items-center justify-center border",
+            checked && "bg-primary border-primary"
+          )}
+        >
+          {checked ? (
+            <CheckIcon colorClassName="accent-primary-foreground" size={16} />
+          ) : null}
+        </View>
+        <View className="flex-1 gap-1">
+          <Text numberOfLines={1} variant="large">
+            {athlete.full_name}
+          </Text>
+          <Text variant="muted">{athlete.id_no}</Text>
+        </View>
+        {started ? (
+          <Badge variant="outline">
+            <Text>Started</Text>
+          </Badge>
+        ) : null}
+      </ListRow>
+    );
+  }
 );
 
 const StartForm = ({ template }: { template: SessionTemplate }) => {
@@ -103,10 +113,13 @@ const StartForm = ({ template }: { template: SessionTemplate }) => {
   const planned = new Set(template.athlete_ids);
   const onPhone = athletes.filter((athlete) => planned.has(athlete.id));
   const missing = planned.size - onPhone.length;
-  const started = startedAthletes(fromTemplate, template.id);
+  const started = useMemo(
+    () => startedAthletes(fromTemplate, template.id),
+    [fromTemplate, template.id]
+  );
   const picked = onPhone.filter((athlete) => chosen.has(athlete.id));
 
-  const toggle = (id: string) =>
+  const toggle = useCallback((id: string) => {
     setChosen((current) => {
       const next = new Set(current);
       if (!next.delete(id)) {
@@ -114,6 +127,7 @@ const StartForm = ({ template }: { template: SessionTemplate }) => {
       }
       return next;
     });
+  }, []);
 
   const handleStart = async () => {
     setStarting(true);
@@ -134,12 +148,26 @@ const StartForm = ({ template }: { template: SessionTemplate }) => {
     }
   };
 
+  const extraData = useMemo(() => ({ chosen, started }), [chosen, started]);
+  const keyExtractor = useCallback((athlete: Athlete) => athlete.id, []);
+  const renderAthlete = useCallback(
+    ({ item }: ListRenderItemInfo<Athlete>) => (
+      <AthleteRow
+        athlete={item}
+        checked={chosen.has(item.id)}
+        onToggle={toggle}
+        started={started.has(item.id)}
+      />
+    ),
+    [chosen, started, toggle]
+  );
+
   return (
     <FlatList
       contentContainerClassName="gap-2 p-4"
       data={onPhone}
-      extraData={{ chosen, started }}
-      keyExtractor={(athlete) => athlete.id}
+      extraData={extraData}
+      keyExtractor={keyExtractor}
       ListFooterComponent={
         <View className="gap-2 pt-4">
           {missing > 0 ? (
@@ -200,14 +228,7 @@ const StartForm = ({ template }: { template: SessionTemplate }) => {
           </Text>
         </View>
       }
-      renderItem={({ item }) => (
-        <AthleteRow
-          athlete={item}
-          checked={chosen.has(item.id)}
-          onToggle={() => toggle(item.id)}
-          started={started.has(item.id)}
-        />
-      )}
+      renderItem={renderAthlete}
     />
   );
 };

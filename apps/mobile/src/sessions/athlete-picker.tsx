@@ -2,7 +2,8 @@ import { eq, ilike, or, useLiveQuery } from "@tanstack/react-db";
 import { useDebouncedValue } from "@tanstack/react-pacer";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { useState } from "react";
+import { memo, useCallback, useState } from "react";
+import type { ListRenderItemInfo } from "react-native";
 import { FlatList, View } from "react-native";
 
 import type { Choice } from "@/components/choice-group";
@@ -13,6 +14,7 @@ import { StyledSafeAreaView } from "@/components/styled";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { referenceQuery } from "@/db/reference";
+import type { Athlete } from "@/db/rows";
 import { useScorerDb } from "@/db/scorer-db-context";
 
 const SEARCH_WAIT_MS = 200;
@@ -22,6 +24,35 @@ const ALL = 0;
 const LIKE_WILDCARDS = /[%_]/gu;
 const containsPattern = (text: string) =>
   `%${text.replaceAll(LIKE_WILDCARDS, "")}%`;
+
+const AthletePickerRow = memo(
+  // oxlint-disable-next-line prefer-arrow-callback -- named so React DevTools shows it
+  function AthletePickerRow({
+    athlete,
+    onPress,
+  }: {
+    athlete: Athlete;
+    onPress: (athleteId: string) => void;
+  }) {
+    const handlePress = useCallback(
+      () => onPress(athlete.id),
+      [athlete.id, onPress]
+    );
+    return (
+      <ListRow
+        aria-label={`${athlete.full_name}, ${athlete.id_no}`}
+        onPress={handlePress}
+      >
+        <View className="flex-1 gap-1">
+          <Text numberOfLines={1} variant="large">
+            {athlete.full_name}
+          </Text>
+          <Text variant="muted">{athlete.id_no}</Text>
+        </View>
+      </ListRow>
+    );
+  }
+);
 
 const ReferenceStatus = () => {
   const { db, userId } = useScorerDb();
@@ -85,13 +116,27 @@ export const AthletePicker = () => {
     })),
   ];
 
+  const openAthlete = useCallback((athleteId: string) => {
+    router.push({
+      params: { athleteId },
+      pathname: "/new-session/[athleteId]",
+    });
+  }, []);
+  const renderAthlete = useCallback(
+    ({ item }: ListRenderItemInfo<Athlete>) => (
+      <AthletePickerRow athlete={item} onPress={openAthlete} />
+    ),
+    [openAthlete]
+  );
+  const keyExtractor = useCallback((athlete: Athlete) => athlete.id, []);
+
   return (
     <StyledSafeAreaView className="bg-background flex-1" edges={["bottom"]}>
       <FlatList
         contentContainerClassName="gap-2 p-4"
         data={athletes ?? []}
         keyboardShouldPersistTaps="handled"
-        keyExtractor={(athlete) => athlete.id}
+        keyExtractor={keyExtractor}
         ListEmptyComponent={
           isLoading ? null : (
             <EmptyState>
@@ -123,24 +168,7 @@ export const AthletePicker = () => {
             <ReferenceStatus />
           </View>
         }
-        renderItem={({ item }) => (
-          <ListRow
-            aria-label={`${item.full_name}, ${item.id_no}`}
-            onPress={() =>
-              router.push({
-                params: { athleteId: item.id },
-                pathname: "/new-session/[athleteId]",
-              })
-            }
-          >
-            <View className="flex-1 gap-1">
-              <Text numberOfLines={1} variant="large">
-                {item.full_name}
-              </Text>
-              <Text variant="muted">{item.id_no}</Text>
-            </View>
-          </ListRow>
-        )}
+        renderItem={renderAthlete}
       />
     </StyledSafeAreaView>
   );

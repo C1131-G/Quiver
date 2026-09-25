@@ -2,7 +2,8 @@ import { eq, useLiveQuery } from "@tanstack/react-db";
 import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "@tanstack/react-store";
 import { router } from "expo-router";
-import { useState } from "react";
+import { memo, useCallback, useState } from "react";
+import type { ListRenderItemInfo } from "react-native";
 import { FlatList, View } from "react-native";
 import { toast } from "sonner-native";
 
@@ -14,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { referenceQuery } from "@/db/reference";
+import type { Session } from "@/db/rows";
 import { useScorerDb } from "@/db/scorer-db-context";
 import { ScheduledList } from "@/scheduled/scheduled-list";
 import { openScoring } from "@/scoring/active-session";
@@ -26,6 +28,69 @@ const SESSION_TYPE_LABELS = {
   competition: "Competition",
   training: "Training",
 } as const;
+
+interface SessionListItem {
+  athleteName: string | null | undefined;
+  id: string;
+  sessionDate: string;
+  sessionType: keyof typeof SESSION_TYPE_LABELS;
+  status: Session["status"];
+  title: string | null;
+}
+
+const SessionRow = memo(
+  // oxlint-disable-next-line prefer-arrow-callback -- named so React DevTools shows it
+  function SessionRow({
+    hasIssue,
+    isWaiting,
+    onPress,
+    session,
+  }: {
+    hasIssue: boolean;
+    isWaiting: boolean;
+    onPress: (sessionId: string) => void;
+    session: SessionListItem;
+  }) {
+    const handlePress = useCallback(
+      () => onPress(session.id),
+      [onPress, session.id]
+    );
+    return (
+      <ListRow
+        aria-label={`${session.athleteName ?? "Athlete"}, ${session.sessionDate}`}
+        onPress={handlePress}
+      >
+        <View className="flex-1 gap-1.5">
+          <View className="flex-row items-center justify-between gap-2">
+            <Text className="flex-1" numberOfLines={1} variant="large">
+              {session.athleteName ?? "Unknown athlete"}
+            </Text>
+            <SessionStatusBadge status={session.status} />
+          </View>
+          <Text numberOfLines={1} variant="muted">
+            {[
+              session.sessionDate,
+              SESSION_TYPE_LABELS[session.sessionType],
+              session.title,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </Text>
+          {hasIssue ? (
+            <Badge className="self-start" variant="destructive">
+              <Text>Not sent</Text>
+            </Badge>
+          ) : null}
+          {isWaiting ? (
+            <Badge className="self-start" variant="outline">
+              <Text>Waiting to send</Text>
+            </Badge>
+          ) : null}
+        </View>
+      </ListRow>
+    );
+  }
+);
 
 const Header = () => {
   const email = useSelector(authAtom, (state) =>
@@ -90,6 +155,22 @@ export const SessionList = () => {
     queryKey: ["sessions", "list"],
   });
 
+  const renderSession = useCallback(
+    ({ item }: ListRenderItemInfo<SessionListItem>) => (
+      <SessionRow
+        hasIssue={issuesBySession.has(item.id)}
+        isWaiting={waitingSessions.has(item.id)}
+        onPress={openScoring}
+        session={item}
+      />
+    ),
+    [issuesBySession, waitingSessions]
+  );
+  const keyExtractor = useCallback(
+    (session: SessionListItem) => session.id,
+    []
+  );
+
   return (
     <StyledSafeAreaView className="bg-background flex-1">
       <FlatList
@@ -97,7 +178,7 @@ export const SessionList = () => {
         data={sessions}
         // Rows show whether each session has reached the server.
         extraData={pending}
-        keyExtractor={(session) => session.id}
+        keyExtractor={keyExtractor}
         ListEmptyComponent={
           <EmptyState>
             No sessions yet. Start one to score an athlete.
@@ -122,40 +203,7 @@ export const SessionList = () => {
             </Text>
           </View>
         }
-        renderItem={({ item }) => (
-          <ListRow
-            aria-label={`${item.athleteName ?? "Athlete"}, ${item.sessionDate}`}
-            onPress={() => openScoring(item.id)}
-          >
-            <View className="flex-1 gap-1.5">
-              <View className="flex-row items-center justify-between gap-2">
-                <Text className="flex-1" numberOfLines={1} variant="large">
-                  {item.athleteName ?? "Unknown athlete"}
-                </Text>
-                <SessionStatusBadge status={item.status} />
-              </View>
-              <Text numberOfLines={1} variant="muted">
-                {[
-                  item.sessionDate,
-                  SESSION_TYPE_LABELS[item.sessionType],
-                  item.title,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </Text>
-              {issuesBySession.has(item.id) ? (
-                <Badge className="self-start" variant="destructive">
-                  <Text>Not sent</Text>
-                </Badge>
-              ) : null}
-              {waitingSessions.has(item.id) ? (
-                <Badge className="self-start" variant="outline">
-                  <Text>Waiting to send</Text>
-                </Badge>
-              ) : null}
-            </View>
-          </ListRow>
-        )}
+        renderItem={renderSession}
       />
     </StyledSafeAreaView>
   );
