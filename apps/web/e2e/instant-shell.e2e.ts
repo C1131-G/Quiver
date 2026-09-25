@@ -52,6 +52,51 @@ test("compare commits its static shell under the instant lock", async ({
   );
 });
 
+test("athletes commits its static shell under the instant lock", async ({
+  page,
+}) => {
+  await instant(
+    page,
+    async () => {
+      await page.goto("/athletes");
+      await expect(
+        page.getByRole("heading", { name: "Athletes" })
+      ).toBeVisible();
+    },
+    { baseURL: "http://127.0.0.1:3210" }
+  );
+});
+
+test("scorers commits its static shell under the instant lock", async ({
+  page,
+}) => {
+  await instant(
+    page,
+    async () => {
+      await page.goto("/scorers");
+      await expect(
+        page.getByRole("heading", { name: "Scorers" })
+      ).toBeVisible();
+    },
+    { baseURL: "http://127.0.0.1:3210" }
+  );
+});
+
+test("schedule commits its static shell under the instant lock", async ({
+  page,
+}) => {
+  await instant(
+    page,
+    async () => {
+      await page.goto("/schedule");
+      await expect(
+        page.getByRole("heading", { name: "Schedule" })
+      ).toBeVisible();
+    },
+    { baseURL: "http://127.0.0.1:3210" }
+  );
+});
+
 test("soft navigation lands on the shared shell instantly", async ({
   page,
 }) => {
