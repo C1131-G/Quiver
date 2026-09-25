@@ -1,3 +1,4 @@
+import { BasicIndex } from "@tanstack/db";
 import {
   createExpoSQLitePersistence,
   persistedCollectionOptions,
@@ -45,6 +46,8 @@ const createScorerDb = (userId: string) => {
   ) =>
     createCollection(
       persistedCollectionOptions<TRow, TKey>({
+        autoIndex: "eager",
+        defaultIndexType: BasicIndex,
         getKey: (row) => row.id,
         id,
         persistence,

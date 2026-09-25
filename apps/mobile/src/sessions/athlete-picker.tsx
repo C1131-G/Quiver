@@ -155,12 +155,12 @@ export const AthletePicker = () => {
               accessibilityLabel="Search athletes by name or ID"
               autoCapitalize="words"
               autoCorrect={false}
-              className="h-12"
               clearButtonMode="while-editing"
               onChangeText={setSearch}
               placeholder="Search by name or ID"
               returnKeyType="search"
               value={search}
+              variant="search"
             />
             <ChoiceGroup
               choices={categoryChoices}

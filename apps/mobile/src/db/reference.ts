@@ -94,10 +94,11 @@ const toTemplate = ({
   rounds: SessionTemplate["rounds"];
 } & Omit<SessionTemplate, "athlete_ids" | "rounds">): SessionTemplate => ({
   ...template,
-  athlete_ids: athletes.map((row) => row.athlete_id).toSorted(),
-  rounds: rounds.toSorted(
-    (roundA, roundB) => roundA.round_no - roundB.round_no
-  ),
+  // oxlint-disable-next-line unicorn/no-array-sort -- toSorted() is unimplemented on the Hermes engine QuiverScore runs on
+  athlete_ids: athletes.map((row) => row.athlete_id).sort(),
+  rounds: [...rounds]
+    // oxlint-disable-next-line unicorn/no-array-sort -- toSorted() is unimplemented on the Hermes engine QuiverScore runs on
+    .sort((roundA, roundB) => roundA.round_no - roundB.round_no),
 });
 
 /**

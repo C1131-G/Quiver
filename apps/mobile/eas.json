@@ -9,7 +9,8 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      }
+      },
+      "bun": "1.4.0"
     },
     "preview": {
       "distribution": "internal",
@@ -21,7 +22,8 @@
     },
     "production": {
       "autoIncrement": true,
-      "channel": "production"
+      "channel": "production",
+      "bun": "1.4.0"
     }
   },
   "submit": {

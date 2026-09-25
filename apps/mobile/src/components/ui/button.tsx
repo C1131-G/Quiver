@@ -56,10 +56,17 @@ const buttonVariants = cva(
         ),
         icon: "h-10 w-10 sm:h-9 sm:w-9",
       },
+      // A fully rounded capsule radius for prominent calls to action and
+      // segmented-control-style controls, alongside the default corner radius.
+      radius: {
+        default: "",
+        pill: "rounded-full",
+      },
     },
     defaultVariants: {
-      variant: "default",
+      radius: "default",
       size: "default",
+      variant: "default",
     },
   }
 );
@@ -104,13 +111,13 @@ const buttonTextVariants = cva(
 type ButtonProps = React.ComponentProps<typeof PressableScale> &
   VariantProps<typeof buttonVariants>;
 
-function Button({ className, variant, size, ...props }: ButtonProps) {
+function Button({ className, variant, size, radius, ...props }: ButtonProps) {
   return (
     <TextClassContext.Provider value={buttonTextVariants({ variant, size })}>
       <PressableScale
         className={cn(
           props.disabled && "opacity-50",
-          buttonVariants({ variant, size }),
+          buttonVariants({ radius, size, variant }),
           className
         )}
         role="button"

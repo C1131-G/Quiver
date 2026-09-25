@@ -43,6 +43,8 @@ const textVariants = cva(
         small: "text-sm leading-none font-medium",
         muted: "text-muted-foreground text-sm",
         section: "text-muted-foreground text-sm font-medium",
+        eyebrow:
+          "text-muted-foreground text-xs font-semibold tracking-wide uppercase",
         stat: "text-muted-foreground text-xs font-medium",
         figure: "text-lg font-semibold tabular-nums",
         error: "text-destructive text-sm",

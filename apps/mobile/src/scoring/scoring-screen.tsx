@@ -226,7 +226,7 @@ export const ScoringScreen = ({
     <StyledSafeAreaView className="bg-background flex-1" edges={["bottom"]}>
       <Stack.Screen options={{ title }} />
       {athleteTabs}
-      <ScrollView contentContainerClassName="gap-3 p-4">
+      <ScrollView className="flex-1" contentContainerClassName="gap-3 p-4">
         {syncIssue ? <SyncIssueNotice issue={syncIssue} /> : null}
         {cards.length > 1 ? (
           <RoundTabs
@@ -241,18 +241,12 @@ export const ScoringScreen = ({
           rows={card.score.rows}
           targetEndNo={targetEndNo}
         />
-        {readOnly ? null : (
-          <CloseSessionButtons
-            cards={cards}
-            onDiscarded={onDiscarded}
-            sendBlocked={syncIssue !== undefined}
-            sessionId={sessionId}
-          />
-        )}
       </ScrollView>
-      <View className="border-border gap-3 border-t p-4">
+      <View className="border-border gap-2 border-t p-3">
+        <View className="flex-row items-end justify-between gap-3">
+          <Totals cards={cards} />
+        </View>
         <SyncStatusLine />
-        <Totals cards={cards} />
         <Text aria-live="polite" variant="large">
           {prompt}
         </Text>
@@ -264,6 +258,14 @@ export const ScoringScreen = ({
           onDeleteArrow={handleDeleteArrow}
           onScore={handleScore}
         />
+        {readOnly ? null : (
+          <CloseSessionButtons
+            cards={cards}
+            onDiscarded={onDiscarded}
+            sendBlocked={syncIssue !== undefined}
+            sessionId={sessionId}
+          />
+        )}
       </View>
     </StyledSafeAreaView>
   );

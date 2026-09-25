@@ -1,6 +1,7 @@
 import { View } from "react-native";
 
 import { PressableScale } from "@/components/pressable-scale";
+import { CheckIcon } from "@/components/styled";
 import { Text, TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +36,7 @@ export const ChoiceGroup = <TValue extends number | string>({
         <PressableScale
           aria-checked={selected}
           className={cn(
-            "min-h-11 justify-center border px-4",
+            "min-h-10 flex-row items-center justify-center gap-1.5 rounded-full border px-4",
             selected
               ? "bg-primary border-primary"
               : "border-input bg-background active:bg-muted dark:bg-input/30"
@@ -44,6 +45,13 @@ export const ChoiceGroup = <TValue extends number | string>({
           onPress={() => onChange(choice.value)}
           role="radio"
         >
+          {selected ? (
+            <CheckIcon
+              colorClassName="accent-primary-foreground"
+              size={14}
+              strokeWidth={2.5}
+            />
+          ) : null}
           <TextClassContext
             value={selected ? "text-primary-foreground" : "text-foreground"}
           >

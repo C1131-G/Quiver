@@ -1,4 +1,5 @@
 import { eq, useLiveQuery } from "@tanstack/react-db";
+import type { ReactFormExtendedApi } from "@tanstack/react-form";
 import { useForm } from "@tanstack/react-form";
 import { randomUUID } from "expo-crypto";
 import { router, Stack } from "expo-router";
@@ -23,6 +24,7 @@ import type {
 } from "@/db/rows";
 import { useScorerDb } from "@/db/scorer-db-context";
 import { today } from "@/lib/today";
+import { cn } from "@/lib/utils";
 import type { RoundDraft } from "@/scoring/actions";
 import { startSessions } from "@/scoring/actions";
 import { openScoring } from "@/scoring/active-session";
@@ -83,6 +85,28 @@ const setupSchema = z.object({
 
 type SetupValues = z.infer<typeof setupSchema>;
 
+/**
+ * The form instance shape shared with the extracted rounds section, matching
+ * TanStack Form's own pattern for a form-shaped prop (see useFormContext's
+ * declared return type).
+ */
+/* oxlint-disable no-explicit-any -- library generics require it */
+type SetupFormApi = ReactFormExtendedApi<
+  SetupValues,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any
+>;
+/* oxlint-enable no-explicit-any */
+
 /** A round being set up, with a key that stays with it while editing. */
 type RoundForm = RoundDraft & { key: string };
 
@@ -142,6 +166,185 @@ const FieldError = ({ errors }: { errors: readonly unknown[] }) => {
   ) : null;
 };
 
+/** An iOS-style section label above a grouped card. */
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <View className="px-1">
+    <Text variant="eyebrow">{children}</Text>
+  </View>
+);
+
+/** A grouped card, like an iOS Settings/Form section: rounded, one hairline edge. */
+const Card = ({ children }: { children: React.ReactNode }) => (
+  <View className="border-foreground/10 bg-card overflow-hidden rounded-2xl border">
+    {children}
+  </View>
+);
+
+const CardRow = ({
+  children,
+  last = false,
+}: {
+  children: React.ReactNode;
+  /** Omits the divider under the final row in a card. */
+  last?: boolean;
+}) => (
+  <View
+    className={cn("gap-2 p-4", last ? undefined : "border-border/60 border-b")}
+  >
+    {children}
+  </View>
+);
+
+/** One round's card: distance, target face and end/arrow steppers. */
+const RoundFormCard = ({
+  canRemove,
+  distances,
+  faces,
+  form,
+  index,
+  onRemove,
+  round,
+}: {
+  canRemove: boolean;
+  distances: readonly Distance[];
+  faces: readonly TargetFace[];
+  form: SetupFormApi;
+  index: number;
+  onRemove: () => void;
+  round: RoundForm;
+}) => (
+  <View className="border-foreground/10 bg-card gap-4 rounded-2xl border p-4">
+    <View className="border-border/60 -mx-4 -mt-4 min-h-12 flex-row items-center justify-between border-b px-4 py-1">
+      <Text aria-level={2} role="heading" variant="large">
+        Round {index + 1}
+      </Text>
+      {canRemove ? (
+        <Button
+          onPress={onRemove}
+          radius="pill"
+          size="sm"
+          variant="destructive"
+        >
+          <Text>Remove</Text>
+        </Button>
+      ) : null}
+    </View>
+    <form.Field name={`rounds[${index}].distanceId`}>
+      {(field) => (
+        <View className="gap-2">
+          <Label>Distance</Label>
+          <ChoiceGroup
+            choices={choicesOf(
+              distances,
+              round.distanceId,
+              (distance) => `${distance.meters} m`
+            )}
+            label={`Round ${index + 1} distance`}
+            onChange={field.handleChange}
+            value={field.state.value}
+          />
+        </View>
+      )}
+    </form.Field>
+    <form.Field name={`rounds[${index}].targetFaceId`}>
+      {(field) => (
+        <View className="gap-2">
+          <Label>Target face</Label>
+          <ChoiceGroup
+            choices={choicesOf(faces, round.targetFaceId, (face) => face.name)}
+            label={`Round ${index + 1} target face`}
+            onChange={field.handleChange}
+            value={field.state.value}
+          />
+        </View>
+      )}
+    </form.Field>
+    <form.Field name={`rounds[${index}].plannedEnds`}>
+      {(field) => (
+        <Stepper
+          label="Ends"
+          max={ROUND_LIMITS.plannedEnds.max}
+          min={ROUND_LIMITS.plannedEnds.min}
+          onChange={field.handleChange}
+          value={field.state.value}
+        />
+      )}
+    </form.Field>
+    <form.Field name={`rounds[${index}].arrowsPerEnd`}>
+      {(field) => (
+        <Stepper
+          label="Arrows per end"
+          max={ROUND_LIMITS.arrowsPerEnd.max}
+          min={ROUND_LIMITS.arrowsPerEnd.min}
+          onChange={field.handleChange}
+          value={field.state.value}
+        />
+      )}
+    </form.Field>
+  </View>
+);
+
+/** The rounds array: one card per round, plus add/remove. */
+const RoundsSection = ({
+  athlete,
+  distances,
+  faces,
+  form,
+}: {
+  athlete: Athlete;
+  distances: readonly Distance[];
+  faces: readonly TargetFace[];
+  form: SetupFormApi;
+}) => (
+  <form.Field mode="array" name="rounds">
+    {(roundsField) => (
+      <View className="gap-2">
+        <SectionLabel>Rounds</SectionLabel>
+        <View className="gap-3">
+          {roundsField.state.value.map((round, index) => (
+            <RoundFormCard
+              canRemove={
+                roundsField.state.value.length > ROUND_LIMITS.rounds.min &&
+                index === roundsField.state.value.length - 1
+              }
+              distances={distances}
+              faces={faces}
+              form={form}
+              index={index}
+              key={round.key}
+              onRemove={() => roundsField.removeValue(index)}
+              round={round}
+            />
+          ))}
+          {roundsField.state.value.length < ROUND_LIMITS.rounds.max ? (
+            <Button
+              className="h-11"
+              onPress={() => {
+                const last = roundsField.state.value.at(-1);
+                roundsField.pushValue(
+                  newRound(
+                    last ?? {
+                      ...HAND_ADDED_ROUND,
+                      distanceId: athlete.distance_id,
+                      targetFaceId: athlete.target_face_id,
+                    }
+                  )
+                );
+              }}
+              radius="pill"
+              variant="outline"
+            >
+              <PlusIcon colorClassName="accent-foreground" size={18} />
+              <Text>Add round</Text>
+            </Button>
+          ) : null}
+          <FieldError errors={roundsField.state.meta.errors} />
+        </View>
+      </View>
+    )}
+  </form.Field>
+);
+
 const SetupForm = ({
   athlete,
   distances,
@@ -197,7 +400,11 @@ const SetupForm = ({
   });
 
   const submit = async () => {
-    await form.handleSubmit();
+    try {
+      await form.handleSubmit();
+    } catch {
+      setSaveError("Could not save the session on this phone. Try again.");
+    }
   };
 
   const presetChoices: Choice<string>[] = ROUND_PRESETS.map((option) => ({
@@ -206,233 +413,153 @@ const SetupForm = ({
   }));
 
   return (
-    <ScrollView
-      contentContainerClassName="gap-6 p-4"
-      keyboardShouldPersistTaps="handled"
-    >
-      <View className="border-foreground/10 bg-card gap-1 border p-4">
-        <Text variant="stat">Athlete</Text>
-        <Text variant="h4">{athlete.full_name}</Text>
-        <Text variant="muted">{athlete.id_no}</Text>
-      </View>
+    <View className="flex-1">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-6 p-4 pb-2"
+        keyboardShouldPersistTaps="handled"
+      >
+        <View className="items-center gap-1 pt-1 pb-2">
+          <Text className="text-center" variant="h3">
+            {athlete.full_name}
+          </Text>
+          <Text variant="muted">{athlete.id_no}</Text>
+        </View>
 
-      <form.Field name="presetId">
-        {(field) => (
-          <View className="gap-2">
-            <Label>Format</Label>
-            <ChoiceGroup
-              choices={presetChoices}
-              label="Format"
-              onChange={(presetId) => {
-                field.handleChange(presetId);
-                const chosen = ROUND_PRESETS.find(
-                  (option) => option.id === presetId
-                );
-                if (chosen) {
-                  form.setFieldValue(
-                    "rounds",
-                    roundsFromPreset(chosen, athlete)
-                  );
-                  form.setFieldValue("venue", chosen.venue);
-                }
-              }}
-              value={field.state.value}
-            />
-          </View>
-        )}
-      </form.Field>
-
-      <form.Field name="sessionType">
-        {(field) => (
-          <View className="gap-2">
-            <Label>Session</Label>
-            <ChoiceGroup
-              choices={SESSION_TYPES}
-              label="Session type"
-              onChange={field.handleChange}
-              value={field.state.value}
-            />
-          </View>
-        )}
-      </form.Field>
-
-      <form.Field name="venue">
-        {(field) => (
-          <View className="gap-2">
-            <Label>Venue</Label>
-            <ChoiceGroup
-              choices={VENUES}
-              label="Venue"
-              onChange={field.handleChange}
-              value={field.state.value}
-            />
-          </View>
-        )}
-      </form.Field>
-
-      <form.Field name="sessionDate">
-        {(field) => (
-          <View className="gap-2">
-            <Label nativeID="session-date-label">Date</Label>
-            <Input
-              accessibilityLabelledBy="session-date-label"
-              className="h-12"
-              inputMode="numeric"
-              maxLength={10}
-              onBlur={field.handleBlur}
-              onChangeText={field.handleChange}
-              placeholder="2026-09-24"
-              value={field.state.value}
-            />
-            <FieldError errors={field.state.meta.errors} />
-          </View>
-        )}
-      </form.Field>
-
-      <form.Field name="title">
-        {(field) => (
-          <View className="gap-2">
-            <Label nativeID="session-title-label">Title (optional)</Label>
-            <Input
-              accessibilityLabelledBy="session-title-label"
-              className="h-12"
-              maxLength={120}
-              onBlur={field.handleBlur}
-              onChangeText={field.handleChange}
-              placeholder="e.g. State trials, morning"
-              value={field.state.value}
-            />
-            <FieldError errors={field.state.meta.errors} />
-          </View>
-        )}
-      </form.Field>
-
-      <form.Field mode="array" name="rounds">
-        {(roundsField) => (
-          <View className="gap-4">
-            {roundsField.state.value.map((round, index) => (
-              <View
-                className="border-foreground/10 bg-card gap-4 border p-4"
-                key={round.key}
-              >
-                <View className="border-border -mx-4 -mt-4 min-h-12 flex-row items-center justify-between border-b py-1 pr-1 pl-4">
-                  <Text aria-level={2} role="heading" variant="large">
-                    Round {index + 1}
-                  </Text>
-                  {roundsField.state.value.length > ROUND_LIMITS.rounds.min &&
-                  index === roundsField.state.value.length - 1 ? (
-                    <Button
-                      onPress={() => roundsField.removeValue(index)}
-                      size="sm"
-                      variant="destructive"
-                    >
-                      <Text>Remove</Text>
-                    </Button>
-                  ) : null}
-                </View>
-                <form.Field name={`rounds[${index}].distanceId`}>
-                  {(field) => (
-                    <View className="gap-2">
-                      <Label>Distance</Label>
-                      <ChoiceGroup
-                        choices={choicesOf(
-                          distances,
-                          round.distanceId,
-                          (distance) => `${distance.meters} m`
-                        )}
-                        label={`Round ${index + 1} distance`}
-                        onChange={field.handleChange}
-                        value={field.state.value}
-                      />
-                    </View>
-                  )}
-                </form.Field>
-                <form.Field name={`rounds[${index}].targetFaceId`}>
-                  {(field) => (
-                    <View className="gap-2">
-                      <Label>Target face</Label>
-                      <ChoiceGroup
-                        choices={choicesOf(
-                          faces,
-                          round.targetFaceId,
-                          (face) => face.name
-                        )}
-                        label={`Round ${index + 1} target face`}
-                        onChange={field.handleChange}
-                        value={field.state.value}
-                      />
-                    </View>
-                  )}
-                </form.Field>
-                <form.Field name={`rounds[${index}].plannedEnds`}>
-                  {(field) => (
-                    <Stepper
-                      label="Ends"
-                      max={ROUND_LIMITS.plannedEnds.max}
-                      min={ROUND_LIMITS.plannedEnds.min}
-                      onChange={field.handleChange}
-                      value={field.state.value}
-                    />
-                  )}
-                </form.Field>
-                <form.Field name={`rounds[${index}].arrowsPerEnd`}>
-                  {(field) => (
-                    <Stepper
-                      label="Arrows per end"
-                      max={ROUND_LIMITS.arrowsPerEnd.max}
-                      min={ROUND_LIMITS.arrowsPerEnd.min}
-                      onChange={field.handleChange}
-                      value={field.state.value}
-                    />
-                  )}
-                </form.Field>
-              </View>
-            ))}
-            {roundsField.state.value.length < ROUND_LIMITS.rounds.max ? (
-              <Button
-                className="h-12"
-                onPress={() => {
-                  const last = roundsField.state.value.at(-1);
-                  roundsField.pushValue(
-                    newRound(
-                      last ?? {
-                        ...HAND_ADDED_ROUND,
-                        distanceId: athlete.distance_id,
-                        targetFaceId: athlete.target_face_id,
+        <View className="gap-2">
+          <SectionLabel>Session</SectionLabel>
+          <Card>
+            <form.Field name="presetId">
+              {(field) => (
+                <CardRow>
+                  <Label>Format</Label>
+                  <ChoiceGroup
+                    choices={presetChoices}
+                    label="Format"
+                    onChange={(presetId) => {
+                      field.handleChange(presetId);
+                      const chosen = ROUND_PRESETS.find(
+                        (option) => option.id === presetId
+                      );
+                      if (chosen) {
+                        form.setFieldValue(
+                          "rounds",
+                          roundsFromPreset(chosen, athlete)
+                        );
+                        form.setFieldValue("venue", chosen.venue);
                       }
-                    )
-                  );
-                }}
-                variant="outline"
-              >
-                <PlusIcon colorClassName="accent-foreground" size={18} />
-                <Text>Add round</Text>
-              </Button>
-            ) : null}
-            <FieldError errors={roundsField.state.meta.errors} />
-          </View>
-        )}
-      </form.Field>
+                    }}
+                    value={field.state.value}
+                  />
+                </CardRow>
+              )}
+            </form.Field>
 
-      <form.Subscribe selector={(state) => state.isSubmitting}>
-        {(isSubmitting) => (
-          <Button
-            aria-busy={isSubmitting}
-            className="h-12"
-            disabled={isSubmitting}
-            onPress={submit}
-            size="lg"
-          >
-            <Text>{isSubmitting ? "Starting…" : "Start scoring"}</Text>
-          </Button>
-        )}
-      </form.Subscribe>
-      {saveError ? (
-        <Text role="alert" variant="error">
-          {saveError}
-        </Text>
-      ) : null}
-    </ScrollView>
+            <form.Field name="sessionType">
+              {(field) => (
+                <CardRow>
+                  <Label>Type</Label>
+                  <ChoiceGroup
+                    choices={SESSION_TYPES}
+                    label="Session type"
+                    onChange={field.handleChange}
+                    value={field.state.value}
+                  />
+                </CardRow>
+              )}
+            </form.Field>
+
+            <form.Field name="venue">
+              {(field) => (
+                <CardRow last>
+                  <Label>Venue</Label>
+                  <ChoiceGroup
+                    choices={VENUES}
+                    label="Venue"
+                    onChange={field.handleChange}
+                    value={field.state.value}
+                  />
+                </CardRow>
+              )}
+            </form.Field>
+          </Card>
+        </View>
+
+        <View className="gap-2">
+          <SectionLabel>Details</SectionLabel>
+          <Card>
+            <form.Field name="sessionDate">
+              {(field) => (
+                <CardRow>
+                  <Label nativeID="session-date-label">Date</Label>
+                  <Input
+                    accessibilityLabelledBy="session-date-label"
+                    className="h-11"
+                    inputMode="numeric"
+                    maxLength={10}
+                    onBlur={field.handleBlur}
+                    onChangeText={field.handleChange}
+                    placeholder="2026-09-24"
+                    value={field.state.value}
+                  />
+                  <FieldError errors={field.state.meta.errors} />
+                </CardRow>
+              )}
+            </form.Field>
+
+            <form.Field name="title">
+              {(field) => (
+                <CardRow last>
+                  <Label nativeID="session-title-label">Title (optional)</Label>
+                  <Input
+                    accessibilityLabelledBy="session-title-label"
+                    className="h-11"
+                    maxLength={120}
+                    onBlur={field.handleBlur}
+                    onChangeText={field.handleChange}
+                    placeholder="e.g. State trials, morning"
+                    value={field.state.value}
+                  />
+                  <FieldError errors={field.state.meta.errors} />
+                </CardRow>
+              )}
+            </form.Field>
+          </Card>
+        </View>
+
+        <RoundsSection
+          athlete={athlete}
+          distances={distances}
+          faces={faces}
+          form={form}
+        />
+
+        {saveError ? (
+          <Text role="alert" variant="error">
+            {saveError}
+          </Text>
+        ) : null}
+      </ScrollView>
+
+      <View className="border-border bg-background border-t p-4">
+        <form.Subscribe selector={(state) => state.isSubmitting}>
+          {(isSubmitting) => (
+            <Button
+              aria-busy={isSubmitting}
+              className="h-14"
+              disabled={isSubmitting}
+              onPress={submit}
+              radius="pill"
+              size="lg"
+            >
+              <Text variant="large">
+                {isSubmitting ? "Starting…" : "Start scoring"}
+              </Text>
+            </Button>
+          )}
+        </form.Subscribe>
+      </View>
+    </View>
   );
 };
 
@@ -464,7 +591,7 @@ export const SessionSetup = ({ athleteId }: { athleteId: string }) => {
   });
 
   return (
-    <StyledSafeAreaView className="bg-background flex-1" edges={["bottom"]}>
+    <StyledSafeAreaView className="bg-muted/30 flex-1" edges={["bottom"]}>
       <Stack.Screen options={{ title: "New session" }} />
       {found ? (
         <SetupForm athlete={found} distances={distances} faces={faces} />

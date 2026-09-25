@@ -1,4 +1,4 @@
-import { createClient, processLock } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@workspace/shared/database.types";
 import { AppState } from "react-native";
 
@@ -18,7 +18,6 @@ export const supabase = supabaseEnv
       auth: {
         autoRefreshToken: true,
         detectSessionInUrl: false,
-        lock: processLock,
         persistSession: true,
         storage: secureStorage,
         storageKey: AUTH_STORAGE_KEY,
@@ -35,12 +34,21 @@ export const refreshTokensWhileActive = () => {
     return;
   }
   const { auth } = supabase;
+  // Offline or a dropped connection rejects this; the client's own refresh
+  // timer retries on its next tick, so there is nothing more to do here.
+  const startRefresh = async () => {
+    try {
+      await auth.startAutoRefresh();
+    } catch {
+      // Retried automatically on the client's own refresh timer.
+    }
+  };
   if (AppState.currentState === "active") {
-    auth.startAutoRefresh();
+    startRefresh();
   }
   const subscription = AppState.addEventListener("change", (state) => {
     if (state === "active") {
-      auth.startAutoRefresh();
+      startRefresh();
     } else {
       auth.stopAutoRefresh();
     }

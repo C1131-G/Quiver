@@ -33,9 +33,9 @@ const LAST_RETRY_DELAY_MS = 60_000;
 /** Pending entries by session, oldest session first. */
 const groupBySession = (entries: readonly OutboxEntry[]) => {
   const bySession = new Map<string, OutboxEntry[]>();
-  const sorted = entries.toSorted((entryA, entryB) =>
-    entryA.queued_at.localeCompare(entryB.queued_at)
-  );
+  const sorted = [...entries]
+    // oxlint-disable-next-line unicorn/no-array-sort -- toSorted() is unimplemented on the Hermes engine QuiverScore runs on
+    .sort((entryA, entryB) => entryA.queued_at.localeCompare(entryB.queued_at));
   for (const entry of sorted) {
     const group = bySession.get(entry.session_id) ?? [];
     // A copy: the entry's revision must stay as it was when sent.
@@ -168,6 +168,7 @@ export const startSync = (db: ScorerDb, userId: string) => {
   };
 
   // Runs one sync at a time; a request made meanwhile runs right after it.
+  // Every caller fires this without awaiting it, so it must never reject.
   const requestSync = async () => {
     if (running) {
       runAgain = true;
@@ -197,23 +198,34 @@ export const startSync = (db: ScorerDb, userId: string) => {
       pullWanted = true;
       setSyncState({ phase: "retrying" });
       scheduleRetry(requestSync);
+    } finally {
+      running = false;
     }
-    running = false;
     if (runAgain) {
       await requestSync();
+    }
+  };
+
+  // requestSync() is fired without awaiting it everywhere below; this
+  // guarantees a rejection there never surfaces as an unhandled promise.
+  const runSync = async () => {
+    try {
+      await requestSync();
+    } catch {
+      // requestSync() already records the failure and schedules a retry.
     }
   };
 
   const outboxChanges = db.outbox.subscribeChanges((changes) => {
     // Clearing sent entries needs no new sync; a new or rewritten one does.
     if (changes.some((change) => change.type !== "delete")) {
-      requestSync();
+      runSync();
     }
   });
   const issueChanges = db.syncIssues.subscribeChanges((changes) => {
     // A cleared issue is the scorer asking to try that session again.
     if (changes.some((change) => change.type === "delete")) {
-      requestSync();
+      runSync();
     }
   });
   const stopNetInfo = onNetworkChange((state) => {
@@ -222,18 +234,18 @@ export const startSync = (db: ScorerDb, userId: string) => {
     setSyncState({ online });
     if (online) {
       failures = 0;
-      requestSync();
+      runSync();
     }
   });
   const appState = AppState.addEventListener("change", (state) => {
     if (state === "active") {
       pullWanted = true;
-      requestSync();
+      runSync();
     }
   });
 
   setSyncState({ phase: "idle" });
-  requestSync();
+  runSync();
 
   return () => {
     stopped = true;

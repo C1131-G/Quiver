@@ -99,10 +99,8 @@ export const SignInForm = () => {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1 justify-center px-6"
       >
-        <View className="mb-8 gap-1">
-          <Text className="text-center" variant="h3">
-            QuiverScore
-          </Text>
+        <View className="mb-10 gap-2">
+          <Text variant="h1">QuiverScore</Text>
           <Text className="text-center" variant="muted">
             Sign in with your scorer account
           </Text>
@@ -167,12 +165,15 @@ export const SignInForm = () => {
             {(isSubmitting) => (
               <Button
                 aria-busy={isSubmitting}
-                className="h-12"
+                className="h-14"
                 disabled={isSubmitting || !supabaseEnv}
                 onPress={submit}
+                radius="pill"
                 size="lg"
               >
-                <Text>{isSubmitting ? "Signing in…" : "Sign in"}</Text>
+                <Text variant="large">
+                  {isSubmitting ? "Signing in…" : "Sign in"}
+                </Text>
               </Button>
             )}
           </form.Subscribe>

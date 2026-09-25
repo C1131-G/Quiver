@@ -54,7 +54,8 @@ export const endDisplayOrder = (
   arrows: readonly ScoredArrow[],
   arrowsPerEnd: number
 ) => {
-  const inOrder = arrows.toSorted(byArrowNo);
+  // oxlint-disable-next-line unicorn/no-array-sort, unicorn/prefer-spread -- toSorted() is unimplemented on the Hermes engine QuiverScore runs on
+  const inOrder = arrows.slice().sort(byArrowNo);
   return inOrder.length >= arrowsPerEnd ? highToLow(inOrder) : inOrder;
 };
 
@@ -145,4 +146,6 @@ export const nextArrowNo = (
 /** The arrow shot last in an end: the one "Delete arrow" removes. */
 export const lastShot = <TArrow extends ScoredArrow>(
   arrows: readonly TArrow[]
-) => arrows.toSorted(byArrowNo).at(-1) ?? null;
+) =>
+  // oxlint-disable-next-line unicorn/no-array-sort, unicorn/prefer-spread -- toSorted() is unimplemented on the Hermes engine QuiverScore runs on
+  arrows.slice().sort(byArrowNo).at(-1) ?? null;

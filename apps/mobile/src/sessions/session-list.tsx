@@ -130,13 +130,19 @@ const Header = () => {
   );
   const [signingOut, setSigningOut] = useState(false);
 
-  // Signing out swaps this screen for sign-in, so there is no state to reset.
+  // Signing out swaps this screen for sign-in, so there is no state to reset
+  // on success; a failure resets it so the button can be pressed again.
   const handleSignOut = async () => {
     setSigningOut(true);
-    await signOut();
-    toast.success(
-      "Signed out. Scores stay on this phone for your next sign-in."
-    );
+    try {
+      await signOut();
+      toast.success(
+        "Signed out. Scores stay on this phone for your next sign-in."
+      );
+    } catch {
+      toast.error("Could not sign out. Please try again.");
+      setSigningOut(false);
+    }
   };
 
   return (
@@ -151,6 +157,7 @@ const Header = () => {
         aria-busy={signingOut}
         disabled={signingOut}
         onPress={handleSignOut}
+        radius="pill"
         size="sm"
         variant="outline"
       >
@@ -225,6 +232,7 @@ export const SessionList = () => {
             <Button
               className="h-12"
               onPress={() => router.push("/new-session")}
+              radius="pill"
               size="lg"
             >
               <PlusIcon colorClassName="accent-primary-foreground" size={18} />

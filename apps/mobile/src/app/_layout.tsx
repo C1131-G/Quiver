@@ -1,3 +1,4 @@
+import "@/lib/crypto-polyfill";
 import "@/global.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useSelector } from "@tanstack/react-store";

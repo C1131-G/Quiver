@@ -24,20 +24,21 @@ export const Stepper = ({
 }) => (
   <View className="flex-row items-center justify-between gap-3">
     <Text variant="small">{label}</Text>
-    <View className="flex-row items-center gap-2">
+    <View className="bg-muted flex-row items-center gap-1 rounded-full p-1">
       <Button
         aria-label={`Fewer ${label.toLowerCase()}`}
         disabled={value <= min}
         onPress={() => onChange(value - 1)}
+        radius="pill"
         size="icon"
         variant="outline"
       >
-        <MinusIcon colorClassName="accent-foreground" size={18} />
+        <MinusIcon colorClassName="accent-foreground" size={16} />
       </Button>
       <Text
         aria-label={`${label}: ${value}`}
         aria-live="polite"
-        className="w-8 text-center"
+        className="w-9 text-center"
         variant="figure"
       >
         {value}
@@ -46,10 +47,11 @@ export const Stepper = ({
         aria-label={`More ${label.toLowerCase()}`}
         disabled={value >= max}
         onPress={() => onChange(value + 1)}
+        radius="pill"
         size="icon"
         variant="outline"
       >
-        <PlusIcon colorClassName="accent-foreground" size={18} />
+        <PlusIcon colorClassName="accent-foreground" size={16} />
       </Button>
     </View>
   </View>

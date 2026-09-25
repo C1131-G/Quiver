@@ -13,7 +13,7 @@ function InputGroup({
   return (
     <View
       className={cn(
-        "border-input bg-background dark:bg-input/30 h-10 w-full min-w-0 flex-row items-center border sm:h-9",
+        "border-input bg-background dark:bg-input/30 h-10 w-full min-w-0 flex-row items-center overflow-hidden rounded-md border sm:h-9",
         className
       )}
       {...props}
@@ -32,10 +32,10 @@ function InputGroupInput({
         props.editable === false && "opacity-50",
         Platform.select({
           web: "placeholder:text-muted-foreground outline-none md:text-sm",
-          native: "placeholder:text-muted-foreground/50",
         }),
         className
       )}
+      placeholderTextColorClassName="accent-muted-foreground/50"
       {...props}
     />
   );

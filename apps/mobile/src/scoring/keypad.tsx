@@ -90,6 +90,7 @@ export const Keypad = ({
         className="h-12 flex-1"
         disabled={!canClear}
         onPress={onDeleteArrow}
+        radius="pill"
         variant="outline"
       >
         <BackspaceIcon colorClassName="accent-foreground" size={18} />
@@ -99,6 +100,7 @@ export const Keypad = ({
         className="h-12 flex-1"
         disabled={!canClear}
         onPress={onClearEnd}
+        radius="pill"
         variant="outline"
       >
         <TrashIcon colorClassName="accent-foreground" size={18} />

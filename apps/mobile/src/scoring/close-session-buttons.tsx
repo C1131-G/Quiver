@@ -130,29 +130,33 @@ export const CloseSessionButtons = ({
   const disabled = closing || sendBlocked;
 
   return (
-    <View className="gap-2 pt-2">
+    <View className="gap-2">
       {sendBlocked ? (
         <Text variant="muted">
           Submitting and cancelling wait until the send problem above is solved.
         </Text>
       ) : null}
-      <Button
-        aria-busy={closing}
-        className="h-12"
-        disabled={disabled}
-        onPress={confirmSubmit}
-        size="lg"
-      >
-        <Text>Submit session</Text>
-      </Button>
-      <Button
-        className="h-12"
-        disabled={disabled}
-        onPress={confirmAbandon}
-        variant="destructive"
-      >
-        <Text>{discardable ? "Discard session" : "Cancel session"}</Text>
-      </Button>
+      <View className="flex-row gap-2">
+        <Button
+          aria-busy={closing}
+          className="h-11 flex-1"
+          disabled={disabled}
+          onPress={confirmAbandon}
+          radius="pill"
+          variant="destructive"
+        >
+          <Text>{discardable ? "Discard" : "Cancel"}</Text>
+        </Button>
+        <Button
+          aria-busy={closing}
+          className="h-11 flex-1"
+          disabled={disabled}
+          onPress={confirmSubmit}
+          radius="pill"
+        >
+          <Text>Submit session</Text>
+        </Button>
+      </View>
     </View>
   );
 };

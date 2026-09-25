@@ -44,12 +44,16 @@ export const pointsOf = (value: string | null) => {
 };
 
 /** Lowest to highest, so a larger index is a better arrow. */
-const RANK: readonly string[] = ARROW_VALUES.toReversed();
+// oxlint-disable-next-line unicorn/no-array-reverse, unicorn/prefer-spread -- toReversed() is unimplemented on the Hermes engine QuiverScore runs on
+const RANK: readonly string[] = ARROW_VALUES.slice().reverse();
 
 /** Scorecards list each end's arrows from highest to lowest. */
 export const highToLow = <TArrow extends { value: string }>(
   arrows: readonly TArrow[]
-) =>
-  arrows.toSorted(
+) => {
+  const copy = [...arrows];
+  // oxlint-disable-next-line unicorn/no-array-sort -- toSorted() is unimplemented on the Hermes engine QuiverScore runs on
+  return copy.sort(
     (arrowA, arrowB) => RANK.indexOf(arrowB.value) - RANK.indexOf(arrowA.value)
   );
+};

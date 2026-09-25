@@ -31,40 +31,62 @@ const removeChunks = async (key: string, from: number, to: number) => {
 };
 
 export const secureStorage: SupportedStorage = {
+  // A Keychain/Keystore read can reject (e.g. a corrupted entry); Supabase's
+  // storage adapters are not guaranteed to await/catch every call, so a
+  // rejection here must not escape as an unhandled promise. Treat it the
+  // same as a missing chunk: signed out, not crashed.
   async getItem(key) {
-    const count = await readCount(key);
-    if (count === 0) {
+    try {
+      const count = await readCount(key);
+      if (count === 0) {
+        return null;
+      }
+      const chunks = await Promise.all(
+        Array.from({ length: count }, (_chunk, index) =>
+          getItemAsync(chunkKey(key, index))
+        )
+      );
+      // A chunk missing means an interrupted write; treat it as signed out.
+      if (chunks.some((chunk) => chunk === null)) {
+        return null;
+      }
+      return chunks.join("");
+    } catch (error) {
+      console.error("[secureStorage.getItem] failed", key, error);
       return null;
     }
-    const chunks = await Promise.all(
-      Array.from({ length: count }, (_chunk, index) =>
-        getItemAsync(chunkKey(key, index))
-      )
-    );
-    // A chunk missing means an interrupted write; treat it as signed out.
-    if (chunks.some((chunk) => chunk === null)) {
-      return null;
-    }
-    return chunks.join("");
   },
 
+  // Best-effort cleanup: signing out must still proceed even if the
+  // Keychain/Keystore delete rejects, so this never rethrows.
   async removeItem(key) {
-    const count = await readCount(key);
-    await deleteItemAsync(safeKey(key));
-    await removeChunks(key, 0, count);
+    try {
+      const count = await readCount(key);
+      await deleteItemAsync(safeKey(key));
+      await removeChunks(key, 0, count);
+    } catch (error) {
+      console.error("[secureStorage.removeItem] failed", key, error);
+    }
   },
 
+  // A write failure means the session was not persisted; the caller (the
+  // Supabase client) needs to see that, so this rethrows after logging.
   async setItem(key, value) {
-    const previousCount = await readCount(key);
-    const chunks: string[] = [];
-    for (let start = 0; start < value.length; start += CHUNK_SIZE) {
-      chunks.push(value.slice(start, start + CHUNK_SIZE));
+    try {
+      const previousCount = await readCount(key);
+      const chunks: string[] = [];
+      for (let start = 0; start < value.length; start += CHUNK_SIZE) {
+        chunks.push(value.slice(start, start + CHUNK_SIZE));
+      }
+      await Promise.all(
+        chunks.map((chunk, index) => setItemAsync(chunkKey(key, index), chunk))
+      );
+      // The count goes last, so a reader never sees a half-written value.
+      await setItemAsync(safeKey(key), String(chunks.length));
+      await removeChunks(key, chunks.length, previousCount);
+    } catch (error) {
+      console.error("[secureStorage.setItem] failed", key, value.length, error);
+      throw error;
     }
-    await Promise.all(
-      chunks.map((chunk, index) => setItemAsync(chunkKey(key, index), chunk))
-    );
-    // The count goes last, so a reader never sees a half-written value.
-    await setItemAsync(safeKey(key), String(chunks.length));
-    await removeChunks(key, chunks.length, previousCount);
   },
 };
