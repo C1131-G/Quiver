@@ -1,5 +1,5 @@
 import type { LegendListRenderItemProps } from "@legendapp/list/react-native";
-import { LegendList } from "@legendapp/list/react-native";
+import { LegendList, useRecyclingState } from "@legendapp/list/react-native";
 import { AnimatePresence, Motion } from "@legendapp/motion";
 import { eq, useLiveQuery } from "@tanstack/react-db";
 import { router, Stack } from "expo-router";
@@ -28,6 +28,15 @@ const describeRound = (
   return `${round.planned_ends} ends of ${round.arrows_per_end} · ${distance}`;
 };
 
+// A fresh mount id per recycle, so a recycled row shows its checkbox's
+// steady state instead of animating a transition that belongs to the
+// row it used to be.
+let mountSeq = 0;
+const nextMountId = () => {
+  mountSeq += 1;
+  return mountSeq;
+};
+
 const AthleteRow = memo(
   // oxlint-disable-next-line prefer-arrow-callback -- named so React DevTools shows it
   function AthleteRow({
@@ -45,6 +54,7 @@ const AthleteRow = memo(
       () => onToggle(athlete.id),
       [athlete.id, onToggle]
     );
+    const [mountId] = useRecyclingState(nextMountId);
     return (
       <ListRow
         aria-checked={checked}
@@ -62,7 +72,7 @@ const AthleteRow = memo(
             checked && "bg-primary border-primary"
           )}
         >
-          <AnimatePresence>
+          <AnimatePresence key={`check-${mountId}`}>
             {checked ? (
               <Motion.View
                 animate={{ opacity: 1, scale: 1 }}
@@ -184,8 +194,7 @@ const StartForm = ({ template }: { template: SessionTemplate }) => {
       extraData={extraData}
       keyExtractor={keyExtractor}
       maintainVisibleContentPosition
-      // Not recycled: each row's checkmark animates its own mount/unmount
-      // (AnimatePresence), which item reuse would confuse.
+      recycleItems
       ListFooterComponent={
         <View className="gap-2 pt-4">
           {missing > 0 ? (

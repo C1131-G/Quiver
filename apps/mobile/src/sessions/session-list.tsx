@@ -1,5 +1,5 @@
 import type { LegendListRenderItemProps } from "@legendapp/list/react-native";
-import { LegendList } from "@legendapp/list/react-native";
+import { LegendList, useRecyclingState } from "@legendapp/list/react-native";
 import { AnimatePresence, Motion } from "@legendapp/motion";
 import { eq, useLiveQuery } from "@tanstack/react-db";
 import { useQuery } from "@tanstack/react-query";
@@ -40,6 +40,15 @@ interface SessionListItem {
   title: string | null;
 }
 
+// A fresh mount id per recycle, so a recycled row shows its badges'
+// steady state instead of animating a transition that belongs to the
+// row it used to be.
+let mountSeq = 0;
+const nextMountId = () => {
+  mountSeq += 1;
+  return mountSeq;
+};
+
 const SessionRow = memo(
   // oxlint-disable-next-line prefer-arrow-callback -- named so React DevTools shows it
   function SessionRow({
@@ -57,6 +66,7 @@ const SessionRow = memo(
       () => onPress(session.id),
       [onPress, session.id]
     );
+    const [mountId] = useRecyclingState(nextMountId);
     return (
       <ListRow
         aria-label={`${session.athleteName ?? "Athlete"}, ${session.sessionDate}`}
@@ -78,7 +88,7 @@ const SessionRow = memo(
               .filter(Boolean)
               .join(" · ")}
           </Text>
-          <AnimatePresence>
+          <AnimatePresence key={`not-sent-${mountId}`}>
             {hasIssue ? (
               <Motion.View
                 animate={{ opacity: 1, scale: 1 }}
@@ -93,7 +103,7 @@ const SessionRow = memo(
               </Motion.View>
             ) : null}
           </AnimatePresence>
-          <AnimatePresence>
+          <AnimatePresence key={`waiting-${mountId}`}>
             {isWaiting ? (
               <Motion.View
                 animate={{ opacity: 1, scale: 1 }}
@@ -202,8 +212,7 @@ export const SessionList = () => {
         extraData={pending}
         keyExtractor={keyExtractor}
         maintainVisibleContentPosition
-        // Not recycled: each row's sync badges animate their own mount/unmount
-        // (AnimatePresence), which item reuse would confuse.
+        recycleItems
         ListEmptyComponent={
           <EmptyState>
             No sessions yet. Start one to score an athlete.
