@@ -1,10 +1,12 @@
+import type { LegendListRenderItemProps } from "@legendapp/list/react-native";
+import { LegendList } from "@legendapp/list/react-native";
+import { AnimatePresence, Motion } from "@legendapp/motion";
 import { eq, useLiveQuery } from "@tanstack/react-db";
 import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "@tanstack/react-store";
 import { router } from "expo-router";
 import { memo, useCallback, useState } from "react";
-import type { ListRenderItemInfo } from "react-native";
-import { FlatList, View } from "react-native";
+import { View } from "react-native";
 import { toast } from "sonner-native";
 
 import { authAtom, signOut } from "@/auth/auth-store";
@@ -76,16 +78,36 @@ const SessionRow = memo(
               .filter(Boolean)
               .join(" · ")}
           </Text>
-          {hasIssue ? (
-            <Badge className="self-start" variant="destructive">
-              <Text>Not sent</Text>
-            </Badge>
-          ) : null}
-          {isWaiting ? (
-            <Badge className="self-start" variant="outline">
-              <Text>Waiting to send</Text>
-            </Badge>
-          ) : null}
+          <AnimatePresence>
+            {hasIssue ? (
+              <Motion.View
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                key="not-sent"
+                transition={{ duration: 150, type: "timing" }}
+              >
+                <Badge className="self-start" variant="destructive">
+                  <Text>Not sent</Text>
+                </Badge>
+              </Motion.View>
+            ) : null}
+          </AnimatePresence>
+          <AnimatePresence>
+            {isWaiting ? (
+              <Motion.View
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                key="waiting"
+                transition={{ duration: 150, type: "timing" }}
+              >
+                <Badge className="self-start" variant="outline">
+                  <Text>Waiting to send</Text>
+                </Badge>
+              </Motion.View>
+            ) : null}
+          </AnimatePresence>
         </View>
       </ListRow>
     );
@@ -156,7 +178,7 @@ export const SessionList = () => {
   });
 
   const renderSession = useCallback(
-    ({ item }: ListRenderItemInfo<SessionListItem>) => (
+    ({ item }: LegendListRenderItemProps<SessionListItem>) => (
       <SessionRow
         hasIssue={issuesBySession.has(item.id)}
         isWaiting={waitingSessions.has(item.id)}
@@ -173,12 +195,15 @@ export const SessionList = () => {
 
   return (
     <StyledSafeAreaView className="bg-background flex-1">
-      <FlatList
+      <LegendList
         contentContainerClassName="gap-2 p-4"
         data={sessions}
         // Rows show whether each session has reached the server.
         extraData={pending}
         keyExtractor={keyExtractor}
+        maintainVisibleContentPosition
+        // Not recycled: each row's sync badges animate their own mount/unmount
+        // (AnimatePresence), which item reuse would confuse.
         ListEmptyComponent={
           <EmptyState>
             No sessions yet. Start one to score an athlete.

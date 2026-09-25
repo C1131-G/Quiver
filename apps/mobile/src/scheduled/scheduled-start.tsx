@@ -1,8 +1,10 @@
+import type { LegendListRenderItemProps } from "@legendapp/list/react-native";
+import { LegendList } from "@legendapp/list/react-native";
+import { AnimatePresence, Motion } from "@legendapp/motion";
 import { eq, useLiveQuery } from "@tanstack/react-db";
 import { router, Stack } from "expo-router";
 import { memo, useCallback, useMemo, useState } from "react";
-import type { ListRenderItemInfo } from "react-native";
-import { FlatList, View } from "react-native";
+import { View } from "react-native";
 
 import { ListRow } from "@/components/list-row";
 import { CheckIcon, StyledSafeAreaView } from "@/components/styled";
@@ -60,9 +62,22 @@ const AthleteRow = memo(
             checked && "bg-primary border-primary"
           )}
         >
-          {checked ? (
-            <CheckIcon colorClassName="accent-primary-foreground" size={16} />
-          ) : null}
+          <AnimatePresence>
+            {checked ? (
+              <Motion.View
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0 }}
+                initial={{ opacity: 0, scale: 0 }}
+                key="check"
+                transition={{ type: "spring" }}
+              >
+                <CheckIcon
+                  colorClassName="accent-primary-foreground"
+                  size={16}
+                />
+              </Motion.View>
+            ) : null}
+          </AnimatePresence>
         </View>
         <View className="flex-1 gap-1">
           <Text numberOfLines={1} variant="large">
@@ -151,7 +166,7 @@ const StartForm = ({ template }: { template: SessionTemplate }) => {
   const extraData = useMemo(() => ({ chosen, started }), [chosen, started]);
   const keyExtractor = useCallback((athlete: Athlete) => athlete.id, []);
   const renderAthlete = useCallback(
-    ({ item }: ListRenderItemInfo<Athlete>) => (
+    ({ item }: LegendListRenderItemProps<Athlete>) => (
       <AthleteRow
         athlete={item}
         checked={chosen.has(item.id)}
@@ -163,11 +178,14 @@ const StartForm = ({ template }: { template: SessionTemplate }) => {
   );
 
   return (
-    <FlatList
+    <LegendList
       contentContainerClassName="gap-2 p-4"
       data={onPhone}
       extraData={extraData}
       keyExtractor={keyExtractor}
+      maintainVisibleContentPosition
+      // Not recycled: each row's checkmark animates its own mount/unmount
+      // (AnimatePresence), which item reuse would confuse.
       ListFooterComponent={
         <View className="gap-2 pt-4">
           {missing > 0 ? (

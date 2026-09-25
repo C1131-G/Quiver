@@ -1,10 +1,11 @@
+import type { LegendListRenderItemProps } from "@legendapp/list/react-native";
+import { LegendList } from "@legendapp/list/react-native";
 import { eq, ilike, or, useLiveQuery } from "@tanstack/react-db";
 import { useDebouncedValue } from "@tanstack/react-pacer";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { memo, useCallback, useState } from "react";
-import type { ListRenderItemInfo } from "react-native";
-import { FlatList, View } from "react-native";
+import { View } from "react-native";
 
 import type { Choice } from "@/components/choice-group";
 import { ChoiceGroup } from "@/components/choice-group";
@@ -123,7 +124,7 @@ export const AthletePicker = () => {
     });
   }, []);
   const renderAthlete = useCallback(
-    ({ item }: ListRenderItemInfo<Athlete>) => (
+    ({ item }: LegendListRenderItemProps<Athlete>) => (
       <AthletePickerRow athlete={item} onPress={openAthlete} />
     ),
     [openAthlete]
@@ -132,11 +133,13 @@ export const AthletePicker = () => {
 
   return (
     <StyledSafeAreaView className="bg-background flex-1" edges={["bottom"]}>
-      <FlatList
+      <LegendList
         contentContainerClassName="gap-2 p-4"
         data={athletes ?? []}
         keyboardShouldPersistTaps="handled"
         keyExtractor={keyExtractor}
+        maintainVisibleContentPosition
+        recycleItems
         ListEmptyComponent={
           isLoading ? null : (
             <EmptyState>
