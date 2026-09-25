@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table";
 import Link from "next/link";
+import { ViewTransition } from "react";
 
 import { useAthletes, useLookups } from "@/components/athletes/use-athletes";
 import { FilterBar, FilterBarSkeleton } from "@/components/filters/filter-bar";
@@ -77,7 +78,9 @@ const SessionRow = ({ session }: { session: SessionSummary }) => {
       </TableCell>
       <TableCell>
         <div className="flex flex-col">
-          <span className="font-medium">{session.athlete_name}</span>
+          <ViewTransition name={`session-title-${id}`}>
+            <span className="font-medium">{session.athlete_name}</span>
+          </ViewTransition>
           <span className="text-muted-foreground font-mono">
             {session.id_no}
           </span>

@@ -20,7 +20,7 @@
     "@tanstack/react-table": "9.2.4",
     "@workspace/ui": "workspace:*",
     "exceljs": "4.4.0",
-    "motion": "^13.1.1",
+    "motion": "^13.4.3",
     "next": "16.3.6",
     "next-themes": "^0.4.6",
     "react": "19.2.4",

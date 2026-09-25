@@ -137,6 +137,7 @@ const SessionContent = ({
         }
         description={describeSession(session)}
         title={athleteName}
+        titleTransitionName={`session-title-${sessionId}`}
       />
       {/* A failed refresh keeps the last good scores (and any edit) on screen. */}
       {refreshError ? (

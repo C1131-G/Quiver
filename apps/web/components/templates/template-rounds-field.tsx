@@ -4,6 +4,7 @@ import { PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { Button } from "@workspace/ui/components/button";
 import { FieldLegend, FieldSet } from "@workspace/ui/components/field";
 import { Input } from "@workspace/ui/components/input";
+import { AnimatePresence, domMax, LazyMotion, m } from "motion/react";
 
 import type { Lookups } from "@/components/athletes/use-athletes";
 import type { FilterOption } from "@/components/filters/filter-select";
@@ -93,56 +94,73 @@ export const TemplateRoundsField = ({
           <span>Ends</span>
           <span>Arrows</span>
         </div>
-        {rounds.map((round, index) => {
-          const name = `Round ${index + 1}`;
-          return (
-            <fieldset
-              aria-label={name}
-              className="grid grid-cols-[4rem_1fr_1fr_5rem_5rem_2rem] items-center gap-2"
-              key={round.key}
-            >
-              <span className="text-xs font-medium">{name}</span>
-              <FilterSelect
-                className="w-full"
-                items={distances}
-                label={`${name} distance`}
-                onChange={(distanceId) => update(round.key, { distanceId })}
-                value={round.distanceId}
-              />
-              <FilterSelect
-                className="w-full"
-                items={faces}
-                label={`${name} target face`}
-                onChange={(targetFaceId) => update(round.key, { targetFaceId })}
-                value={round.targetFaceId}
-              />
-              <NumberField
-                label={`${name} ends`}
-                limits={ROUND_LIMITS.plannedEnds}
-                onChange={(plannedEnds) => update(round.key, { plannedEnds })}
-                value={round.plannedEnds}
-              />
-              <NumberField
-                label={`${name} arrows per end`}
-                limits={ROUND_LIMITS.arrowsPerEnd}
-                onChange={(arrowsPerEnd) => update(round.key, { arrowsPerEnd })}
-                value={round.arrowsPerEnd}
-              />
-              <Button
-                aria-label={`Remove ${name.toLowerCase()}`}
-                disabled={rounds.length <= ROUND_LIMITS.rounds.min}
-                onClick={() =>
-                  onChange(rounds.filter((other) => other.key !== round.key))
-                }
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-              >
-                <TrashIcon aria-hidden="true" />
-              </Button>
-            </fieldset>
-          );
-        })}
+        <LazyMotion features={domMax} strict>
+          <AnimatePresence initial={false}>
+            {rounds.map((round, index) => {
+              const name = `Round ${index + 1}`;
+              return (
+                <m.fieldset
+                  animate={{ opacity: 1, scale: 1 }}
+                  aria-label={name}
+                  className="grid grid-cols-[4rem_1fr_1fr_5rem_5rem_2rem] items-center gap-2"
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  key={round.key}
+                  layout
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                >
+                  <span className="text-xs font-medium">{name}</span>
+                  <FilterSelect
+                    className="w-full"
+                    items={distances}
+                    label={`${name} distance`}
+                    onChange={(distanceId) => update(round.key, { distanceId })}
+                    value={round.distanceId}
+                  />
+                  <FilterSelect
+                    className="w-full"
+                    items={faces}
+                    label={`${name} target face`}
+                    onChange={(targetFaceId) =>
+                      update(round.key, { targetFaceId })
+                    }
+                    value={round.targetFaceId}
+                  />
+                  <NumberField
+                    label={`${name} ends`}
+                    limits={ROUND_LIMITS.plannedEnds}
+                    onChange={(plannedEnds) =>
+                      update(round.key, { plannedEnds })
+                    }
+                    value={round.plannedEnds}
+                  />
+                  <NumberField
+                    label={`${name} arrows per end`}
+                    limits={ROUND_LIMITS.arrowsPerEnd}
+                    onChange={(arrowsPerEnd) =>
+                      update(round.key, { arrowsPerEnd })
+                    }
+                    value={round.arrowsPerEnd}
+                  />
+                  <Button
+                    aria-label={`Remove ${name.toLowerCase()}`}
+                    disabled={rounds.length <= ROUND_LIMITS.rounds.min}
+                    onClick={() =>
+                      onChange(
+                        rounds.filter((other) => other.key !== round.key)
+                      )
+                    }
+                    size="icon-sm"
+                    type="button"
+                    variant="ghost"
+                  >
+                    <TrashIcon aria-hidden="true" />
+                  </Button>
+                </m.fieldset>
+              );
+            })}
+          </AnimatePresence>
+        </LazyMotion>
         {rounds.length < ROUND_LIMITS.rounds.max ? (
           <Button
             className="self-start"
