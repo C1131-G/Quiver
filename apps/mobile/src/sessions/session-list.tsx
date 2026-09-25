@@ -83,11 +83,15 @@ const SessionRow = memo(
           <AnimatePresence key={`not-sent-${mountId}`}>
             {hasIssue ? (
               <Motion.View
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -2 }}
+                initial={{ opacity: 0, y: -4 }}
                 key="not-sent"
-                transition={{ duration: 150, type: "timing" }}
+                transition={{
+                  duration: 150,
+                  easing: "easeOut",
+                  type: "timing",
+                }}
               >
                 <Badge className="self-start" variant="destructive">
                   <Text>Not sent</Text>
@@ -98,11 +102,15 @@ const SessionRow = memo(
           <AnimatePresence key={`waiting-${mountId}`}>
             {isWaiting ? (
               <Motion.View
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -2 }}
+                initial={{ opacity: 0, y: -4 }}
                 key="waiting"
-                transition={{ duration: 150, type: "timing" }}
+                transition={{
+                  duration: 150,
+                  easing: "easeOut",
+                  type: "timing",
+                }}
               >
                 <Badge className="self-start" variant="outline">
                   <Text>Waiting to send</Text>

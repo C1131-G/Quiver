@@ -68,10 +68,13 @@ const AthleteRow = memo(
             {checked ? (
               <Motion.View
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0 }}
-                initial={{ opacity: 0, scale: 0 }}
+                exit={{ opacity: 0, scale: 0.25 }}
+                initial={{ opacity: 0, scale: 0.25 }}
                 key="check"
-                transition={{ type: "spring" }}
+                // Legend Motion's spring takes RN Animated's classic params,
+                // not web Motion's duration/bounce; overshootClamping is its
+                // "bounce: 0" equivalent.
+                transition={{ overshootClamping: true, type: "spring" }}
               >
                 <CheckIcon
                   colorClassName="accent-primary-foreground"
