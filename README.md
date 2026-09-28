@@ -20,6 +20,7 @@ Both apps share one Supabase project: Postgres with row-level security, Auth, Re
 ## Features
 
 **QuiverScore (scorers)**
+
 - Scores fully offline. Each scorer's work lives in their own SQLite file on the phone and syncs through an outbox when a connection returns, so no score is ever lost to a failed request.
 - Scores several athletes at once, one tab each.
 - Enter each arrow on a zone-coloured keypad, or tap where it hit on a drawn target face (full, 6-ring and triple-spot faces).
@@ -29,6 +30,7 @@ Both apps share one Supabase project: Postgres with row-level security, Auth, Re
 - Starts sessions ad hoc or from a schedule the admins publish.
 
 **Quiver Dashboard (admins)**
+
 - Athletes, scorers, age categories, events, distances and target faces.
 - Sessions update live as scorers shoot, and admins can correct scores (every change is written to an audit log).
 - Performance analytics and athlete comparison, with exports.
@@ -87,11 +89,12 @@ bun run db:reset   # apply migrations and seed.sql
 
 The local seed creates three accounts. **They exist only for local development:**
 
-| Login | Password | Role |
-| --- | --- | --- |
-| `admin` | `admin12345` | Admin (Quiver Dashboard) |
-| `scorer1` | `scorer12345` | Scorer (QuiverScore) |
-| `scorer2` | `scorer12345` | Scorer (QuiverScore) |
+| Login     | Password      | Role                     |
+| --------- | ------------- | ------------------------ |
+| `admin`   | `admin12345`  | Admin (Quiver Dashboard) |
+| `scorer1` | `scorer12345` | Scorer (QuiverScore)     |
+| `scorer2` | `scorer12345` | Scorer (QuiverScore)     |
+| `cibi`    | `cibi12345`   | Scorer (QuiverScore)     |
 
 ### 3. Configure environment
 

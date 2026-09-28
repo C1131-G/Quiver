@@ -4,6 +4,7 @@
 --   admin   / admin12345   (desktop admin)
 --   scorer1 / scorer12345  (QuiverScore)
 --   scorer2 / scorer12345  (QuiverScore)
+--   cibi    / cibi12345    (QuiverScore)
 
 -- ---------------------------------------------------------------------------
 -- Lookups
@@ -72,6 +73,7 @@ $$;
 select pg_temp.create_account('00000000-0000-4000-8000-000000000001', 'admin', 'Head Coach', 'admin', 'admin12345');
 select pg_temp.create_account('00000000-0000-4000-8000-000000000002', 'scorer1', 'Range Scorer One', 'scorer', 'scorer12345');
 select pg_temp.create_account('00000000-0000-4000-8000-000000000003', 'scorer2', 'Range Scorer Two', 'scorer', 'scorer12345');
+select pg_temp.create_account('00000000-0000-4000-8000-000000000004', 'cibi', 'Cibi', 'scorer', 'cibi12345');
 
 -- ---------------------------------------------------------------------------
 -- Athletes
