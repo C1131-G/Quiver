@@ -10,11 +10,12 @@
 -- ---------------------------------------------------------------------------
 
 insert into public.categories (name, sort_order) values
-  ('Sub Junior (U15)', 1),
-  ('Cadet (U18)', 2),
-  ('Junior (U21)', 3),
-  ('Senior', 4),
-  ('Master (50+)', 5);
+  ('Mini (U13)', 1),
+  ('Mini Sub Junior (U15)', 2),
+  ('Sub Junior (U17)', 3),
+  ('Junior (U19)', 4),
+  ('Senior (19+)', 5),
+  ('Master (45+)', 6);
 
 insert into public.events (name, sort_order) values
   ('Recurve', 1),
@@ -83,16 +84,16 @@ select v.id_no, v.aai_no, v.full_name, v.gender::public.gender,
   (select id from public.distances where meters = v.meters),
   (select id from public.target_faces where name = v.face)
 from (values
-  ('ATH-001', 'AAI-10231', 'Aarav Sharma',   'male',   'Senior',           'Recurve',      70, '122 cm'),
-  ('ATH-002', 'AAI-10232', 'Diya Patel',     'female', 'Senior',           'Recurve',      70, '122 cm'),
-  ('ATH-003', 'AAI-10233', 'Kabir Singh',    'male',   'Junior (U21)',     'Compound',     50, '80 cm 6-ring'),
-  ('ATH-004', 'AAI-10234', 'Ananya Reddy',   'female', 'Junior (U21)',     'Compound',     50, '80 cm 6-ring'),
-  ('ATH-005', 'AAI-10235', 'Vihaan Nair',    'male',   'Cadet (U18)',      'Recurve',      60, '122 cm'),
-  ('ATH-006', 'AAI-10236', 'Ishita Das',     'female', 'Cadet (U18)',      'Recurve',      60, '122 cm'),
-  ('ATH-007', 'AAI-10237', 'Arjun Mehta',    'male',   'Sub Junior (U15)', 'Indian Round', 30, '80 cm'),
-  ('ATH-008', 'AAI-10238', 'Saanvi Iyer',    'female', 'Sub Junior (U15)', 'Indian Round', 30, '80 cm'),
-  ('ATH-009', 'AAI-10239', 'Rohan Gupta',    'male',   'Senior',           'Compound',     50, '80 cm 6-ring'),
-  ('ATH-010', null,        'Meera Joshi',    'female', 'Master (50+)',     'Barebow',      30, '122 cm')
+  ('ATH-001', 'AAI-10231', 'Aarav Sharma',   'male',   'Senior (19+)',           'Recurve',      70, '122 cm'),
+  ('ATH-002', 'AAI-10232', 'Diya Patel',     'female', 'Senior (19+)',           'Recurve',      70, '122 cm'),
+  ('ATH-003', 'AAI-10233', 'Kabir Singh',    'male',   'Junior (U19)',           'Compound',     50, '80 cm 6-ring'),
+  ('ATH-004', 'AAI-10234', 'Ananya Reddy',   'female', 'Junior (U19)',           'Compound',     50, '80 cm 6-ring'),
+  ('ATH-005', 'AAI-10235', 'Vihaan Nair',    'male',   'Sub Junior (U17)',       'Recurve',      60, '122 cm'),
+  ('ATH-006', 'AAI-10236', 'Ishita Das',     'female', 'Sub Junior (U17)',       'Recurve',      60, '122 cm'),
+  ('ATH-007', 'AAI-10237', 'Arjun Mehta',    'male',   'Mini Sub Junior (U15)',  'Indian Round', 30, '80 cm'),
+  ('ATH-008', 'AAI-10238', 'Saanvi Iyer',    'female', 'Mini Sub Junior (U15)',  'Indian Round', 30, '80 cm'),
+  ('ATH-009', 'AAI-10239', 'Rohan Gupta',    'male',   'Senior (19+)',           'Compound',     50, '80 cm 6-ring'),
+  ('ATH-010', null,        'Meera Joshi',    'female', 'Master (45+)',           'Barebow',      30, '122 cm')
 ) as v (id_no, aai_no, full_name, gender, category, event, meters, face);
 
 -- ---------------------------------------------------------------------------
