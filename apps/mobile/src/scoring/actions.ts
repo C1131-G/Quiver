@@ -6,6 +6,8 @@ import type { Arrow, Athlete, SessionType, Venue } from "@/db/rows";
 import type { ScorerDb } from "@/db/scorer-db";
 import { queueForServer } from "@/sync/outbox";
 
+import { latestArrow } from "./latest-arrow";
+
 /**
  * Every change a scorer makes, written to the phone first and queued for
  * the server. Each action is one transaction across the collections it
@@ -167,6 +169,39 @@ export const scoreArrow = async (
 /** Removes the arrow shot last in the end, whatever its score. */
 export const deleteLastArrow = async (db: ScorerDb, ref: EndRef) => {
   const last = lastShot(readEnd(db, ref).arrows);
+  if (!last) {
+    return false;
+  }
+  await writeLocally(db, () => {
+    db.arrows.delete(last.id);
+  });
+  return true;
+};
+
+/**
+ * Takes back the last arrow entered anywhere in the session, whichever end
+ * it went to. Returns false when the session has no arrows.
+ */
+export const undoLastArrow = async (db: ScorerDb, sessionId: string) => {
+  const roundIds = new Set<string>();
+  for (const round of db.rounds.values()) {
+    if (round.session_id === sessionId) {
+      roundIds.add(round.id);
+    }
+  }
+  const endIds = new Set<string>();
+  for (const end of db.ends.values()) {
+    if (roundIds.has(end.round_id)) {
+      endIds.add(end.id);
+    }
+  }
+  const sessionArrows: Arrow[] = [];
+  for (const arrow of db.arrows.values()) {
+    if (endIds.has(arrow.end_id)) {
+      sessionArrows.push(arrow);
+    }
+  }
+  const last = latestArrow(sessionArrows);
   if (!last) {
     return false;
   }

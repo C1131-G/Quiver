@@ -168,7 +168,6 @@ export const SignInForm = () => {
                 className="h-14"
                 disabled={isSubmitting || !supabaseEnv}
                 onPress={submit}
-                radius="pill"
                 size="lg"
               >
                 <Text variant="large">

@@ -157,7 +157,6 @@ const Header = () => {
         aria-busy={signingOut}
         disabled={signingOut}
         onPress={handleSignOut}
-        radius="pill"
         size="sm"
         variant="outline"
       >
@@ -232,7 +231,6 @@ export const SessionList = () => {
             <Button
               className="h-12"
               onPress={() => router.push("/new-session")}
-              radius="pill"
               size="lg"
             >
               <PlusIcon colorClassName="accent-primary-foreground" size={18} />

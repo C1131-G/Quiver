@@ -32,7 +32,7 @@
       --color-zone-blue: oklch(0.6 0.15 240);
       --color-zone-black: oklch(0.22 0 0);
       --color-zone-white: oklch(0.98 0 0);
-      --color-zone-miss: oklch(0.55 0.02 150);
+      --color-zone-miss: oklch(0.556 0 0);
     }
 
     @variant dark {
@@ -59,7 +59,7 @@
       --color-zone-blue: oklch(0.6 0.15 240);
       --color-zone-black: oklch(0.22 0 0);
       --color-zone-white: oklch(0.98 0 0);
-      --color-zone-miss: oklch(0.55 0.02 150);
+      --color-zone-miss: oklch(0.556 0 0);
     }
   }
 }

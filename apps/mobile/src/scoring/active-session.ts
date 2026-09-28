@@ -9,6 +9,11 @@ export const activeSessionAtom = createAtom<{ sessionId: string | undefined }>({
   sessionId: undefined,
 });
 
+export type EntryMode = "keypad" | "target";
+
+/** How arrows are entered, kept while the scorer moves between athletes. */
+export const entryModeAtom = createAtom<EntryMode>("keypad");
+
 export const showSession = (sessionId: string) => {
   activeSessionAtom.set({ sessionId });
 };

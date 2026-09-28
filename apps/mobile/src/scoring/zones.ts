@@ -43,9 +43,9 @@ const WHITE: Zone = {
   text: "text-zone-black",
 };
 const MISS: Zone = {
-  background: "bg-zone-miss",
-  edge: NO_EDGE,
-  text: "text-zone-white",
+  background: "bg-muted",
+  edge: "border border-border",
+  text: "text-muted-foreground",
 };
 
 const ZONES = {

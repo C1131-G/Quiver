@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 const ChevronIcon = withUniwind(ChevronRight);
 
 /**
- * A tappable row on a card surface: rounded corners, a hairline edge and
- * bg-card to lift it off the page. Rows that open a screen end in a chevron.
+ * A tappable row on a card surface: square, with Quiver Dashboard's hairline
+ * card edge. Rows that open a screen end in a chevron.
  */
 export const ListRow = ({
   children,
@@ -23,7 +23,7 @@ export const ListRow = ({
 }) => (
   <PressableScale
     className={cn(
-      "border-foreground/10 bg-card active:bg-muted min-h-16 flex-row items-center gap-3 rounded-xl border px-4 py-3",
+      "border-foreground/10 bg-card active:bg-muted min-h-16 flex-row items-center gap-3 border px-4 py-3",
       className
     )}
     role="button"

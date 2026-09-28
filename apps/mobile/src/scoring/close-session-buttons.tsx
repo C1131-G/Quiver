@@ -1,7 +1,9 @@
 import { eq, useLiveQuery } from "@tanstack/react-db";
+import { Ellipsis } from "lucide-react-native";
 import { useState } from "react";
 import { Alert, View } from "react-native";
 import { toast } from "sonner-native";
+import { withUniwind } from "uniwind";
 
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
@@ -10,6 +12,8 @@ import { useScorerDb } from "@/db/scorer-db-context";
 import { abandonSession, submitSession } from "./close-session";
 import type { RoundCard } from "./use-scorecard";
 import { arrowProgress } from "./use-scorecard";
+
+const MoreIcon = withUniwind(Ellipsis);
 
 const SAVE_FAILED = "Could not save on this phone. Try again.";
 
@@ -50,22 +54,27 @@ const submitWarning = (cards: readonly RoundCard[]) => {
   };
 };
 
+export interface CloseSessionProps {
+  cards: readonly RoundCard[];
+  onDiscarded: () => void;
+  sendBlocked: boolean;
+  sessionId: string;
+}
+
+const BLOCKED_MESSAGE =
+  "Submitting and cancelling wait until the send problem is solved.";
+
 /**
  * Submit, and Cancel or Discard, for a session in progress. Both wait while
  * the server is refusing the session's changes: closing it would hide the
  * scores it never received.
  */
-export const CloseSessionButtons = ({
+const useCloseSession = ({
   cards,
   onDiscarded,
   sendBlocked,
   sessionId,
-}: {
-  cards: readonly RoundCard[];
-  onDiscarded: () => void;
-  sendBlocked: boolean;
-  sessionId: string;
-}) => {
+}: CloseSessionProps) => {
   const { db } = useScorerDb();
   const discardable = useCanDiscard(sessionId);
   const [closing, setClosing] = useState(false);
@@ -127,36 +136,79 @@ export const CloseSessionButtons = ({
     );
   };
 
-  const disabled = closing || sendBlocked;
+  return {
+    closing,
+    confirmAbandon,
+    confirmSubmit,
+    disabled: closing || sendBlocked,
+    discardable,
+  };
+};
 
+/** Shown once every arrow is in: submitting is the obvious next step. */
+export const CloseSessionButtons = (props: CloseSessionProps) => {
+  const { closing, confirmAbandon, confirmSubmit, disabled, discardable } =
+    useCloseSession(props);
   return (
     <View className="gap-2">
-      {sendBlocked ? (
-        <Text variant="muted">
-          Submitting and cancelling wait until the send problem above is solved.
-        </Text>
+      {props.sendBlocked ? (
+        <Text variant="muted">{BLOCKED_MESSAGE}</Text>
       ) : null}
-      <View className="flex-row gap-2">
+      <View className="flex-row gap-1.5">
         <Button
           aria-busy={closing}
-          className="h-11 flex-1"
+          className="h-12 flex-1"
           disabled={disabled}
           onPress={confirmAbandon}
-          radius="pill"
           variant="destructive"
         >
           <Text>{discardable ? "Discard" : "Cancel"}</Text>
         </Button>
         <Button
           aria-busy={closing}
-          className="h-11 flex-1"
+          className="h-12 flex-[2]"
           disabled={disabled}
           onPress={confirmSubmit}
-          radius="pill"
         >
           <Text>Submit session</Text>
         </Button>
       </View>
     </View>
+  );
+};
+
+/**
+ * The same choices from the header while scoring, so they take no room
+ * from the keypad until the session is finished.
+ */
+export const SessionMenuButton = (props: CloseSessionProps) => {
+  const { closing, confirmAbandon, confirmSubmit, discardable } =
+    useCloseSession(props);
+  const openMenu = () => {
+    if (props.sendBlocked) {
+      Alert.alert("Can't close yet", BLOCKED_MESSAGE);
+      return;
+    }
+    Alert.alert("Session", undefined, [
+      { onPress: confirmSubmit, text: "Submit session" },
+      {
+        onPress: confirmAbandon,
+        style: "destructive",
+        text: discardable ? "Discard session" : "Cancel session",
+      },
+      { style: "cancel", text: "Keep scoring" },
+    ]);
+  };
+  return (
+    <Button
+      aria-busy={closing}
+      aria-label="Session options"
+      disabled={closing}
+      onPress={openMenu}
+      size="icon"
+      variant="ghost"
+    >
+      <MoreIcon colorClassName="accent-foreground" size={20} />
+    </Button>
   );
 };

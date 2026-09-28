@@ -17,10 +17,9 @@ const inputVariants = cva(
     defaultVariants: { variant: "default" },
     variants: {
       variant: {
-        // A capsule, filled search field, as iOS renders a search bar: no
-        // border, a muted fill instead, and generous horizontal padding.
+        // A filled search field: no border, a muted fill instead.
         search: cn(
-          "bg-muted h-11 rounded-full px-4",
+          "bg-muted h-11 px-3",
           Platform.select({
             web: "focus-visible:ring-ring/50 focus-visible:ring-[3px]",
           })
