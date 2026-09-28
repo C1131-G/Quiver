@@ -16,7 +16,13 @@ import {
   InputGroupInput,
 } from "@workspace/ui/components/input-group";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useRef, useState } from "react";
+import {
+  useActionState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { IconSwap } from "@/components/icon-swap";
 import { createClient } from "@/lib/supabase/client";
@@ -92,27 +98,36 @@ const PasswordField = ({
 
 interface SignInState {
   error: string | undefined;
-  signedIn: boolean;
   username: string;
 }
 
 export const LoginForm = () => {
   const router = useRouter();
+  // Holds the button disabled while the dashboard loads after sign-in.
+  const [signedIn, setSignedIn] = useState(false);
+
+  // Cache Components keeps this page alive, hidden, after navigating away,
+  // and shows it again as it was. Clearing the flag when it is hidden means
+  // coming back to sign in (after logout or an expired session) never finds
+  // the button still disabled.
+  useLayoutEffect(
+    // oxlint-disable-next-line prefer-arrow-callback -- named for stack traces and the effects skill
+    function resetSignedInWhenHidden() {
+      return () => setSignedIn(false);
+    },
+    []
+  );
 
   // The username is returned with the result so a failed attempt keeps it:
   // React resets the form after an action, back to each field default.
-  const [{ error, signedIn, username }, signIn, isPending] = useActionState(
+  const [{ error, username }, signIn, isPending] = useActionState(
     async (
       _previous: SignInState,
       formData: FormData
     ): Promise<SignInState> => {
       const submittedUsername = String(formData.get("username") ?? "").trim();
       if (!supabaseEnv) {
-        return {
-          error: NOT_CONFIGURED,
-          signedIn: false,
-          username: submittedUsername,
-        };
+        return { error: NOT_CONFIGURED, username: submittedUsername };
       }
       const supabase = createClient();
       const { data: session, error: signInError } =
@@ -123,26 +138,21 @@ export const LoginForm = () => {
       if (signInError) {
         return {
           error: readableError(signInError.message),
-          signedIn: false,
           username: submittedUsername,
         };
       }
       if (!isAdminRole(session.user?.app_metadata)) {
         await supabase.auth.signOut({ scope: "local" });
-        return {
-          error: SCORER_ACCOUNT,
-          signedIn: false,
-          username: submittedUsername,
-        };
+        return { error: SCORER_ACCOUNT, username: submittedUsername };
       }
+      setSignedIn(true);
       // The session cookie is set; re-run the proxy so the server sees it.
       router.replace("/dashboard");
       router.refresh();
-      return { error: undefined, signedIn: true, username: submittedUsername };
+      return { error: undefined, username: submittedUsername };
     },
     {
       error: supabaseEnv ? undefined : NOT_CONFIGURED,
-      signedIn: false,
       username: "",
     }
   );

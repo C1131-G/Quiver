@@ -132,31 +132,29 @@ const SetupForm = ({
                 </CardRow>
               )}
             </form.Field>
-            <CardRow className="flex-row">
+            {/* Type above venue, each option half the card's width, so a
+                selected option's tick and label stay on one line. */}
+            <CardRow>
               <form.Field name="sessionType">
                 {(field) => (
-                  <View className="flex-1">
-                    <ChoiceGroup
-                      choices={SESSION_TYPES}
-                      columns={2}
-                      label="Session type"
-                      onChange={field.handleChange}
-                      value={field.state.value}
-                    />
-                  </View>
+                  <ChoiceGroup
+                    choices={SESSION_TYPES}
+                    columns={2}
+                    label="Session type"
+                    onChange={field.handleChange}
+                    value={field.state.value}
+                  />
                 )}
               </form.Field>
               <form.Field name="venue">
                 {(field) => (
-                  <View className="flex-1">
-                    <ChoiceGroup
-                      choices={VENUES}
-                      columns={2}
-                      label="Venue"
-                      onChange={field.handleChange}
-                      value={field.state.value}
-                    />
-                  </View>
+                  <ChoiceGroup
+                    choices={VENUES}
+                    columns={2}
+                    label="Venue"
+                    onChange={field.handleChange}
+                    value={field.state.value}
+                  />
                 )}
               </form.Field>
             </CardRow>

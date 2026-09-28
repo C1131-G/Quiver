@@ -5,13 +5,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@workspace/ui/components/sidebar";
-import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 
 export const WorkspaceLogout = () => {
-  const router = useRouter();
   const [error, setError] = useState<string>();
   const [isPending, startTransition] = useTransition();
 
@@ -25,8 +23,10 @@ export const WorkspaceLogout = () => {
         setError("Could not log out. Your session is still active.");
         return;
       }
-      router.replace("/login");
-      router.refresh();
+      // A full load, not router.replace: Cache Components would otherwise
+      // keep the signed-in pages and their cached data alive in memory, and
+      // bring back the login page as it was left, mid sign-in.
+      window.location.replace("/login");
     });
   };
 
